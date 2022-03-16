@@ -10,8 +10,8 @@ INSTALL ?= install
 all: ;
 
 install: all
-	$(INSTALL) -d $(DESTDIR)/$(LUA_LIB_DIR)/resty/worker/
-	$(INSTALL) lib/resty/worker/*.lua $(DESTDIR)/$(LUA_LIB_DIR)/resty/worker/
+	$(INSTALL) -d $(DESTDIR)/$(LUA_LIB_DIR)/resty/events/
+	$(INSTALL) lualib/resty/events/*.lua $(DESTDIR)/$(LUA_LIB_DIR)/resty/events/
 
 test: all
 	PATH=$(OPENRESTY_PREFIX)/nginx/sbin:$$PATH prove -I../test-nginx/lib -r t
