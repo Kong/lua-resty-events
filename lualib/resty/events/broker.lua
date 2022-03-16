@@ -17,7 +17,6 @@ local ngx = ngx
 local log = ngx.log
 local exit = ngx.exit
 local exiting = ngx.worker.exiting
-local get_phase = ngx.get_phase
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
 
@@ -34,10 +33,6 @@ ngx_http_lua_kong_ffi_socket_close_unix_listening(ngx_str_t *sock_name);
 ]]
 
 local function close_listening(sock_name)
-    if get_phase() ~= "init_worker" then
-        return nil, "close_listening can only be called in init_worker phase"
-    end
-
     if type(sock_name) == "string" then
         local UNIX_PREFIX = "unix:"
 
