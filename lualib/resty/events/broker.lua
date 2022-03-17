@@ -1,7 +1,8 @@
 local ffi = require "ffi"
 local cjson = require "cjson.safe"
 local lrucache = require "resty.lrucache"
-local semaphore = require "ngx.semaphore"
+--local semaphore = require "ngx.semaphore"
+local que = require "resty.events.queue"
 local server = require("resty.events.protocol").server
 
 local type = type
@@ -9,8 +10,8 @@ local assert = assert
 local pairs = pairs
 local setmetatable = setmetatable
 local str_sub  = string.sub
-local table_insert = table.insert
-local table_remove = table.remove
+--local table_insert = table.insert
+--local table_remove = table.remove
 --local random = math.random
 
 local ngx = ngx
@@ -125,19 +126,7 @@ function _M.run()
       exit(444)
   end
 
-  local queue
-  do
-    local queue_semaphore = semaphore.new()
-
-    queue = {
-      wait = function(...)
-        return queue_semaphore:wait(...)
-      end,
-      post = function(...)
-        return queue_semaphore:post(...)
-      end
-    }
-  end
+  local queue = que.new()
 
   _clients[conn] = queue
 
@@ -188,8 +177,7 @@ function _M.run()
       -- broadcast to all/unique workers
       local n = 0
       for _, q in pairs(_clients) do
-        table_insert(q, d.data)
-        q.post()
+        q.enqueue(d.data)
         n = n + 1
 
         if unique then
@@ -205,24 +193,19 @@ function _M.run()
 
   local write_thread = spawn(function()
     while not exiting() do
-      local ok, err = queue.wait(5)
+      local payload, err = queue.wait(5)
 
       if exiting() then
         return
       end
 
-      if not ok then
+      if not payload then
         if not is_timeout(err) then
           return nil, "semaphore wait error: " .. err
         end
 
         -- timeout, send ping?
         goto continue
-      end
-
-      local payload = table_remove(queue, 1)
-      if not payload then
-        return nil, "queue can not be empty after semaphore returns"
       end
 
       local _, err = conn:send_frame(payload)

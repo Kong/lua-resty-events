@@ -1,13 +1,14 @@
 local cjson = require "cjson.safe"
-local semaphore = require "ngx.semaphore"
+--local semaphore = require "ngx.semaphore"
+local que = require "resty.events.queue"
 local callback = require "resty.events.callback"
 local client = require("resty.events.protocol").client
 
 local type = type
 local assert = assert
 local str_sub  = string.sub
-local table_insert = table.insert
-local table_remove = table.remove
+--local table_insert = table.insert
+--local table_remove = table.remove
 
 local ngx = ngx
 local sleep = ngx.sleep
@@ -40,21 +41,8 @@ local function is_timeout(err)
   return err and str_sub(err, -7) == "timeout"
 end
 
-local function create_sema_queue()
-  local queue_semaphore = semaphore.new()
-
-  return {
-    wait = function(...)
-      return queue_semaphore:wait(...)
-    end,
-    post = function(...)
-      return queue_semaphore:post(...)
-    end
-  }
-end
-
-local _queue = create_sema_queue()
-local _queue_local = create_sema_queue()
+local _queue = que.new()
+local _queue_local = que.new()
 
 local _configured
 local _opts
@@ -113,24 +101,19 @@ communicate = function(premature)
 
   local write_thread = spawn(function()
     while not exiting() do
-      local ok, err = _queue.wait(5)
+      local payload, err = _queue.wait(5)
 
       if exiting() then
         return
       end
 
-      if not ok then
+      if not payload then
         if not is_timeout(err) then
           return nil, "semaphore wait error: " .. err
         end
 
         -- timeout
         goto continue
-      end
-
-      local payload = table_remove(_queue, 1)
-      if not payload then
-        return nil, "queue can not be empty after semaphore returns"
       end
 
       local _, err = conn:send_frame(payload)
@@ -140,8 +123,7 @@ communicate = function(premature)
         -- try to post it again
         sleep(POST_RETRY_DELAY)
 
-        table_insert(_queue, payload)
-        _queue:post()
+        _queue.enqueue(payload)
       end
 
       ::continue::
@@ -150,24 +132,19 @@ communicate = function(premature)
 
   local local_thread = spawn(function()
     while not exiting() do
-      local ok, err = _queue_local.wait(5)
+      local data, err = _queue_local.wait(5)
 
       if exiting() then
         return
       end
 
-      if not ok then
+      if not data then
         if not is_timeout(err) then
           return nil, "semaphore wait error: " .. err
         end
 
         -- timeout
         goto continue
-      end
-
-      local data = table_remove(_queue_local, 1)
-      if not data then
-        return nil, "queue can not be empty after semaphore returns"
       end
 
       -- got an event data, callback
@@ -238,9 +215,7 @@ local function post_event(source, event, data, typ)
     return nil, err
   end
 
-  table_insert(_queue, json)
-
-  _queue:post()
+  _queue:enqueue(json)
 
   return true
 end
@@ -280,13 +255,11 @@ function _M.post_local(source, event, data)
     return nil, "event is required"
   end
 
-  table_insert(_queue_local, {
+  _queue_local:enqueue({
     source = source,
     event = event,
     data = data,
   })
-
-  _queue_local:post()
 
   return true
 end
