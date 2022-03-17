@@ -22,14 +22,11 @@ local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
 local wait = ngx.thread.wait
 
+local UNIX_PREFIX = "unix:"
 local close_listening
 do
   local ffi = require "ffi"
   local C = ffi.C
-  local ffi_new = ffi.new
-
-  local UNIX_PREFIX = "unix:"
-  local sock_name_str = ffi_new("ngx_str_t[1]")
 
   ffi.cdef[[
     typedef struct {
@@ -41,15 +38,9 @@ do
     ngx_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name);
   ]]
 
+  local sock_name_str = ffi.new("ngx_str_t[1]")
+
   close_listening = function(sock_name)
-    if type(sock_name) ~= "string" then
-      return nil, "sock_name must be string"
-    end
-
-    if str_sub(sock_name, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
-      return nil, "sock_name must start with " .. UNIX_PREFIX
-    end
-
     sock_name = str_sub(sock_name, #UNIX_PREFIX + 1)
 
     sock_name_str[0].data = sock_name
@@ -69,6 +60,7 @@ local _clients
 local _uniques
 
 local _worker_id = ngx.worker.id()
+local _worker_count = ngx.worker.count()
 
 local _M = {
     _VERSION = '0.1.0',
@@ -89,8 +81,24 @@ function _M.configure(opts)
     return nil, '"worker_id" option required to start'
   end
 
+  if type(_opts.worker_id) ~= "number" then
+    return nil, '"worker_id" option must be a number'
+  end
+
+  if _opts.worker_id < 0 or _opts.worker_id >= _worker_count then
+    return nil, '"worker_id" option is invalid'
+  end
+
   if not _opts.listening then
     return nil, '"listening" option required to start'
+  end
+
+  if type(_opts.listening) ~= "string" then
+    return nil, '"listening" option must be a string'
+  end
+
+  if str_sub(_opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
+    return nil, '"listening" option must start with' .. UNIX_PREFIX
   end
 
   -- only enable listening on special worker id
@@ -112,7 +120,7 @@ function _M.configure(opts)
 
   _uniques, err = lrucache.new(MAX_UNIQUE_EVENTS)
   if not _uniques then
-    error("failed to create the events cache: " .. (err or "unknown"))
+    return nil, "failed to create the events cache: " .. (err or "unknown")
   end
 
   _clients = setmetatable({}, { __mode = "k", })
@@ -152,7 +160,7 @@ function _M.run()
       end
 
       if not data then
-        return nil, "did not receive frame from client"
+        return nil, "did not receive frame from worker"
       end
 
       local d, err
@@ -210,7 +218,7 @@ function _M.run()
 
       local _, err = conn:send_frame(payload)
       if err then
-          log(ERR, "failed to send: ", err)
+          log(ERR, "failed to send event: ", err)
       end
 
       ::continue::
