@@ -1,6 +1,6 @@
-local ffi = require "ffi"
 local cjson = require "cjson.safe"
 local lrucache = require "resty.lrucache"
+
 local que = require "resty.events.queue"
 local server = require("resty.events.protocol").server
 
@@ -22,40 +22,43 @@ local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
 local wait = ngx.thread.wait
 
-local C = ffi.C
-local ffi_new = ffi.new
-
-ffi.cdef[[
-typedef struct {
-    size_t           len;
-    unsigned char   *data;
-} ngx_str_t;
-
-void
-ngx_http_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name);
-]]
-
-local function close_listening(sock_name)
-  if type(sock_name) ~= "string" then
-    return nil, "sock_name must be string"
-  end
+local close_listening
+do
+  local ffi = require "ffi"
+  local C = ffi.C
+  local ffi_new = ffi.new
 
   local UNIX_PREFIX = "unix:"
-
-  if str_sub(sock_name, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
-    return nil, "sock_name must start with " .. UNIX_PREFIX
-  end
-
-  sock_name = str_sub(sock_name, #UNIX_PREFIX + 1)
-
   local sock_name_str = ffi_new("ngx_str_t[1]")
 
-  sock_name_str[0].data = sock_name
-  sock_name_str[0].len = #sock_name
+  ffi.cdef[[
+    typedef struct {
+        size_t           len;
+        unsigned char   *data;
+    } ngx_str_t;
 
-  C.ngx_http_lua_ffi_close_listening_unix_socket(sock_name_str)
+    void
+    ngx_http_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name);
+  ]]
 
-  return true
+  close_listening = function(sock_name)
+    if type(sock_name) ~= "string" then
+      return nil, "sock_name must be string"
+    end
+
+    if str_sub(sock_name, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
+      return nil, "sock_name must start with " .. UNIX_PREFIX
+    end
+
+    sock_name = str_sub(sock_name, #UNIX_PREFIX + 1)
+
+    sock_name_str[0].data = sock_name
+    sock_name_str[0].len = #sock_name
+
+    C.ngx_http_lua_ffi_close_listening_unix_socket(sock_name_str)
+
+    return true
+  end
 end
 
 --local worker_pid = ngx.worker.pid
