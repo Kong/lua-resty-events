@@ -160,7 +160,7 @@ function _M.run()
       end
 
       if not data then
-        return nil, "did not receive frame from worker"
+        return nil, "did not receive event from worker"
       end
 
       local d, err
@@ -172,7 +172,7 @@ function _M.run()
       end
 
       -- unique event
-      local unique = d.typ.unique
+      local unique = d.spec.unique
       if unique then
         if _uniques:get(unique) then
           log(DEBUG, "unique event is duplicate: ", unique)

@@ -35,7 +35,7 @@ end
 local _worker_pid = ngx.worker.pid()
 
 local _queue = que.new()
-local _queue_local = que.new()
+local _local_queue = que.new()
 
 local _configured
 local _opts
@@ -82,7 +82,7 @@ communicate = function(premature)
       end
 
       if not data then
-        return nil, "did not receive frame from broker"
+        return nil, "did not receive event from broker"
       end
 
       -- got an event data, callback
@@ -125,7 +125,7 @@ communicate = function(premature)
 
   local local_thread = spawn(function()
     while not exiting() do
-      local data, err = _queue_local.pop()
+      local data, err = _local_queue.pop()
 
       if exiting() then
         return
@@ -187,7 +187,7 @@ function _M.configure(opts)
 end
 
 -- posts a new event
-local function post_event(source, event, data, typ)
+local function post_event(source, event, data, spec)
   local json, err
 
   -- encode event info
@@ -202,9 +202,9 @@ local function post_event(source, event, data, typ)
     return nil, err
   end
 
-  -- encode typ info
+  -- encode spec info
   json, err = cjson.encode({
-    typ = typ or EMPTY_T,
+    spec = spec or EMPTY_T,
     data = json,
   })
 
@@ -252,7 +252,7 @@ function _M.post_local(source, event, data)
     return nil, "event is required"
   end
 
-  _queue_local:push({
+  _local_queue:push({
     source = source,
     event = event,
     data = data,
