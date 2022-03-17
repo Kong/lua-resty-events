@@ -38,7 +38,7 @@ do
     } ngx_str_t;
 
     void
-    ngx_http_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name);
+    ngx_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name);
   ]]
 
   close_listening = function(sock_name)
@@ -55,7 +55,7 @@ do
     sock_name_str[0].data = sock_name
     sock_name_str[0].len = #sock_name
 
-    C.ngx_http_lua_ffi_close_listening_unix_socket(sock_name_str)
+    C.ngx_lua_ffi_close_listening_unix_socket(sock_name_str)
 
     return true
   end

@@ -15,11 +15,11 @@
  */
 
 
-#include <ngx_http.h>
+#include <ngx_event.h>
 
 
 static void
-ngx_http_lua_close_listening_socket(ngx_listening_t *ls)
+ngx_lua_close_listening_socket(ngx_listening_t *ls)
 {
     ngx_connection_t  *c = ls->connection;
 
@@ -44,12 +44,12 @@ ngx_http_lua_close_listening_socket(ngx_listening_t *ls)
 
     }
 
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, ngx_cycle->log, 0,
+    ngx_log_debug2(NGX_LOG_DEBUG_EVENT, ngx_cycle->log, 0,
             "close listening %V #%d ", &ls->addr_text, ls->fd);
 }
 
 void
-ngx_http_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name)
+ngx_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name)
 {
 #if (NGX_HAVE_UNIX_DOMAIN)
 
@@ -71,12 +71,12 @@ ngx_http_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name)
             continue;
         }
 
-        ngx_log_debug2(NGX_LOG_DEBUG_HTTP, ngx_cycle->log, 0,
+        ngx_log_debug2(NGX_LOG_DEBUG_EVENT, ngx_cycle->log, 0,
                 "try to close listening %V #%d", &ls[i].addr_text, ls[i].fd);
 
         if (ngx_strncmp(ls[i].addr_text.data + sizeof("unix:") - 1,
                          sock_name->data, sock_name->len) == 0) {
-            ngx_http_lua_close_listening_socket(&ls[i]);
+            ngx_lua_close_listening_socket(&ls[i]);
             break;
         }
     }
