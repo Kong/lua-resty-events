@@ -101,7 +101,7 @@ communicate = function(premature)
 
   local write_thread = spawn(function()
     while not exiting() do
-      local payload, err = _queue.wait(5)
+      local payload, err = _queue.pop()
 
       if exiting() then
         return
@@ -123,7 +123,7 @@ communicate = function(premature)
         -- try to post it again
         sleep(POST_RETRY_DELAY)
 
-        _queue.enqueue(payload)
+        _queue.push(payload)
       end
 
       ::continue::
@@ -132,7 +132,7 @@ communicate = function(premature)
 
   local local_thread = spawn(function()
     while not exiting() do
-      local data, err = _queue_local.wait(5)
+      local data, err = _queue_local.pop()
 
       if exiting() then
         return
@@ -215,7 +215,7 @@ local function post_event(source, event, data, typ)
     return nil, err
   end
 
-  _queue:enqueue(json)
+  _queue:push(json)
 
   return true
 end
@@ -255,7 +255,7 @@ function _M.post_local(source, event, data)
     return nil, "event is required"
   end
 
-  _queue_local:enqueue({
+  _queue_local:push({
     source = source,
     event = event,
     data = data,

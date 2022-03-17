@@ -19,13 +19,13 @@ function _M.new()
 end
 
 
-function _M:enqueue(item)
+function _M:push(item)
   table_insert(self, item)
   self.semaphore:post()
 end
 
 
-function _M:dequeue()
+function _M:pop()
   local ok, err = self.semaphore:wait(5)
   if not ok then
     return nil, err
