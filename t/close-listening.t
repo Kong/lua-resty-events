@@ -7,9 +7,6 @@ use Test::Nginx::Socket::Lua;
 #master_process_enabled(1);
 #log_level('warn');
 
-master_on();
-workers(2);
-
 repeat_each(2);
 
 plan tests => repeat_each() * (blocks() * 5) - 2;
@@ -18,8 +15,8 @@ $ENV{TEST_NGINX_HTML_DIR} ||= html_dir();
 
 #no_diff();
 #no_long_string();
-#master_on();
-#workers(2);
+master_on();
+workers(2);
 run_tests();
 
 __DATA__
