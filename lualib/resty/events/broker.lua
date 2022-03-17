@@ -32,7 +32,7 @@ typedef struct {
 } ngx_str_t;
 
 void
-ngx_http_lua_kong_ffi_socket_close_unix_listening(ngx_str_t *sock_name);
+ngx_http_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name);
 ]]
 
 local function close_listening(sock_name)
@@ -53,7 +53,7 @@ local function close_listening(sock_name)
   sock_name_str[0].data = sock_name
   sock_name_str[0].len = #sock_name
 
-  C.ngx_http_lua_kong_ffi_socket_close_unix_listening(sock_name_str)
+  C.ngx_http_lua_ffi_close_listening_unix_socket(sock_name_str)
 
   return true
 end
