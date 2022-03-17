@@ -1,5 +1,4 @@
 local cjson = require "cjson.safe"
---local semaphore = require "ngx.semaphore"
 local que = require "resty.events.queue"
 local callback = require "resty.events.callback"
 local client = require("resty.events.protocol").client
@@ -7,8 +6,6 @@ local client = require("resty.events.protocol").client
 local type = type
 local assert = assert
 local str_sub  = string.sub
---local table_insert = table.insert
---local table_remove = table.remove
 
 local ngx = ngx
 local sleep = ngx.sleep
@@ -34,7 +31,7 @@ local CONNECTION_DELAY = 0.1
 local POST_RETRY_DELAY = 0.1
 
 local _M = {
-    _VERSION = '0.0.1',
+    _VERSION = '0.1.0',
 }
 
 local function is_timeout(err)

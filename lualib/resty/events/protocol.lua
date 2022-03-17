@@ -33,7 +33,7 @@ end
 
 
 local _Server = {
-    _VERSION = "0.0.1",
+    _VERSION = "0.1.0",
     recv_frame = recv_frame,
     send_frame = send_frame,
 }
@@ -73,7 +73,7 @@ end
 
 
 local _Client = {
-    _VERSION = "0.0.1",
+    _VERSION = "0.1.0",
     recv_frame = recv_frame,
     send_frame = send_frame,
 }

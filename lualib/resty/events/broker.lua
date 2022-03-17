@@ -1,7 +1,6 @@
 local ffi = require "ffi"
 local cjson = require "cjson.safe"
 local lrucache = require "resty.lrucache"
---local semaphore = require "ngx.semaphore"
 local que = require "resty.events.queue"
 local server = require("resty.events.protocol").server
 
@@ -10,8 +9,6 @@ local assert = assert
 local pairs = pairs
 local setmetatable = setmetatable
 local str_sub  = string.sub
---local table_insert = table.insert
---local table_remove = table.remove
 --local random = math.random
 
 local ngx = ngx
@@ -29,35 +26,36 @@ local C = ffi.C
 local ffi_new = ffi.new
 
 ffi.cdef[[
+typedef struct {
+    size_t           len;
+    unsigned char   *data;
+} ngx_str_t;
+
 void
 ngx_http_lua_kong_ffi_socket_close_unix_listening(ngx_str_t *sock_name);
 ]]
 
 local function close_listening(sock_name)
-    if type(sock_name) == "string" then
-        local UNIX_PREFIX = "unix:"
+  if type(sock_name) ~= "string" then
+    return nil, "sock_name must be string"
+  end
 
-        if str_sub(sock_name, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
-            return nil, "sock_name must start with " .. UNIX_PREFIX
-        end
+  local UNIX_PREFIX = "unix:"
 
-        sock_name = str_sub(sock_name, #UNIX_PREFIX + 1)
+  if str_sub(sock_name, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
+    return nil, "sock_name must start with " .. UNIX_PREFIX
+  end
 
-        local sock_name_str = ffi_new("ngx_str_t[1]")
+  sock_name = str_sub(sock_name, #UNIX_PREFIX + 1)
 
-        sock_name_str[0].data = sock_name
-        sock_name_str[0].len = #sock_name
+  local sock_name_str = ffi_new("ngx_str_t[1]")
 
-        C.ngx_http_lua_kong_ffi_socket_close_unix_listening(sock_name_str)
+  sock_name_str[0].data = sock_name
+  sock_name_str[0].len = #sock_name
 
-        return true
-    end
+  C.ngx_http_lua_kong_ffi_socket_close_unix_listening(sock_name_str)
 
-    if type(sock_name) == "number" then
-        return nil, "inet port is not supported now"
-    end
-
-    return nil, "sock_name must be number or string"
+  return true
 end
 
 --local worker_pid = ngx.worker.pid
@@ -78,7 +76,7 @@ local _clients
 local _uniques
 
 local _M = {
-    _VERSION = '0.0.1',
+    _VERSION = '0.1.0',
 }
 --local mt = { __index = _M, }
 

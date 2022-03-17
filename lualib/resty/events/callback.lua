@@ -66,7 +66,7 @@ local _callbacks = autotable(2)
 -- not 'eventsource', but 'event' specific handlers, no more sub tables
 
 local _M = {
-  _VERSION = '0.0.1',
+  _VERSION = '0.1.0',
 }
 
 local function do_handlerlist(handler_list, source, event, data, pid)
