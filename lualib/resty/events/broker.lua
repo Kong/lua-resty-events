@@ -235,5 +235,8 @@ function _M.run()
   return exit(ngx.OK)
 end
 
+-- for test only
+_M.close_listening = close_listening
+
 return _M
 
