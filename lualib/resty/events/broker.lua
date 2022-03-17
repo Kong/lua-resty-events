@@ -61,19 +61,14 @@ do
   end
 end
 
---local worker_pid = ngx.worker.pid
---local worker_count = ngx.worker.count
-
-local _worker_id = ngx.worker.id()
---local _worker_pid = worker_pid()
---local _worker_count = worker_count()
-
 local DEFAULT_UNIQUE_TIMEOUT = 5
 local MAX_UNIQUE_EVENTS = 1024
 
 local _opts
 local _clients
 local _uniques
+
+local _worker_id = ngx.worker.id()
 
 local _M = {
     _VERSION = '0.1.0',
@@ -84,14 +79,14 @@ local function is_timeout(err)
   return err and str_sub(err, -7) == "timeout"
 end
 
--- opts = {server_id = n, listening = 'unix:...', timeout = n,}
+-- opts = {worker_id = n, listening = 'unix:...', timeout = n,}
 function _M.configure(opts)
   assert(type(opts) == "table", "Expected a table, got "..type(opts))
 
   _opts = opts
 
-  if not _opts.server_id then
-    return nil, '"server_id" option required to start'
+  if not _opts.worker_id then
+    return nil, '"worker_id" option required to start'
   end
 
   if not _opts.listening then
@@ -99,7 +94,7 @@ function _M.configure(opts)
   end
 
   -- only enable listening on special worker id
-  if _worker_id ~= _opts.server_id then
+  if _worker_id ~= _opts.worker_id then
       close_listening(_opts.listening)
       return true
   end
@@ -168,13 +163,11 @@ function _M.run()
         goto continue
       end
 
-      local typ = d.typ
-
       -- unique event
-      local unique = typ.unique
+      local unique = d.typ.unique
       if unique then
         if _uniques:get(unique) then
-          --log(DEBUG, "unique event is duplicate: ", unique)
+          log(DEBUG, "unique event is duplicate: ", unique)
           goto continue
         end
 
@@ -200,7 +193,7 @@ function _M.run()
 
   local write_thread = spawn(function()
     while not exiting() do
-      local payload, err = queue.pop(5)
+      local payload, err = queue.pop()
 
       if exiting() then
         return

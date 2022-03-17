@@ -19,12 +19,6 @@ local kill = ngx.thread.kill
 local wait = ngx.thread.wait
 
 local timer_at = ngx.timer.at
-local worker_pid = ngx.worker.pid
---local worker_count = ngx.worker.count
-
---local _worker_id = ngx.worker.id()
-local _worker_pid = worker_pid()
---local _worker_count = worker_count()
 
 local EMPTY_T = {}
 local CONNECTION_DELAY = 0.1
@@ -37,6 +31,8 @@ local _M = {
 local function is_timeout(err)
   return err and str_sub(err, -7) == "timeout"
 end
+
+local _worker_pid = ngx.worker.pid()
 
 local _queue = que.new()
 local _queue_local = que.new()
@@ -115,7 +111,7 @@ communicate = function(premature)
 
       local _, err = conn:send_frame(payload)
       if err then
-        log(ERR, "failed to send: ", err)
+        log(ERR, "failed to send event: ", err)
 
         -- try to post it again
         sleep(POST_RETRY_DELAY)
@@ -178,6 +174,10 @@ function _M.configure(opts)
   assert(type(opts) == "table", "Expected a table, got "..type(opts))
 
   _opts = opts
+
+  if not _opts.listening then
+    return nil, '"listening" option required to start'
+  end
 
   assert(timer_at(0, function(premature)
     communicate(premature)
@@ -261,7 +261,7 @@ function _M.post_local(source, event, data)
   return true
 end
 
--- compatible for lua-resty-worker-events
+-- compatible with lua-resty-worker-events
 function _M.poll()
   return "done"
 end
