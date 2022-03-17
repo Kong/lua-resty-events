@@ -93,27 +93,29 @@ function _Client.new(self, opts)
 end
 
 
-function _Client.connect(self, unix)
+function _Client.connect(self, addr)
     local sock = self.sock
     if not sock then
         return nil, "not initialized"
     end
 
-    if type(unix) ~= "string" then
-        return nil, "unix must be a string"
+    if type(addr) ~= "string" then
+        return nil, "addr must be a string"
     end
 
-    if str_sub(unix, 1, 5) ~= "unix:" then
-        unix = "unix:" .. unix
+    if str_sub(addr, 1, 5) ~= "unix:" then
+        return nil, "addr must start with \"unix:\""
     end
 
-    local ok, err = sock:connect(unix)
+    local ok, err = sock:connect(addr)
     if not ok then
         return nil, "failed to connect: " .. err
     end
 
-    local req = "GET / HTTP/1.1\r\nHost: localhost" ..
-                "\r\nConnection: Upgrade\r\nUpgrade: Kong-Worker-Events/1\r\n\r\n"
+    local req = "GET / HTTP/1.1\r\n" ..
+                "Host: localhost\r\n" ..
+                "Connection: Upgrade\r\n" ..
+                "Upgrade: Kong-Worker-Events/1\r\n\r\n"
 
     local bytes, err = sock:send(req)
     if not bytes then
