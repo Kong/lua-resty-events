@@ -185,7 +185,7 @@ function _M.run()
       -- broadcast to all/unique workers
       local n = 0
       for _, q in pairs(_clients) do
-        q.push(d.data)
+        q:push(d.data)
         n = n + 1
 
         if unique then
@@ -201,7 +201,7 @@ function _M.run()
 
   local write_thread = spawn(function()
     while not exiting() do
-      local payload, err = queue.pop()
+      local payload, err = queue:pop()
 
       if exiting() then
         return

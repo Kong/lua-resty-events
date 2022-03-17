@@ -94,7 +94,7 @@ communicate = function(premature)
 
   local write_thread = spawn(function()
     while not exiting() do
-      local payload, err = _queue.pop()
+      local payload, err = _queue:pop()
 
       if exiting() then
         return
@@ -116,7 +116,7 @@ communicate = function(premature)
         -- try to post it again
         sleep(POST_RETRY_DELAY)
 
-        _queue.push(payload)
+        _queue:push(payload)
       end
 
       ::continue::
@@ -125,7 +125,7 @@ communicate = function(premature)
 
   local local_thread = spawn(function()
     while not exiting() do
-      local data, err = _local_queue.pop()
+      local data, err = _local_queue:pop()
 
       if exiting() then
         return
