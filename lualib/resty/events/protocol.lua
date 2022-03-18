@@ -38,7 +38,7 @@ local _Server = {
     send_frame = send_frame,
 }
 
-local _server_mt = { __index = _Server }
+local _SERVER_MT = { __index = _Server, }
 
 
 function _Server.new(self, opts)
@@ -68,7 +68,7 @@ function _Server.new(self, opts)
 
     return setmetatable({
         sock = sock,
-    }, _server_mt)
+    }, _SERVER_MT)
 end
 
 
@@ -78,7 +78,7 @@ local _Client = {
     send_frame = send_frame,
 }
 
-local _client_mt = { __index = _Client }
+local _CLIENT_MT = { __index = _Client, }
 
 
 function _Client.new(self, opts)
@@ -89,7 +89,7 @@ function _Client.new(self, opts)
 
     return setmetatable({
         sock = sock,
-    }, _client_mt)
+    }, _CLIENT_MT)
 end
 
 
