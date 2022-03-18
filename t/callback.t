@@ -5,9 +5,9 @@ use Test::Nginx::Socket::Lua;
 #master_process_enabled(1);
 #log_level('warn');
 
-repeat_each(2);
+#repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 9) - 6;
+plan tests => repeat_each() * (blocks() * 6) ;
 
 $ENV{TEST_NGINX_HTML_DIR} ||= html_dir();
 
@@ -55,11 +55,17 @@ __DATA__
             post("content_by_lua","request2","123")
             post("content_by_lua","request3","123")
 
-            --ec.unregister(ngx.cb_global)
+            ec.unregister(ngx.cb_global)
 
-            --post("content_by_lua","request1","124")
-            --post("content_by_lua","request2","124")
-            --post("content_by_lua","request3","124")
+            post("content_by_lua","request1","124")
+            post("content_by_lua","request2","124")
+            post("content_by_lua","request3","124")
+
+            --ec.unregister(ngx.cb_source,  "content_by_lua")
+
+            --post("content_by_lua","request1","125")
+            --post("content_by_lua","request2","125")
+            --post("content_by_lua","request3","125")
 
             ngx.say("ok")
         }
@@ -85,7 +91,15 @@ worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, d
 worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=123, callback=global
 worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=123, callback=source
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=123, callback=event3$/
---- ONLY
+worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=123, callback=event3
+worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=124, callback=source
+worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=124, callback=event12
+worker-events: handling event; source=content_by_lua, event=request2, pid=\d+
+worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=124, callback=source
+worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=124, callback=event12
+worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=124, callback=source
+worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=124, callback=event3$/
 
 
