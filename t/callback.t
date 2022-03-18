@@ -7,7 +7,7 @@ use Test::Nginx::Socket::Lua;
 
 #repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 6) ;
+plan tests => repeat_each() * (blocks() * 6) + 2;
 
 $ENV{TEST_NGINX_HTML_DIR} ||= html_dir();
 
@@ -194,3 +194,90 @@ after GC:0
 [crit]
 [alert]
 [emerg]
+
+
+=== TEST 3: callback error handling
+--- http_config
+    lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
+--- config
+    location = /test {
+        content_by_lua_block {
+            local cjson = require "cjson.safe"
+            local ec = require "resty.events.callback"
+
+            local post = function(s, e, d)
+                ec.do_event_json(
+                    cjson.encode{source = s, event = e, data = d, pid = pid})
+            end
+
+            local error_func = function()
+              error("something went wrong here!")
+            end
+            local test_callback = function(source, event, data, pid)
+              error_func() -- nested call to check stack trace
+            end
+            ec.register(test_callback)
+
+            -- non-serializable test data containing a function value
+            -- use "nil" as data, reproducing issue #5
+            post("content_by_lua","test_event", nil)
+
+            ngx.say("ok")
+        }
+    }
+--- request
+GET /test
+--- response_body
+ok
+--- error_log
+something went wrong here!
+--- no_error_log
+[crit]
+[alert]
+[emerg]
+
+
+=== TEST 4: callback error stacktrace
+--- http_config
+    lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
+--- config
+    location = /test {
+        content_by_lua_block {
+            local cjson = require "cjson.safe"
+            local ec = require "resty.events.callback"
+
+            local post = function(s, e, d)
+                ec.do_event_json(
+                    cjson.encode{source = s, event = e, data = d, pid = pid})
+            end
+
+            local error_func = function()
+              error("something went wrong here!")
+            end
+            local in_between = function()
+              error_func() -- nested call to check stack trace
+            end
+            local test_callback = function(source, event, data, pid)
+              in_between() -- nested call to check stack trace
+            end
+
+            ec.register(test_callback)
+            post("content_by_lua","test_event")
+
+            ngx.say("ok")
+        }
+    }
+--- request
+GET /test
+--- response_body
+ok
+--- error_log
+something went wrong here!
+in function 'error_func'
+in function 'in_between'
+--- no_error_log
+[crit]
+[alert]
+[emerg]
+
+
