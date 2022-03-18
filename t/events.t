@@ -7,7 +7,7 @@ use Test::Nginx::Socket::Lua;
 
 #repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 6);
+plan tests => repeat_each() * (blocks() * 7) + 1;
 
 $ENV{TEST_NGINX_HTML_DIR} ||= html_dir();
 
@@ -70,6 +70,8 @@ __DATA__
 GET /test
 --- response_body
 ok
+--- error_log
+event published to 1 workers
 --- no_error_log
 [error]
 [crit]
@@ -135,6 +137,8 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
 GET /test
 --- response_body
 ok
+--- error_log
+event published to 1 workers
 --- no_error_log
 [error]
 [crit]
@@ -207,6 +211,9 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
 GET /test
 --- response_body
 ok
+--- error_log
+event published to 1 workers
+unique event is duplicate: unique_value
 --- no_error_log
 [error]
 [crit]
@@ -221,3 +228,6 @@ worker-events: handling event; source=content_by_lua, event=request4, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request4, pid=\d+, data=01234567890
 worker-events: handling event; source=content_by_lua, event=request6, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890$/
+
+
+
