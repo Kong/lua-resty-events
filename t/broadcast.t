@@ -201,7 +201,6 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
         content_by_lua_block {
             local ew = require "resty.events.worker"
 
-            -- may have some random line sequence error
             ew.post("content_by_lua","request1","01234567890")
 
             ngx.sleep(0.05) -- wait for logs
@@ -216,7 +215,6 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
 
             ngx.sleep(0.05) -- wait for logs
 
-            -- may have some random line sequence error
             ew.post("content_by_lua","request6","01234567890")
 
             ngx.say("ok")
@@ -234,27 +232,17 @@ event published to 4 workers
 [error]
 [crit]
 [alert]
---- grep_error_log eval: qr/worker-events: .*/
+--- grep_error_log eval: qr/worker-events: handler .*/
 --- grep_error_log_out eval
-qr/^worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
+qr/^worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
 worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request2, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request4, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request4, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request6, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request6, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request6, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request6, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890$/
 
 
