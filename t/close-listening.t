@@ -1,5 +1,4 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
-# modified from https://github.com/openresty/lua-nginx-module/blob/master/t/045-ngx-var.t
 # with index always turned on
 use Test::Nginx::Socket::Lua;
 
