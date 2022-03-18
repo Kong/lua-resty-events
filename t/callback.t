@@ -126,3 +126,71 @@ worker-events: handling event; source=content_by_lua, event=request2, pid=\d+
 worker-events: handling event; source=content_by_lua, event=request3, pid=\d+$/
 
 
+=== TEST 2: registering and GC'ing weak event handlers at different levels
+--- http_config
+    lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
+--- config
+    location = /test {
+        content_by_lua_block {
+            local cjson = require "cjson.safe"
+            local ec = require "resty.events.callback"
+
+            local post = function(s, e, d)
+                ec.do_event_json(
+                    cjson.encode{source = s, event = e, data = d, pid = pid})
+            end
+
+            local count = 0
+
+            local cb = {
+              global = function(source, event)
+                ngx.log(ngx.DEBUG, "global handler: ", source, ", ", event)
+                count = count + 1
+              end,
+              source = function(source, event)
+                ngx.log(ngx.DEBUG, "global source: ", source, ", ", event)
+                count = count + 1
+              end,
+              event12 = function(source, event)
+                ngx.log(ngx.DEBUG, "global event12: ", source, ", ", event)
+                count = count + 1
+              end,
+              event3 = function(source, event)
+                ngx.log(ngx.DEBUG, "global event3: ", source, ", ", event)
+                count = count + 1
+              end,
+            }
+
+            ec.register_weak(cb.global)
+            ec.register_weak(cb.source,  "content_by_lua")
+            ec.register_weak(cb.event12, "content_by_lua", "request1", "request2")
+            ec.register_weak(cb.event3,  "content_by_lua", "request3")
+
+            post("content_by_lua","request1","123")
+            post("content_by_lua","request2","123")
+            post("content_by_lua","request3","123")
+
+            ngx.say("before GC:", count)
+
+            cb = nil
+            collectgarbage()
+            collectgarbage()
+            count = 0
+
+            post("content_by_lua","request1","123")
+            post("content_by_lua","request2","123")
+            post("content_by_lua","request3","123")
+
+            ngx.say("after GC:", count) -- 0
+        }
+    }
+--- request
+GET /test
+--- response_body
+before GC:9
+after GC:0
+--- no_error_log
+[error]
+[crit]
+[alert]
+[emerg]
