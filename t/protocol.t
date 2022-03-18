@@ -1,5 +1,4 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
-# with index always turned on
 use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
