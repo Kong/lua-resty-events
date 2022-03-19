@@ -43,7 +43,7 @@ jobs:
         wget https://openresty.org/download/openresty-${OPENRESTY}.tar.gz
         tar xfz openresty-${OPENRESTY}.tar.gz
         cd openresty-${OPENRESTY}
-        ./configure --with-debug --add-module=../lua-resty-worker-pubsub
+        ./configure --with-debug --add-module=../../lua-resty-worker-pubsub
         make && make install
 
     - name: Run Test
