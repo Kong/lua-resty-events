@@ -49,5 +49,6 @@ jobs:
     - name: Run Test
       run: |
         nginx -V
+        sudo make install
         make test
 
