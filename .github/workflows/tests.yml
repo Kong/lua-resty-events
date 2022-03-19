@@ -48,9 +48,6 @@ jobs:
 
     - name: Run Test
       run: |
-
         nginx -V
-        resty -V
-
         make test
 
