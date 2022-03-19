@@ -44,7 +44,7 @@ jobs:
         tar xfz openresty-${OPENRESTY}.tar.gz
         cd openresty-${OPENRESTY}
         ./configure --with-debug --add-module=../../lua-resty-worker-pubsub
-        make && make install
+        make && sudo make install
 
     - name: Run Test
       run: |
@@ -52,5 +52,5 @@ jobs:
         nginx -V
         resty -V
 
-        #prove -j$JOBS -r t
+        make test
 
