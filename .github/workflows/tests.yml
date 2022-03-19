@@ -37,13 +37,15 @@ jobs:
       run: |
         sudo apt update
         sudo apt-get install -qq -y wget cpanminus net-tools libpcre3-dev build-essential valgrind
+        if [ ! -e perl ]; then sudo cpanm --notest Test::Nginx > build.log 2>&1 || (cat build.log && exit 1); cp -r /usr/local/share/perl/ .; else sudo cp -r perl /usr/local/share; fi
 
     - name: Setup tools
       run: |
+        cd ..
         wget https://openresty.org/download/openresty-${OPENRESTY}.tar.gz
         tar xfz openresty-${OPENRESTY}.tar.gz
         cd openresty-${OPENRESTY}
-        ./configure --with-debug --add-module=../../lua-resty-worker-pubsub
+        ./configure --with-debug --add-module=../lua-resty-worker-pubsub
         make && sudo make install
 
     - name: Run Test
