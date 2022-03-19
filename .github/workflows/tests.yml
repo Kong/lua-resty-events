@@ -50,6 +50,7 @@ jobs:
 
     - name: Run Test
       run: |
+        export PATH=/usr/local/bin:$PATH
         openresty -V
         sudo make install
         make test
