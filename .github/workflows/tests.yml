@@ -30,7 +30,7 @@ jobs:
       id: cache-deps
       with:
         path: |
-          ${{ env.INSTALL_ROOT }}
+          /home/runner/work/cache
         key: ${{ runner.os }}-${{ hashFiles('**/tests.yml') }}-${{ hashFiles('**/*.c', '**/*.h') }}-openresty-${{ matrix.openresty }}
 
     - name: Install packages
