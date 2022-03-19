@@ -50,7 +50,7 @@ jobs:
 
     - name: Run Test
       run: |
-        nginx -V
+        openresty -V
         sudo make install
         make test
 
