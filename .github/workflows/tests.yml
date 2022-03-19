@@ -1,0 +1,56 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        include:
+        # TODO: arm64
+        - openresty: "1.19.3.2"
+        - openresty: "1.19.9.1"
+
+    env:
+      JOBS: 1  # must be 1 as socket tests interfere with each other
+
+      OPENRESTY: ${{ matrix.openresty }}
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v2
+      with:
+        submodules: 'true'
+
+    - name: Setup cache
+      uses: actions/cache@v2
+      id: cache-deps
+      with:
+        path: |
+          ${{ env.INSTALL_ROOT }}
+        key: ${{ runner.os }}-${{ hashFiles('**/tests.yml') }}-${{ hashFiles('**/*.c', '**/*.h') }}-openresty-${{ matrix.openresty }}
+
+    - name: Install packages
+      run: |
+        sudo apt update
+        sudo apt-get install -qq -y wget cpanminus net-tools libpcre3-dev build-essential valgrind
+
+    - name: Setup tools
+      run: |
+        wget https://openresty.org/download/openresty-${OPENRESTY}.tar.gz
+        tar xfz openresty-${OPENRESTY}.tar.gz
+        cd openresty-${OPENRESTY}
+        ./configure --with-debug --add-module=../lua-resty-worker-pubsub
+        make && make install
+
+    - name: Run Test
+      run: |
+
+        nginx -V
+        resty -V
+
+        #prove -j$JOBS -r t
+
