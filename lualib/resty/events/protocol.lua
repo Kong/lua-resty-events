@@ -8,10 +8,10 @@ local tcp = ngx.socket.tcp
 local re_match = ngx.re.match
 local req_sock = ngx.req.socket
 local ngx_header = ngx.header
+local subsystem = ngx.config.subsystem
+
 local str_sub  = string.sub
 local setmetatable = setmetatable
-
-local subsystem = ngx.config.subsystem
 
 local function recv_frame(self)
     local sock = self.sock
@@ -62,7 +62,7 @@ function _Server.new(self, opts)
         if not ok then
             return nil, "failed to flush response header: " .. (err or "unknown")
         end
-    end
+    end -- subsystem == "http"
 
     local sock, err = req_sock(true)
     if not sock then
@@ -136,7 +136,7 @@ function _Client.connect(self, addr)
         if not m then
             return nil, "bad HTTP response status line: " .. header
         end
-    end
+    end -- subsystem == "http"
 
     return true
 end
