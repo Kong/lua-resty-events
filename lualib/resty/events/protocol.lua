@@ -11,6 +11,7 @@ local ngx_header = ngx.header
 local str_sub  = string.sub
 local setmetatable = setmetatable
 
+local subsystem = ngx.config.subsystem
 
 local function recv_frame(self)
     local sock = self.sock
@@ -42,22 +43,25 @@ local _SERVER_MT = { __index = _Server, }
 
 
 function _Server.new(self, opts)
-    if ngx.headers_sent then
-        return nil, "response header already sent"
-    end
 
-    ngx_header["Upgrade"] = "Kong-Worker-Events/1"
-    ngx_header["Content-Type"] = nil
-    ngx.status = 101
+    if subsystem == "http" then
+        if ngx.headers_sent then
+            return nil, "response header already sent"
+        end
 
-    local ok, err = ngx.send_headers()
-    if not ok then
-        return nil, "failed to send response header: " .. (err or "unknonw")
-    end
+        ngx_header["Upgrade"] = "Kong-Worker-Events/1"
+        ngx_header["Content-Type"] = nil
+        ngx.status = 101
 
-    ok, err = ngx.flush(true)
-    if not ok then
-        return nil, "failed to flush response header: " .. (err or "unknown")
+        local ok, err = ngx.send_headers()
+        if not ok then
+            return nil, "failed to send response header: " .. (err or "unknonw")
+        end
+
+        ok, err = ngx.flush(true)
+        if not ok then
+            return nil, "failed to flush response header: " .. (err or "unknown")
+        end
     end
 
     local sock
@@ -112,25 +116,27 @@ function _Client.connect(self, addr)
         return nil, "failed to connect: " .. err
     end
 
-    local req = "GET / HTTP/1.1\r\n" ..
-                "Host: localhost\r\n" ..
-                "Connection: Upgrade\r\n" ..
-                "Upgrade: Kong-Worker-Events/1\r\n\r\n"
+    if subsystem == "http" then
+        local req = "GET / HTTP/1.1\r\n" ..
+                    "Host: localhost\r\n" ..
+                    "Connection: Upgrade\r\n" ..
+                    "Upgrade: Kong-Worker-Events/1\r\n\r\n"
 
-    local bytes, err = sock:send(req)
-    if not bytes then
-        return nil, "failed to send the handshake request: " .. err
-    end
+        local bytes, err = sock:send(req)
+        if not bytes then
+            return nil, "failed to send the handshake request: " .. err
+        end
 
-    local header_reader = sock:receiveuntil("\r\n\r\n")
-    local header, err, _ = header_reader()
-    if not header then
-        return nil, "failed to receive response header: " .. err
-    end
+        local header_reader = sock:receiveuntil("\r\n\r\n")
+        local header, err, _ = header_reader()
+        if not header then
+            return nil, "failed to receive response header: " .. err
+        end
 
-    local m, _ = re_match(header, [[^\s*HTTP/1\.1\s+]], "jo")
-    if not m then
-        return nil, "bad HTTP response status line: " .. header
+        local m, _ = re_match(header, [[^\s*HTTP/1\.1\s+]], "jo")
+        if not m then
+            return nil, "bad HTTP response status line: " .. header
+        end
     end
 
     return true
