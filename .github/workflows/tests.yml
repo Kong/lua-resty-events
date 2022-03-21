@@ -44,7 +44,7 @@ jobs:
         tar xfz openresty-${OPENRESTY}.tar.gz
 
     - name: Setup tools
-      if: steps.cache-deps.outputs.cache-hit != 'true'
+      #if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
         cd ../openresty-${OPENRESTY}
         ./configure --with-debug --add-module=../lua-resty-worker-pubsub
