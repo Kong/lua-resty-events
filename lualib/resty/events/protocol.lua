@@ -64,8 +64,7 @@ function _Server.new(self, opts)
         end
     end
 
-    local sock
-    sock, err = req_sock(true)
+    local sock, err = req_sock(true)
     if not sock then
         return nil, err
     end
