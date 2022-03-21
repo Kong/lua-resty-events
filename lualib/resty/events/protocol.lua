@@ -8,8 +8,8 @@ local tcp = ngx.socket.tcp
 local re_match = ngx.re.match
 local req_sock = ngx.req.socket
 local ngx_header = ngx.header
-local ngx_send_headers = ngx.send_headers
-local ngx_flush = ngx.flush
+local send_headers = ngx.send_headers
+local flush = ngx.flush
 local subsystem = ngx.config.subsystem
 
 local str_sub  = string.sub
@@ -55,12 +55,12 @@ function _Server.new(self, opts)
         ngx_header["Content-Type"] = nil
         ngx.status = 101
 
-        local ok, err = ngx_send_headers()
+        local ok, err = send_headers()
         if not ok then
             return nil, "failed to send response header: " .. (err or "unknonw")
         end
 
-        ok, err = ngx_flush(true)
+        ok, err = flush(true)
         if not ok then
             return nil, "failed to flush response header: " .. (err or "unknown")
         end
