@@ -118,7 +118,10 @@ communicate = function(premature)
         -- try to post it again
         sleep(POST_RETRY_DELAY)
 
-        _queue:push(payload)
+        local ok, err = _queue:push(payload)
+        if not ok then
+          log(ERR, "failed to publish event: ", err)
+        end
       end
 
       ::continue::
@@ -214,7 +217,10 @@ local function post_event(source, event, data, spec)
     return nil, err
   end
 
-  _queue:push(json)
+  local ok, err = _queue:push(json)
+  if not ok then
+    return nil, "failed to publish event: " .. err
+  end
 
   return true
 end
@@ -254,11 +260,15 @@ function _M.post_local(source, event, data)
     return nil, "event is required"
   end
 
-  _local_queue:push({
+  local ok, err = _local_queue:push({
     source = source,
     event = event,
     data = data,
   })
+
+  if not ok then
+    return nil, "failed to publish event: " .. err
+  end
 
   return true
 end

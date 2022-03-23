@@ -181,12 +181,18 @@ function _M.run()
       -- broadcast to all/unique workers
       local n = 0
       for _, q in pairs(_clients) do
-        q:push(d.data)
-        n = n + 1
+        local ok, err = q:push(d.data)
 
-        if unique then
-          break
+        if not ok then
+          log(ERR, "failed to publish event: ", err)
+        else
+          n = n + 1
+
+          if unique then
+            break
+          end
         end
+
       end
 
       log(DEBUG, "event published to ", n, " workers")
