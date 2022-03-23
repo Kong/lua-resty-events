@@ -23,7 +23,7 @@ __DATA__
 === TEST 1: posting events and handling events, broadcast
 --- main_config
     stream {
-        lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
+        lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
         init_worker_by_lua_block {
             local opts = {
                 worker_id = 3,
@@ -106,7 +106,7 @@ worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, d
 === TEST 2: posting events and handling events, local
 --- main_config
     stream {
-        lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
+        lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
         init_worker_by_lua_block {
             local opts = {
                 worker_id = 3,
@@ -195,7 +195,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
 === TEST 3: worker.events 'one' being done, and only once
 --- main_config
     stream {
-        lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
+        lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
         init_worker_by_lua_block {
             local opts = {
                 timeout = 0.04,

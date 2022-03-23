@@ -54,6 +54,5 @@ jobs:
       run: |
         export PATH=/usr/local/openresty/bin:$PATH
         openresty -V
-        sudo LUA_LIB_DIR=/usr/local/openresty/lualib make install
         make test
 
