@@ -106,7 +106,6 @@ _M.run = broker.run
 
 _M.post = worker.post
 _M.post_local = worker.post_local
-_M.poll = worker.poll
 
 _M.register = callback.register
 _M.register_weak = callback.register_weak
