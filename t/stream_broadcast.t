@@ -30,19 +30,13 @@ __DATA__
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
             }
 
-            local eb = require "resty.events.broker"
-            local ok, err = eb.configure(opts)
+            local ev = require "resty.events"
+            local ok, err = ev.configure(opts)
             if not ok then
-                ngx.log(ngx.ERR, "failed to configure broker: ", err)
+                ngx.log(ngx.ERR, "failed to configure events: ", err)
             end
 
-            local ew = require "resty.events.worker"
-            local ok, err = ew.configure(opts)
-            if not ok then
-                ngx.log(ngx.ERR, "failed to configure worker: ", err)
-            end
-
-            ew.register(function(data, event, source, pid)
+            ev.register(function(data, event, source, pid)
                 ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                         ", data=", data)
                     end)
@@ -51,15 +45,15 @@ __DATA__
         server {
             listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
             content_by_lua_block {
-                 require("resty.events.broker").run()
+                 require("resty.events").run()
             }
         }
         server {
             listen 1985;
             content_by_lua_block {
-                local ew = require "resty.events.worker"
+                local ev = require "resty.events"
 
-                ew.post("content_by_lua","request1","01234567890")
+                ev.post("content_by_lua","request1","01234567890")
 
                 ngx.say("ok")
             }
@@ -119,19 +113,13 @@ worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, d
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
             }
 
-            local eb = require "resty.events.broker"
-            local ok, err = eb.configure(opts)
+            local ev = require "resty.events"
+            local ok, err = ev.configure(opts)
             if not ok then
-                ngx.log(ngx.ERR, "failed to configure broker: ", err)
+                ngx.log(ngx.ERR, "failed to configure events: ", err)
             end
 
-            local ew = require "resty.events.worker"
-            local ok, err = ew.configure(opts)
-            if not ok then
-                ngx.log(ngx.ERR, "failed to configure worker: ", err)
-            end
-
-            ew.register(function(data, event, source, pid)
+            ev.register(function(data, event, source, pid)
                 ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                         ", data=", data)
                     end)
@@ -140,17 +128,17 @@ worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, d
         server {
             listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
             content_by_lua_block {
-                 require("resty.events.broker").run()
+                 require("resty.events").run()
             }
         }
         server {
             listen 1985;
             content_by_lua_block {
-                local ew = require "resty.events.worker"
+                local ev = require "resty.events"
 
-                ew.post_local("content_by_lua","request1","01234567890")
-                ew.post_local("content_by_lua","request2","01234567890")
-                ew.post("content_by_lua","request3","01234567890")
+                ev.post_local("content_by_lua","request1","01234567890")
+                ev.post_local("content_by_lua","request2","01234567890")
+                ev.post("content_by_lua","request3","01234567890")
 
                 ngx.say("ok")
             }
@@ -215,19 +203,13 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
             }
 
-            local eb = require "resty.events.broker"
-            local ok, err = eb.configure(opts)
+            local ev = require "resty.events"
+            local ok, err = ev.configure(opts)
             if not ok then
-                ngx.log(ngx.ERR, "failed to configure broker: ", err)
+                ngx.log(ngx.ERR, "failed to configure events: ", err)
             end
 
-            local ew = require "resty.events.worker"
-            local ok, err = ew.configure(opts)
-            if not ok then
-                ngx.log(ngx.ERR, "failed to configure worker: ", err)
-            end
-
-            ew.register(function(data, event, source, pid)
+            ev.register(function(data, event, source, pid)
                 ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                         ", data=", tostring(data))
                     end)
@@ -236,29 +218,29 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
         server {
             listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
             content_by_lua_block {
-                 require("resty.events.broker").run()
+                 require("resty.events").run()
             }
         }
         server {
             listen 1985;
             content_by_lua_block {
-                local ew = require "resty.events.worker"
+                local ev = require "resty.events"
 
-                ew.post("content_by_lua","request1","01234567890")
+                ev.post("content_by_lua","request1","01234567890")
 
                 ngx.sleep(0.05) -- wait for logs
 
-                ew.post("content_by_lua","request2","01234567890", "unique_value")
-                ew.post("content_by_lua","request3","01234567890", "unique_value")
+                ev.post("content_by_lua","request2","01234567890", "unique_value")
+                ev.post("content_by_lua","request3","01234567890", "unique_value")
 
                 ngx.sleep(0.1) -- wait for unique timeout to expire
 
-                ew.post("content_by_lua","request4","01234567890", "unique_value")
-                ew.post("content_by_lua","request5","01234567890", "unique_value")
+                ev.post("content_by_lua","request4","01234567890", "unique_value")
+                ev.post("content_by_lua","request5","01234567890", "unique_value")
 
                 ngx.sleep(0.05) -- wait for logs
 
-                ew.post("content_by_lua","request6","01234567890")
+                ev.post("content_by_lua","request6","01234567890")
 
                 ngx.say("ok")
             }
