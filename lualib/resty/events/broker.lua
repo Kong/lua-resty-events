@@ -22,6 +22,8 @@ local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
 local wait = ngx.thread.wait
 
+local decode = cjson.decode
+
 local UNIX_PREFIX = "unix:"
 local close_listening
 do
@@ -166,7 +168,7 @@ function _M.run()
 
       local d, err
 
-      d, err = cjson.decode(data)
+      d, err = decode(data)
       if not d then
         log(ERR, "worker-events: failed decoding json event data: ", err)
         goto continue

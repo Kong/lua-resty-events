@@ -20,6 +20,8 @@ local wait = ngx.thread.wait
 
 local timer_at = ngx.timer.at
 
+local encode = cjson.encode
+
 local EMPTY_T = {}
 local CONNECTION_DELAY = 0.1
 local POST_RETRY_DELAY = 0.1
@@ -191,7 +193,7 @@ local function post_event(source, event, data, spec)
   local json, err
 
   -- encode event info
-  json, err = cjson.encode({
+  json, err = encode({
     source = source,
     event = event,
     data = data,
@@ -203,7 +205,7 @@ local function post_event(source, event, data, spec)
   end
 
   -- encode spec info
-  json, err = cjson.encode({
+  json, err = encode({
     spec = spec or EMPTY_T,
     data = json,
   })
