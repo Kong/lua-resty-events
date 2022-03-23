@@ -176,13 +176,7 @@ communicate = function(premature)
 end
 
 function _M.configure(opts)
-  assert(type(opts) == "table", "Expected a table, got "..type(opts))
-
   _opts = opts
-
-  if not _opts.listening then
-    return nil, '"listening" option required to start'
-  end
 
   assert(timer_at(0, function(premature)
     communicate(premature)

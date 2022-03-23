@@ -59,10 +59,10 @@ connect unix ok
 
 === TEST 2: enable unix domain socket in worker #1
 --- http_config
-    lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
+    lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
     init_worker_by_lua_block {
       if ngx.worker.id() ~= 1 then
-        require("resty.events.broker").close_listening("unix:$TEST_NGINX_HTML_DIR/nginx.sock")
+        require("resty.events").close_listening("unix:$TEST_NGINX_HTML_DIR/nginx.sock")
       end
     }
 

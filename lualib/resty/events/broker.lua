@@ -5,7 +5,6 @@ local que = require "resty.events.queue"
 local server = require("resty.events.protocol").server
 
 local type = type
-local assert = assert
 local pairs = pairs
 local setmetatable = setmetatable
 local str_sub  = string.sub
@@ -24,37 +23,6 @@ local wait = ngx.thread.wait
 
 local decode = cjson.decode
 
-local UNIX_PREFIX = "unix:"
-local close_listening
-do
-  local ffi = require "ffi"
-  local C = ffi.C
-
-  local NGX_OK = ngx.OK
-
-  ffi.cdef[[
-    typedef struct {
-        size_t           len;
-        unsigned char   *data;
-    } ngx_str_t;
-
-    int ngx_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name);
-  ]]
-
-  local sock_name_str = ffi.new("ngx_str_t[1]")
-
-  close_listening = function(sock_name)
-    sock_name = str_sub(sock_name, #UNIX_PREFIX + 1)
-
-    sock_name_str[0].data = sock_name
-    sock_name_str[0].len = #sock_name
-
-    local rc = C.ngx_lua_ffi_close_listening_unix_socket(sock_name_str)
-
-    return rc == NGX_OK
-  end
-end
-
 local DEFAULT_UNIQUE_TIMEOUT = 5
 local MAX_UNIQUE_EVENTS = 1024
 
@@ -62,8 +30,8 @@ local _opts
 local _clients
 local _uniques
 
-local _worker_id = ngx.worker.id()
-local _worker_count = ngx.worker.count()
+--local _worker_id = ngx.worker.id()
+--local _worker_count = ngx.worker.count()
 
 local _M = {
     _VERSION = '0.1.0',
@@ -74,40 +42,9 @@ local function is_timeout(err)
   return err and str_sub(err, -7) == "timeout"
 end
 
--- opts = {worker_id = n, listening = 'unix:...', timeout = n,}
 function _M.configure(opts)
-  assert(type(opts) == "table", "Expected a table, got "..type(opts))
 
   _opts = opts
-
-  if not _opts.worker_id then
-    return nil, '"worker_id" option required to start'
-  end
-
-  if type(_opts.worker_id) ~= "number" then
-    return nil, '"worker_id" option must be a number'
-  end
-
-  if _opts.worker_id < 0 or _opts.worker_id >= _worker_count then
-    return nil, '"worker_id" option is invalid'
-  end
-
-  if not _opts.listening then
-    return nil, '"listening" option required to start'
-  end
-
-  if type(_opts.listening) ~= "string" then
-    return nil, '"listening" option must be a string'
-  end
-
-  if str_sub(_opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
-    return nil, '"listening" option must start with' .. UNIX_PREFIX
-  end
-
-  -- only enable listening on special worker id
-  if _worker_id ~= _opts.worker_id then
-      return close_listening(_opts.listening)
-  end
 
   _opts.timeout = opts.timeout or DEFAULT_UNIQUE_TIMEOUT
   if type(_opts.timeout) ~= "number" then
@@ -246,9 +183,6 @@ function _M.run()
 
   return exit(ngx.OK)
 end
-
--- for test only
-_M.close_listening = close_listening
 
 return _M
 
