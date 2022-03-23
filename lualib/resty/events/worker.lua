@@ -54,7 +54,7 @@ communicate = function(premature)
 
   local ok, err = conn:connect(_opts.listening)
   if not ok then
-    log(DEBUG, "failed to connect: ", err)
+    log(ERR, "failed to connect: ", err)
 
     -- try to reconnect broker
     assert(timer_at(CONNECTION_DELAY, function(premature)
