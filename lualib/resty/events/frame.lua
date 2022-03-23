@@ -7,8 +7,10 @@ local band = bit.band
 local bor = bit.bor
 local lshift = bit.lshift
 local rshift = bit.rshift
-local tostring = tostring
+
 local type = type
+local assert = assert
+local tostring = tostring
 
 
 local _M = {
