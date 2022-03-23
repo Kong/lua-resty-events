@@ -9,6 +9,8 @@ local _M = {
     _VERSION = '0.1.0',
 }
 
+local UNIX_PREFIX = "unix:"
+
 local _worker_id = ngx.worker.id()
 local _worker_count = ngx.worker.count()
 
@@ -17,7 +19,6 @@ do
   local ffi = require "ffi"
   local C = ffi.C
 
-  local UNIX_PREFIX = "unix:"
   local NGX_OK = ngx.OK
 
   ffi.cdef[[
