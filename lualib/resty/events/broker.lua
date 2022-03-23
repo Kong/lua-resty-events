@@ -28,14 +28,16 @@ do
   local ffi = require "ffi"
   local C = ffi.C
 
+  local NGX_OK = ngx.OK
+  local NGX_ERROR = ngx.ERROR
+
   ffi.cdef[[
     typedef struct {
         size_t           len;
         unsigned char   *data;
     } ngx_str_t;
 
-    void
-    ngx_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name);
+    int ngx_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name);
   ]]
 
   local sock_name_str = ffi.new("ngx_str_t[1]")
@@ -46,9 +48,9 @@ do
     sock_name_str[0].data = sock_name
     sock_name_str[0].len = #sock_name
 
-    C.ngx_lua_ffi_close_listening_unix_socket(sock_name_str)
+    local rc = C.ngx_lua_ffi_close_listening_unix_socket(sock_name_str)
 
-    return true
+    return rc == NGX_OK
   end
 end
 
@@ -103,8 +105,7 @@ function _M.configure(opts)
 
   -- only enable listening on special worker id
   if _worker_id ~= _opts.worker_id then
-      close_listening(_opts.listening)
-      return true
+      return close_listening(_opts.listening)
   end
 
   _opts.timeout = opts.timeout or DEFAULT_UNIQUE_TIMEOUT

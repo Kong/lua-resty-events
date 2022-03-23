@@ -1,7 +1,5 @@
 ngx_module_type=CORE
 
-ngx_addon_name=ngx_lua_close_listening_module
-
 NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/src/ngx_lua_close_listening.c"
 
 
