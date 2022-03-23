@@ -261,13 +261,9 @@ function _M.post_local(source, event, data)
   return true
 end
 
--- compatible with lua-resty-worker-events
-function _M.poll()
-  return "done"
-end
-
-_M.register = callback.register
-_M.register_weak = callback.register_weak
-_M.unregister = callback.unregister
+-- only for test
+-- _M.register = callback.register
+-- _M.register_weak = callback.register_weak
+-- _M.unregister = callback.unregister
 
 return _M

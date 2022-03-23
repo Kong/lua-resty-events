@@ -7,12 +7,24 @@ local _M = {
 }
 
 function _M.configure(opts)
-    local ok, err = broker.configure(opts)
+    local ok, err
+
+    ok, err = broker.configure(opts)
     if not ok then
       return nil, err
     end
 
-    return worker.configure(opts)
+    ok, err = worker.configure(opts)
+    if not ok then
+      return nil, err
+    end
+
+    return true
+end
+
+-- compatible with lua-resty-worker-events
+function _M.poll()
+  return "done"
 end
 
 _M.run = broker.run
