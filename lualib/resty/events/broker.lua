@@ -31,7 +31,6 @@ do
   local C = ffi.C
 
   local NGX_OK = ngx.OK
-  local NGX_ERROR = ngx.ERROR
 
   ffi.cdef[[
     typedef struct {

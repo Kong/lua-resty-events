@@ -12,7 +12,7 @@ local sleep = ngx.sleep
 local log = ngx.log
 local exiting = ngx.worker.exiting
 local ERR = ngx.ERR
-local DEBUG = ngx.DEBUG
+--local DEBUG = ngx.DEBUG
 
 local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
