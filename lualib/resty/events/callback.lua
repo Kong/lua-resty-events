@@ -15,6 +15,8 @@ local log = ngx.log
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
 
+local encode = cjson.encode
+local decode = cjson.decode
 
 -- creates a new level structure for the callback tree
 local new_struct = function()
@@ -90,7 +92,7 @@ local function do_handlerlist(handler_list, source, event, data, pid)
         if not success then
           local d, e
           if type(data) == "table" then
-            d, e = cjson.encode(data)
+            d, e = encode(data)
             if not d then d = tostring(e) end
           else
             d = tostring(data)
@@ -127,7 +129,7 @@ end
 -- Handle incoming json based event
 function _M.do_event_json(json)
   local d, err
-  d, err = cjson.decode(json)
+  d, err = decode(json)
   if not d then
     return log(ERR, "worker-events: failed decoding json event data: ", err)
   end
