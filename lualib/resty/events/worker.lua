@@ -5,7 +5,7 @@ local client = require("resty.events.protocol").client
 
 local type = type
 local assert = assert
-local str_sub  = string.sub
+local str_sub = string.sub
 
 local ngx = ngx
 local sleep = ngx.sleep

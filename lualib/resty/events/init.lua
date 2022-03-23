@@ -3,13 +3,11 @@ local broker    = require "resty.events.broker"
 local worker    = require "resty.events.worker"
 
 local ngx = ngx
-local str_sub  = string.sub
+local str_sub = string.sub
 
 local _M = {
     _VERSION = '0.1.0',
 }
-
-local UNIX_PREFIX = "unix:"
 
 local _worker_id = ngx.worker.id()
 local _worker_count = ngx.worker.count()

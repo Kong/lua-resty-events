@@ -12,7 +12,7 @@ local send_headers = ngx.send_headers
 local flush = ngx.flush
 local subsystem = ngx.config.subsystem
 
-local str_sub  = string.sub
+local str_sub = string.sub
 local setmetatable = setmetatable
 
 local function recv_frame(self)
