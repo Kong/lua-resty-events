@@ -79,14 +79,12 @@ function _M.configure(opts)
   -- only enable listening on special worker id
   if is_broker then
     ok, err = broker.configure(opts)
-    if not ok then
-      return nil, err
-    end
   else
     ok, err = close_listening(opts.listening)
-    if not ok then
-      return nil, err
-    end
+  end
+
+  if not ok then
+    return nil, err
   end
 
   ok, err = worker.configure(opts)
@@ -104,12 +102,12 @@ end
 
 _M.run = broker.run
 
-_M.post = worker.post
-_M.post_local = worker.post_local
+_M.post          = worker.post
+_M.post_local    = worker.post_local
 
-_M.register = callback.register
+_M.register      = callback.register
 _M.register_weak = callback.register_weak
-_M.unregister = callback.unregister
+_M.unregister    = callback.unregister
 
 -- for test only
 _M.close_listening = close_listening
