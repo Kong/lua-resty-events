@@ -4,7 +4,6 @@ local lrucache = require "resty.lrucache"
 local que = require "resty.events.queue"
 local server = require("resty.events.protocol").server
 
-local type = type
 local pairs = pairs
 local setmetatable = setmetatable
 local str_sub = string.sub
@@ -23,7 +22,6 @@ local wait = ngx.thread.wait
 
 local decode = cjson.decode
 
-local DEFAULT_UNIQUE_TIMEOUT = 5
 local MAX_UNIQUE_EVENTS = 1024
 
 local _opts
@@ -45,15 +43,6 @@ end
 function _M.configure(opts)
 
   _opts = opts
-
-  _opts.timeout = opts.timeout or DEFAULT_UNIQUE_TIMEOUT
-  if type(_opts.timeout) ~= "number" then
-    return nil, 'optional "timeout" option must be a number'
-  end
-
-  if _opts.timeout <= 0 then
-    return nil, '"timeout" must be greater than 0'
-  end
 
   local err
 
