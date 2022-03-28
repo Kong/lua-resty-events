@@ -98,7 +98,7 @@ function _M.run()
           goto continue
         end
 
-        _uniques:set(unique, 1, _opts.timeout)
+        _uniques:set(unique, 1, _opts.unique_timeout)
       end
 
       -- broadcast to all/unique workers

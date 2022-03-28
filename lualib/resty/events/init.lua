@@ -9,6 +9,7 @@ local _M = {
     _VERSION = '0.1.0',
 }
 
+local DEFAULT_TIMEOUT = 100     -- 100ms
 local DEFAULT_UNIQUE_TIMEOUT = 5
 local UNIX_PREFIX = "unix:"
 
@@ -73,13 +74,23 @@ function _M.configure(opts)
     return nil, '"listening" option must start with' .. UNIX_PREFIX
   end
 
-  opts.timeout = opts.timeout or DEFAULT_UNIQUE_TIMEOUT
+  opts.timeout = opts.timeout or DEFAULT_TIMEOUT
 
   if type(opts.timeout) ~= "number" then
     return nil, 'optional "timeout" option must be a number'
   end
 
   if opts.timeout <= 0 then
+    return nil, '"timeout" must be greater than 0'
+  end
+
+  opts.unique_timeout = opts.unique_timeout or DEFAULT_UNIQUE_TIMEOUT
+
+  if type(opts.unique_timeout) ~= "number" then
+    return nil, 'optional "unique_timeout" option must be a number'
+  end
+
+  if opts.unique_timeout <= 0 then
     return nil, '"timeout" must be greater than 0'
   end
 
