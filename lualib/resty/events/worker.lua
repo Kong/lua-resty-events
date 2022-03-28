@@ -23,11 +23,24 @@ local timer_at = ngx.timer.at
 local encode = cjson.encode
 
 local EMPTY_T = {}
+
+local EVENT_T = {
+  source = '',
+  event = '',
+  data = '',
+  pid = '',
+}
+
+local SPEC_T = {
+  spec = EMPTY_T,
+  data = '',
+}
+
 local CONNECTION_DELAY = 0.1
 local POST_RETRY_DELAY = 0.1
 
 local _M = {
-    _VERSION = '0.1.0',
+  _VERSION = '0.1.0',
 }
 
 local function is_timeout(err)
@@ -189,23 +202,23 @@ end
 local function post_event(source, event, data, spec)
   local json, err
 
+  EVENT_T.source = source
+  EVENT_T.event = event
+  EVENT_T.data = data
+  EVENT_T.pid = _worker_pid
+
   -- encode event info
-  json, err = encode({
-    source = source,
-    event = event,
-    data = data,
-    pid = _worker_pid,
-  })
+  json, err = encode(EVENT_T)
 
   if not json then
     return nil, err
   end
 
+  SPEC_T.spec = spec or EMPTY_T
+  SPEC_T.data = json
+
   -- encode spec info
-  json, err = encode({
-    spec = spec or EMPTY_T,
-    data = json,
-  })
+  json, err = encode(SPEC_T)
 
   if not json then
     return nil, err
