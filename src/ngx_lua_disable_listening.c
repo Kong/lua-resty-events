@@ -19,7 +19,7 @@
 
 
 static void
-ngx_lua_close_listening_socket(ngx_listening_t *ls)
+ngx_lua_disable_listening_socket(ngx_listening_t *ls)
 {
     ngx_connection_t  *c = ls->connection;
 
@@ -49,7 +49,7 @@ ngx_lua_close_listening_socket(ngx_listening_t *ls)
 }
 
 int
-ngx_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name)
+ngx_lua_ffi_disable_listening_unix_socket(ngx_str_t *sock_name)
 {
 #if (NGX_HAVE_UNIX_DOMAIN)
 
@@ -76,7 +76,7 @@ ngx_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name)
 
         if (ngx_strncmp(ls[i].addr_text.data + sizeof("unix:") - 1,
                          sock_name->data, sock_name->len) == 0) {
-            ngx_lua_close_listening_socket(&ls[i]);
+            ngx_lua_disable_listening_socket(&ls[i]);
             return NGX_OK;
         }
     }

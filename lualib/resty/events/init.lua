@@ -15,7 +15,7 @@ local UNIX_PREFIX = "unix:"
 local _worker_id = ngx.worker.id()
 local _worker_count = ngx.worker.count()
 
-local close_listening
+local disable_listening
 do
   local ffi = require "ffi"
   local C = ffi.C
@@ -28,18 +28,18 @@ do
         unsigned char   *data;
     } ngx_str_t;
 
-    int ngx_lua_ffi_close_listening_unix_socket(ngx_str_t *sock_name);
+    int ngx_lua_ffi_disable_listening_unix_socket(ngx_str_t *sock_name);
   ]]
 
   local sock_name_str = ffi.new("ngx_str_t[1]")
 
-  close_listening = function(sock_name)
+  disable_listening = function(sock_name)
     sock_name = str_sub(sock_name, #UNIX_PREFIX + 1)
 
     sock_name_str[0].data = sock_name
     sock_name_str[0].len = #sock_name
 
-    local rc = C.ngx_lua_ffi_close_listening_unix_socket(sock_name_str)
+    local rc = C.ngx_lua_ffi_disable_listening_unix_socket(sock_name_str)
 
     return rc == NGX_OK
   end
@@ -91,7 +91,7 @@ function _M.configure(opts)
   if is_broker then
     ok, err = broker.configure(opts)
   else
-    ok, err = close_listening(opts.listening)
+    ok, err = disable_listening(opts.listening)
   end
 
   if not ok then
@@ -121,6 +121,6 @@ _M.register_weak = callback.register_weak
 _M.unregister    = callback.unregister
 
 -- for test only
-_M.close_listening = close_listening
+_M.disable_listening = disable_listening
 
 return _M
