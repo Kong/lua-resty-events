@@ -28,19 +28,16 @@ local _opts
 local _clients
 local _uniques
 
---local _worker_id = ngx.worker.id()
---local _worker_count = ngx.worker.count()
-
 local _M = {
     _VERSION = '0.1.0',
 }
---local mt = { __index = _M, }
 
 local function is_timeout(err)
   return err and str_sub(err, -7) == "timeout"
 end
 
 function _M.configure(opts)
+  assert(not _opts)
 
   _opts = opts
 
