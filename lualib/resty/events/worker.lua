@@ -39,7 +39,7 @@ local _worker_pid = ngx.worker.pid()
 local _queue = que.new()
 local _local_queue = que.new()
 
-local _configured
+local _connected
 local _opts
 
 local communicate
@@ -64,7 +64,7 @@ communicate = function(premature)
     return
   end
 
-  _configured = true
+  _connected = true
 
   local read_thread = spawn(function()
     while not exiting() do
@@ -158,7 +158,7 @@ communicate = function(premature)
   kill(read_thread)
   kill(local_thread)
 
-  _configured = nil
+  _connected = nil
 
   if not ok then
     log(ERR, "event worker failed: ", err)
@@ -220,7 +220,7 @@ local function post_event(source, event, data, spec)
 end
 
 function _M.post(source, event, data, unique)
-  if not _configured then
+  if not _connected then
     return nil, "not initialized yet"
   end
 
@@ -242,7 +242,7 @@ function _M.post(source, event, data, unique)
 end
 
 function _M.post_local(source, event, data)
-  if not _configured then
+  if not _connected then
     return nil, "not initialized yet"
   end
 
