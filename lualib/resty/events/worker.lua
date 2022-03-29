@@ -196,6 +196,8 @@ communicate = function(premature)
 end
 
 function _M.configure(opts)
+  assert(not _opts)
+
   _opts = opts
 
   assert(timer_at(0, function(premature)
