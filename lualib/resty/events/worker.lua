@@ -32,12 +32,12 @@ local EVENT_T = {
   pid = '',
 }
 
-local SPEC_T = {
+local PAYLOAD_T = {
   spec = EMPTY_T,
   data = '',
 }
 
-local UNIQUE_T = {
+local SPEC_T = {
   unique = '',
 }
 
@@ -227,11 +227,11 @@ local function post_event(source, event, data, spec)
     return nil, err
   end
 
-  SPEC_T.spec = spec or EMPTY_T
-  SPEC_T.data = json
+  PAYLOAD_T.spec = spec or EMPTY_T
+  PAYLOAD_T.data = json
 
   -- encode spec info
-  json, err = encode(SPEC_T)
+  json, err = encode(PAYLOAD_T)
 
   if not json then
     return nil, err
@@ -258,9 +258,9 @@ function _M.post(source, event, data, unique)
     return nil, "event is required"
   end
 
-  UNIQUE_T.unique = unique
+  SPEC_T.unique = unique
 
-  local ok, err = post_event(source, event, data, UNIQUE_T)
+  local ok, err = post_event(source, event, data, SPEC_T)
   if not ok then
     log(ERR, "post event: ", err)
     return nil, err
