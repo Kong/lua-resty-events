@@ -12,6 +12,7 @@ local send_headers = ngx.send_headers
 local flush = ngx.flush
 local subsystem = ngx.config.subsystem
 
+local type = type
 local str_sub = string.sub
 local setmetatable = setmetatable
 
