@@ -46,19 +46,19 @@ do
   end
 end
 
--- opts = {worker_id = n, listening = 'unix:...', timeout = x, unique_timeout = x,}
+-- opts = {broker_id = n, listening = 'unix:...', timeout = x, unique_timeout = x,}
 function _M.configure(opts)
   assert(type(opts) == "table", "Expected a table, got "..type(opts))
 
-  if not opts.worker_id then
+  if not opts.broker_id then
     return nil, '"worker_id" option required to start'
   end
 
-  if type(opts.worker_id) ~= "number" then
+  if type(opts.broker_id) ~= "number" then
     return nil, '"worker_id" option must be a number'
   end
 
-  if opts.worker_id < 0 or opts.worker_id >= _worker_count then
+  if opts.broker_id < 0 or opts.broker_id >= _worker_count then
     return nil, '"worker_id" option is invalid'
   end
 
@@ -94,7 +94,7 @@ function _M.configure(opts)
     return nil, '"unique_timeout" must be greater than 0'
   end
 
-  local is_broker = _worker_id == opts.worker_id
+  local is_broker = _worker_id == opts.broker_id
 
   local ok, err
 
