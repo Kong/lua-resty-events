@@ -48,11 +48,9 @@ end
 
 -- opts = {broker_id = n, listening = 'unix:...', timeout = x, unique_timeout = x,}
 function _M.configure(opts)
-  assert(type(opts) == "table", "Expected a table, got "..type(opts))
+  assert(type(opts) == "table", "Expected a table, got " .. type(opts))
 
-  if not opts.broker_id then
-    return nil, '"worker_id" option required to start'
-  end
+  opts.broker_id = opts.broker_id or 0
 
   if type(opts.broker_id) ~= "number" then
     return nil, '"worker_id" option must be a number'
