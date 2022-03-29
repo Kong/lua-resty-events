@@ -91,7 +91,7 @@ function _M.configure(opts)
   end
 
   if opts.unique_timeout <= 0 then
-    return nil, '"timeout" must be greater than 0'
+    return nil, '"unique_timeout" must be greater than 0'
   end
 
   local is_broker = _worker_id == opts.worker_id
