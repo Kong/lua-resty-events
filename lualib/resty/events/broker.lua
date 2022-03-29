@@ -61,6 +61,8 @@ function _M.run()
       exit(444)
   end
 
+  conn:set_timeout(_opts.timeout)
+
   local queue = que.new()
 
   _clients[conn] = queue

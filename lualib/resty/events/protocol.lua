@@ -35,16 +35,26 @@ local function send_frame(self, payload)
 end
 
 
+local function set_timeout(self, sec)
+    local sock = self.sock
+
+    assert(sock, "not initialized yet")
+
+    return sock:settimeout(sec * 1000)
+end
+
+
 local _Server = {
     _VERSION = "0.1.0",
     recv_frame = recv_frame,
     send_frame = send_frame,
+    set_timeout = set_timeout,
 }
 
 local _SERVER_MT = { __index = _Server, }
 
 
-function _Server.new(self, opts)
+function _Server.new(self)
 
     if subsystem == "http" then
         if ngx.headers_sent then
@@ -81,12 +91,13 @@ local _Client = {
     _VERSION = "0.1.0",
     recv_frame = recv_frame,
     send_frame = send_frame,
+    set_timeout = set_timeout,
 }
 
 local _CLIENT_MT = { __index = _Client, }
 
 
-function _Client.new(self, opts)
+function _Client.new(self)
     local sock, err = tcp()
     if not sock then
         return nil, err

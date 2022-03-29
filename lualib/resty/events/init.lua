@@ -9,7 +9,7 @@ local _M = {
     _VERSION = '0.1.0',
 }
 
-local DEFAULT_TIMEOUT = 100     -- 100ms
+local DEFAULT_TIMEOUT = 1     -- 1000ms
 local DEFAULT_UNIQUE_TIMEOUT = 5
 local UNIX_PREFIX = "unix:"
 
