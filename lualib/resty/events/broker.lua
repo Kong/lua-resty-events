@@ -7,7 +7,6 @@ local server = require("resty.events.protocol").server
 local pairs = pairs
 local setmetatable = setmetatable
 local str_sub = string.sub
---local random = math.random
 
 local ngx = ngx
 local log = ngx.log

@@ -6,6 +6,7 @@ local client = require("resty.events.protocol").client
 local type = type
 local assert = assert
 local str_sub = string.sub
+local random = math.random
 
 local ngx = ngx
 local sleep = ngx.sleep
@@ -36,12 +37,16 @@ local SPEC_T = {
   data = '',
 }
 
-local CONNECTION_DELAY = 0.1
 local POST_RETRY_DELAY = 0.1
 
 local _M = {
   _VERSION = '0.1.0',
 }
+
+-- gen a random number [0.2, 2.0]
+local function random_delay()
+  return random(2, 20) / 10
+end
 
 local function is_timeout(err)
   return err and str_sub(err, -7) == "timeout"
@@ -72,7 +77,7 @@ communicate = function(premature)
     log(ERR, "failed to connect: ", err)
 
     -- try to reconnect broker
-    assert(timer_at(CONNECTION_DELAY, function(premature)
+    assert(timer_at(random_delay(), function(premature)
       communicate(premature)
     end))
 
@@ -184,7 +189,7 @@ communicate = function(premature)
   end
 
   if not exiting() then
-    assert(timer_at(CONNECTION_DELAY, function(premature)
+    assert(timer_at(random_delay(), function(premature)
       communicate(premature)
     end))
   end
