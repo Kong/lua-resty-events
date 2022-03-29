@@ -46,7 +46,7 @@ do
   end
 end
 
--- opts = {worker_id = n, listening = 'unix:...', timeout = n,}
+-- opts = {worker_id = n, listening = 'unix:...', timeout = x, unique_timeout = x,}
 function _M.configure(opts)
   assert(type(opts) == "table", "Expected a table, got "..type(opts))
 
