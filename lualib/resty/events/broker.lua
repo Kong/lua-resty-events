@@ -129,10 +129,6 @@ function _M.run()
     while not exiting() do
       local payload, err = queue:pop()
 
-      if exiting() then
-        return
-      end
-
       if not payload then
         if not is_timeout(err) then
           return nil, "semaphore wait error: " .. err
@@ -140,6 +136,10 @@ function _M.run()
 
         -- timeout, send ping?
         goto continue
+      end
+
+      if exiting() then
+        return
       end
 
       local _, err = conn:send_frame(payload)
