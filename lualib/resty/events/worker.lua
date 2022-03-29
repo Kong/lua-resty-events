@@ -37,6 +37,10 @@ local SPEC_T = {
   data = '',
 }
 
+local UNIQUE_T = {
+  unique = '',
+}
+
 local POST_RETRY_DELAY = 0.1
 
 local _M = {
@@ -254,7 +258,9 @@ function _M.post(source, event, data, unique)
     return nil, "event is required"
   end
 
-  local ok, err = post_event(source, event, data, {unique = unique})
+  UNIQUE_T.unique = unique
+
+  local ok, err = post_event(source, event, data, UNIQUE_T)
   if not ok then
     log(ERR, "post event: ", err)
     return nil, err
