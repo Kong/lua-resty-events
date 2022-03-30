@@ -16,6 +16,8 @@ local type = type
 local str_sub = string.sub
 local setmetatable = setmetatable
 
+local DEFAULT_TIMEOUT = 1000     -- 1000ms
+
 local function recv_frame(self)
     local sock = self.sock
     if not sock then
@@ -36,20 +38,10 @@ local function send_frame(self, payload)
 end
 
 
-local function set_timeout(self, sec)
-    local sock = self.sock
-
-    assert(sock, "not initialized yet")
-
-    return sock:settimeout(sec * 1000)
-end
-
-
 local _Server = {
     _VERSION = "0.1.0",
     recv_frame = recv_frame,
     send_frame = send_frame,
-    set_timeout = set_timeout,
 }
 
 local _SERVER_MT = { __index = _Server, }
@@ -82,6 +74,8 @@ function _Server.new(self)
         return nil, err
     end
 
+    sock:settimeout(DEFAULT_TIMEOUT)
+
     return setmetatable({
         sock = sock,
     }, _SERVER_MT)
@@ -92,7 +86,6 @@ local _Client = {
     _VERSION = "0.1.0",
     recv_frame = recv_frame,
     send_frame = send_frame,
-    set_timeout = set_timeout,
 }
 
 local _CLIENT_MT = { __index = _Client, }
@@ -103,6 +96,8 @@ function _Client.new(self)
     if not sock then
         return nil, err
     end
+
+    sock:settimeout(DEFAULT_TIMEOUT)
 
     return setmetatable({
         sock = sock,

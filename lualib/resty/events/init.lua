@@ -10,7 +10,6 @@ local _M = {
     _VERSION = '0.1.0',
 }
 
-local DEFAULT_TIMEOUT = 1     -- 1000ms
 local DEFAULT_UNIQUE_TIMEOUT = 5
 local UNIX_PREFIX = "unix:"
 
@@ -47,7 +46,7 @@ do
   end
 end
 
--- opts = {broker_id = n, listening = 'unix:...', timeout = x, unique_timeout = x,}
+-- opts = {broker_id = n, listening = 'unix:...', unique_timeout = x,}
 function _M.configure(opts)
   assert(type(opts) == "table", "Expected a table, got " .. type(opts))
 
@@ -71,16 +70,6 @@ function _M.configure(opts)
 
   if str_sub(opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
     return nil, '"listening" option must start with' .. UNIX_PREFIX
-  end
-
-  opts.timeout = opts.timeout or DEFAULT_TIMEOUT
-
-  if type(opts.timeout) ~= "number" then
-    return nil, 'optional "timeout" option must be a number'
-  end
-
-  if opts.timeout <= 0 then
-    return nil, '"timeout" must be greater than 0'
   end
 
   opts.unique_timeout = opts.unique_timeout or DEFAULT_UNIQUE_TIMEOUT

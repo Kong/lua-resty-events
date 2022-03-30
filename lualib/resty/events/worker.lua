@@ -71,8 +71,6 @@ communicate = function(premature)
 
   local conn = assert(client:new())
 
-  conn:set_timeout(_opts.timeout)
-
   local ok, err = conn:connect(_opts.listening)
   if not ok then
     log(ERR, "failed to connect: ", err)

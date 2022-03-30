@@ -60,8 +60,6 @@ function _M.run()
       exit(444)
   end
 
-  conn:set_timeout(_opts.timeout)
-
   local queue = que.new()
 
   _clients[conn] = queue
@@ -134,7 +132,6 @@ function _M.run()
           return nil, "semaphore wait error: " .. err
         end
 
-        -- timeout, send ping?
         goto continue
       end
 
