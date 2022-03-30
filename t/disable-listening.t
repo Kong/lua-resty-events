@@ -8,7 +8,7 @@ use Test::Nginx::Socket::Lua;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 5) - 4;
+plan tests => repeat_each() * (blocks() * 5);
 
 $ENV{TEST_NGINX_HTML_DIR} ||= html_dir();
 
@@ -116,6 +116,7 @@ send unix ok
 receive unix ok
 unix ok #1
 --- no_error_log
+[error]
 [crit]
 [alert]
 
@@ -135,5 +136,6 @@ GET /test
 --- response_body
 failed to disable listening: tmp/xxx.sock
 --- no_error_log
+[error]
 [crit]
 [alert]
