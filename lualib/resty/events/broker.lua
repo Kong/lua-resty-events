@@ -32,24 +32,24 @@ local _M = {
 }
 
 local function is_timeout(err)
-  return err and str_sub(err, -7) == "timeout"
+    return err and str_sub(err, -7) == "timeout"
 end
 
 function _M.configure(opts)
-  assert(not _opts)
+    assert(not _opts)
 
-  _opts = opts
+    _opts = opts
 
-  local err
+    local err
 
-  _uniques, err = lrucache.new(MAX_UNIQUE_EVENTS)
-  if not _uniques then
-    return nil, "failed to create the events cache: " .. (err or "unknown")
-  end
+    _uniques, err = lrucache.new(MAX_UNIQUE_EVENTS)
+    if not _uniques then
+        return nil, "failed to create the events cache: " .. (err or "unknown")
+    end
 
-  _clients = setmetatable({}, { __mode = "k", })
+    _clients = setmetatable({}, { __mode = "k", })
 
-  return true
+    return true
 end
 
 function _M.run()
@@ -107,6 +107,7 @@ function _M.run()
 
         if not ok then
           log(ERR, "failed to publish event: ", err)
+
         else
           n = n + 1
 
@@ -161,8 +162,8 @@ function _M.run()
   end
 
   if perr then
-    log(ERR, "event broker failed: ", perr)
-    return exit(ngx.ERROR)
+      log(ERR, "event broker failed: ", perr)
+      return exit(ngx.ERROR)
   end
 
   return exit(ngx.OK)
