@@ -122,10 +122,6 @@ communicate = function(premature)
     while not exiting() do
       local payload, err = _queue:pop()
 
-      if exiting() then
-        return
-      end
-
       if not payload then
         if not is_timeout(err) then
           return nil, "semaphore wait error: " .. err
@@ -133,6 +129,10 @@ communicate = function(premature)
 
         -- timeout
         goto continue
+      end
+
+      if exiting() then
+        return
       end
 
       local _, err = conn:send_frame(payload)
@@ -156,10 +156,6 @@ communicate = function(premature)
     while not exiting() do
       local data, err = _local_queue:pop()
 
-      if exiting() then
-        return
-      end
-
       if not data then
         if not is_timeout(err) then
           return nil, "semaphore wait error: " .. err
@@ -167,6 +163,10 @@ communicate = function(premature)
 
         -- timeout
         goto continue
+      end
+
+      if exiting() then
+        return
       end
 
       -- got an event data, callback
