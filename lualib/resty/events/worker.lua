@@ -9,7 +9,6 @@ local str_sub = string.sub
 local random = math.random
 
 local ngx = ngx
-local sleep = ngx.sleep
 local log = ngx.log
 local exiting = ngx.worker.exiting
 local ERR = ngx.ERR
@@ -40,8 +39,6 @@ local PAYLOAD_T = {
 local SPEC_T = {
   unique = '',
 }
-
-local POST_RETRY_DELAY = 0.1
 
 local _M = {
   _VERSION = '0.1.0',
