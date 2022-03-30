@@ -70,7 +70,7 @@ function _M.configure(opts)
     end
 
     if str_sub(opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
-        return nil, '"listening" option must start with' .. UNIX_PREFIX
+        return nil, '"listening" option must start with ' .. UNIX_PREFIX
     end
 
     opts.unique_timeout = opts.unique_timeout or DEFAULT_UNIQUE_TIMEOUT
