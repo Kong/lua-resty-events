@@ -39,7 +39,11 @@ do
 
     local rc = C.ngx_lua_ffi_disable_listening_unix_socket(sock_name_str)
 
-    return rc == NGX_OK
+    if rc ~= NGX_OK then
+        return nil, "failed to disable listening: " .. sock_name
+    end
+
+    return true
   end
 end
 
