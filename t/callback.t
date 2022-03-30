@@ -42,13 +42,11 @@ __DATA__
 --- config
     location = /test {
         content_by_lua_block {
-            local cjson = require "cjson.safe"
             local ec = require "resty.events.callback"
             local pid = ngx.worker.pid()
 
             local post = function(s, e, d)
-                ec.do_event_json(
-                    cjson.encode{source = s, event = e, data = d, pid = pid})
+                ec.do_event({source = s, event = e, data = d, pid = pid})
             end
 
             post("content_by_lua","request1","123")
@@ -132,12 +130,10 @@ worker-events: handling event; source=content_by_lua, event=request3, pid=\d+$/
 --- config
     location = /test {
         content_by_lua_block {
-            local cjson = require "cjson.safe"
             local ec = require "resty.events.callback"
 
             local post = function(s, e, d)
-                ec.do_event_json(
-                    cjson.encode{source = s, event = e, data = d, pid = pid})
+                ec.do_event({source = s, event = e, data = d, pid = pid})
             end
 
             local count = 0
@@ -202,12 +198,10 @@ after GC:0
 --- config
     location = /test {
         content_by_lua_block {
-            local cjson = require "cjson.safe"
             local ec = require "resty.events.callback"
 
             local post = function(s, e, d)
-                ec.do_event_json(
-                    cjson.encode{source = s, event = e, data = d, pid = pid})
+                ec.do_event({source = s, event = e, data = d, pid = pid})
             end
 
             local error_func = function()
@@ -243,12 +237,10 @@ something went wrong here!
 --- config
     location = /test {
         content_by_lua_block {
-            local cjson = require "cjson.safe"
             local ec = require "resty.events.callback"
 
             local post = function(s, e, d)
-                ec.do_event_json(
-                    cjson.encode{source = s, event = e, data = d, pid = pid})
+                ec.do_event({source = s, event = e, data = d, pid = pid})
             end
 
             local error_func = function()
