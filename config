@@ -1,5 +1,7 @@
 ngx_module_type=CORE
 
-NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/src/ngx_lua_disable_listening.c"
+ngx_addon_name=ngx_lua_events_module
+
+NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/src/ngx_lua_events_module.c"
 
 
