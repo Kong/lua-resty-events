@@ -138,14 +138,7 @@ communicate = function(premature)
       local _, err = conn:send_frame(payload)
       if err then
         log(ERR, "failed to send event: ", err)
-
-        -- try to post it again
-        sleep(POST_RETRY_DELAY)
-
-        local ok, err = _queue:push(payload)
-        if not ok then
-          log(ERR, "failed to publish event: ", err)
-        end
+        return
       end
 
       ::continue::
