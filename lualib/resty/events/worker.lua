@@ -21,6 +21,7 @@ local wait = ngx.thread.wait
 local timer_at = ngx.timer.at
 
 local encode = cjson.encode
+local decode = cjson.decode
 
 local EMPTY_T = {}
 
@@ -106,8 +107,13 @@ communicate = function(premature)
         return nil, "did not receive event from broker"
       end
 
+      local d, err = decode(data)
+      if not d then
+        return nil, "worker-events: failed decoding json event data: " .. err
+      end
+
       -- got an event data, callback
-      callback.do_event_json(data)
+      callback.do_event(d)
 
       ::continue::
     end -- while not exiting

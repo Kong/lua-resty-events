@@ -139,7 +139,7 @@ end
 
 -- Handle incoming table based event
 function _M.do_event(d)
-  return do_event(d.source, d.event, d.data, nil)
+  return do_event(d.source, d.event, d.data, d.pid)
 end
 
 -- @param mode either "weak" or "strong"
