@@ -8,7 +8,7 @@ use Test::Nginx::Socket::Lua;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 5) - 2;
+plan tests => repeat_each() * (blocks() * 5) - 4;
 
 $ENV{TEST_NGINX_HTML_DIR} ||= html_dir();
 
@@ -120,4 +120,20 @@ unix ok #1
 [alert]
 
 
-
+=== TEST 3: disable unix domain socket with wrong name
+--- http_config
+    lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
+--- config
+    location = /test {
+        content_by_lua_block {
+            local ok, err = require("resty.events").disable_listening("unix:tmp/xxx.sock")
+            ngx.say(err)
+        }
+    }
+--- request
+GET /test
+--- response_body
+failed to disable listening: tmp/xxx.sock
+--- no_error_log
+[crit]
+[alert]
