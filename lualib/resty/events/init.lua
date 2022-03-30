@@ -1,3 +1,5 @@
+require "resty.core.base"
+
 local callback  = require "resty.events.callback"
 local broker    = require "resty.events.broker"
 local worker    = require "resty.events.worker"
@@ -24,11 +26,6 @@ do
   local NGX_OK = ngx.OK
 
   ffi.cdef[[
-    typedef struct {
-        size_t           len;
-        unsigned char   *data;
-    } ngx_str_t;
-
     int ngx_lua_ffi_disable_listening_unix_socket(ngx_str_t *sock_name);
   ]]
 
@@ -53,33 +50,33 @@ function _M.configure(opts)
   opts.broker_id = opts.broker_id or 0
 
   if type(opts.broker_id) ~= "number" then
-    return nil, '"worker_id" option must be a number'
+      return nil, '"worker_id" option must be a number'
   end
 
   if opts.broker_id < 0 or opts.broker_id >= _worker_count then
-    return nil, '"worker_id" option is invalid'
+      return nil, '"worker_id" option is invalid'
   end
 
   if not opts.listening then
-    return nil, '"listening" option required to start'
+      return nil, '"listening" option required to start'
   end
 
   if type(opts.listening) ~= "string" then
-    return nil, '"listening" option must be a string'
+      return nil, '"listening" option must be a string'
   end
 
   if str_sub(opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
-    return nil, '"listening" option must start with' .. UNIX_PREFIX
+      return nil, '"listening" option must start with' .. UNIX_PREFIX
   end
 
   opts.unique_timeout = opts.unique_timeout or DEFAULT_UNIQUE_TIMEOUT
 
   if type(opts.unique_timeout) ~= "number" then
-    return nil, 'optional "unique_timeout" option must be a number'
+      return nil, 'optional "unique_timeout" option must be a number'
   end
 
   if opts.unique_timeout <= 0 then
-    return nil, '"unique_timeout" must be greater than 0'
+      return nil, '"unique_timeout" must be greater than 0'
   end
 
   local is_broker = _worker_id == opts.broker_id
@@ -88,18 +85,19 @@ function _M.configure(opts)
 
   -- only enable listening on special worker id
   if is_broker then
-    ok, err = broker.configure(opts)
+      ok, err = broker.configure(opts)
+
   else
-    ok, err = disable_listening(opts.listening)
+      ok, err = disable_listening(opts.listening)
   end
 
   if not ok then
-    return nil, err
+      return nil, err
   end
 
   ok, err = worker.configure(opts)
   if not ok then
-    return nil, err
+      return nil, err
   end
 
   return true

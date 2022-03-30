@@ -156,8 +156,8 @@ function _M.run()
   kill(read_thread)
 
   if not ok then
-    log(ERR, "event broker failed: ", err)
-    return exit(ngx.ERROR)
+      log(ERR, "event broker failed: ", err)
+      return exit(ngx.ERROR)
   end
 
   if perr then
