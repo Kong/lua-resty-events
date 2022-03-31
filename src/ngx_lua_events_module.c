@@ -74,7 +74,7 @@ ngx_lua_ffi_disable_listening_unix_socket(ngx_str_t *sock_name)
         ngx_log_debug2(NGX_LOG_DEBUG_EVENT, ngx_cycle->log, 0,
                 "try to close listening %V #%d", &ls[i].addr_text, ls[i].fd);
 
-        if (ngx_strncmp(ls[i].addr_text.data + sizeof("unix:") - 1,
+        if (ngx_strncmp(ls[i].addr_text.data,
                          sock_name->data, sock_name->len) == 0) {
             ngx_lua_disable_listening_socket(&ls[i]);
             return NGX_OK;

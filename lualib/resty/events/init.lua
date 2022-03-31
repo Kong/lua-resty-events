@@ -12,12 +12,6 @@ local _M = {
     _VERSION = '0.1.0',
 }
 
-local DEFAULT_UNIQUE_TIMEOUT = 5
-local UNIX_PREFIX = "unix:"
-
-local _worker_id = ngx.worker.id()
-local _worker_count = ngx.worker.count()
-
 local disable_listening
 do
     local ffi = require "ffi"
@@ -32,8 +26,6 @@ do
     local sock_name_str = ffi.new("ngx_str_t[1]")
 
     disable_listening = function(sock_name)
-        sock_name = str_sub(sock_name, #UNIX_PREFIX + 1)
-
         sock_name_str[0].data = sock_name
         sock_name_str[0].len = #sock_name
 
@@ -51,13 +43,19 @@ end
 function _M.configure(opts)
     assert(type(opts) == "table", "Expected a table, got " .. type(opts))
 
+    local DEFAULT_UNIQUE_TIMEOUT = 5
+    local UNIX_PREFIX = "unix:"
+
+    local worker_id = ngx.worker.id()
+    local worker_count = ngx.worker.count()
+
     opts.broker_id = opts.broker_id or 0
 
     if type(opts.broker_id) ~= "number" then
         return nil, '"worker_id" option must be a number'
     end
 
-    if opts.broker_id < 0 or opts.broker_id >= _worker_count then
+    if opts.broker_id < 0 or opts.broker_id >= worker_count then
         return nil, '"worker_id" option is invalid'
     end
 
@@ -83,7 +81,7 @@ function _M.configure(opts)
         return nil, '"unique_timeout" must be greater than 0'
     end
 
-    local is_broker = _worker_id == opts.broker_id
+    local is_broker = worker_id == opts.broker_id
 
     local ok, err
 

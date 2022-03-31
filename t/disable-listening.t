@@ -139,7 +139,7 @@ unix ok #1
 --- request
 GET /test
 --- response_body
-failed to disable listening: /tmp/xxx.sock
+failed to disable listening: unix:/tmp/xxx.sock
 "listening" option must start with unix:
 --- no_error_log
 [error]
