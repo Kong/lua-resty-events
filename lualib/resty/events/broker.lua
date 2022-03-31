@@ -53,120 +53,120 @@ function _M.configure(opts)
 end
 
 function _M.run()
-  local conn, err = server:new()
+    local conn, err = server:new()
 
-  if not conn then
-      log(ERR, "failed to init socket: ", err)
-      exit(444)
-  end
+    if not conn then
+        log(ERR, "failed to init socket: ", err)
+        exit(444)
+    end
 
-  local queue = que.new()
+    local queue = que.new()
 
-  _clients[conn] = queue
+    _clients[conn] = queue
 
-  local read_thread = spawn(function()
-    while not exiting() do
-      local data, err = conn:recv_frame()
+    local read_thread = spawn(function()
+        while not exiting() do
+            local data, err = conn:recv_frame()
 
-      if err then
-        if not is_timeout(err) then
-          return nil, err
-        end
+            if err then
+                if not is_timeout(err) then
+                  return nil, err
+                end
 
-        -- timeout
-        goto continue
-      end
+                -- timeout
+                goto continue
+            end
 
-      if not data then
-        return nil, "did not receive event from worker"
-      end
+            if not data then
+                return nil, "did not receive event from worker"
+            end
 
-      local d, err
+            local d, err
 
-      d, err = decode(data)
-      if not d then
-        log(ERR, "worker-events: failed decoding event data: ", err)
-        goto continue
-      end
+            d, err = decode(data)
+            if not d then
+                log(ERR, "worker-events: failed decoding event data: ", err)
+                goto continue
+            end
 
-      -- unique event
-      local unique = d.spec.unique
-      if unique then
-        if _uniques:get(unique) then
-          log(DEBUG, "unique event is duplicate: ", unique)
-          goto continue
-        end
+            -- unique event
+            local unique = d.spec.unique
+            if unique then
+                if _uniques:get(unique) then
+                    log(DEBUG, "unique event is duplicate: ", unique)
+                    goto continue
+                end
 
-        _uniques:set(unique, 1, _opts.unique_timeout)
-      end
+                _uniques:set(unique, 1, _opts.unique_timeout)
+            end
 
-      -- broadcast to all/unique workers
-      local n = 0
-      for _, q in pairs(_clients) do
-        local ok, err = q:push(d.data)
+            -- broadcast to all/unique workers
+            local n = 0
+            for _, q in pairs(_clients) do
+                local ok, err = q:push(d.data)
 
-        if not ok then
-          log(ERR, "failed to publish event: ", err)
+                if not ok then
+                    log(ERR, "failed to publish event: ", err)
 
-        else
-          n = n + 1
+                else
+                    n = n + 1
 
-          if unique then
-            break
-          end
-        end
+                    if unique then
+                        break
+                    end
+                end
 
-      end  -- for q in pairs(_clients)
+            end  -- for q in pairs(_clients)
 
-      log(DEBUG, "event published to ", n, " workers")
+            log(DEBUG, "event published to ", n, " workers")
 
-      ::continue::
-    end -- while not exiting
-  end)  -- read_thread
+            ::continue::
+        end -- while not exiting
+    end)  -- read_thread
 
-  local write_thread = spawn(function()
-    while not exiting() do
-      local payload, err = queue:pop()
+    local write_thread = spawn(function()
+        while not exiting() do
+            local payload, err = queue:pop()
 
-      if not payload then
-        if not is_timeout(err) then
-          return nil, "semaphore wait error: " .. err
-        end
+            if not payload then
+                if not is_timeout(err) then
+                    return nil, "semaphore wait error: " .. err
+                end
 
-        goto continue
-      end
+                goto continue
+            end
 
-      if exiting() then
-        return
-      end
+            if exiting() then
+                return
+            end
 
-      local _, err = conn:send_frame(payload)
-      if err then
-          log(ERR, "failed to send event: ", err)
-      end
+            local _, err = conn:send_frame(payload)
+            if err then
+                log(ERR, "failed to send event: ", err)
+            end
 
-      ::continue::
-    end -- while not exiting
-  end)  -- write_thread
+            ::continue::
+        end -- while not exiting
+    end)  -- write_thread
 
-  local ok, err, perr = wait(write_thread, read_thread)
+    local ok, err, perr = wait(write_thread, read_thread)
 
-  _clients[conn] = nil
+    _clients[conn] = nil
 
-  kill(write_thread)
-  kill(read_thread)
+    kill(write_thread)
+    kill(read_thread)
 
-  if not ok then
-      log(ERR, "event broker failed: ", err)
-      return exit(ngx.ERROR)
-  end
+    if not ok then
+        log(ERR, "event broker failed: ", err)
+        return exit(ngx.ERROR)
+    end
 
-  if perr then
-      log(ERR, "event broker failed: ", perr)
-      return exit(ngx.ERROR)
-  end
+    if perr then
+        log(ERR, "event broker failed: ", perr)
+        return exit(ngx.ERROR)
+    end
 
-  return exit(ngx.OK)
+    return exit(ngx.OK)
 end
 
 return _M
