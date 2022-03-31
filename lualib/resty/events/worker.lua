@@ -1,7 +1,7 @@
 local cjson = require "cjson.safe"
 local que = require "resty.events.queue"
-local callback = require "resty.events.callback"
 local client = require("resty.events.protocol").client
+local do_event = require("resty.events.callback").do_event
 
 local type = type
 local assert = assert
@@ -113,7 +113,7 @@ communicate = function(premature)
             end
 
             -- got an event data, callback
-            callback.do_event(d)
+            do_event(d)
 
             ::continue::
         end -- while not exiting
@@ -164,7 +164,7 @@ communicate = function(premature)
             end
 
             -- got an event data, callback
-            callback.do_event(data)
+            do_event(data)
 
             ::continue::
         end -- while not exiting
