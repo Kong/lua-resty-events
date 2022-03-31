@@ -112,22 +112,23 @@ local function do_handlerlist(handler_list, source, event, data, pid)
 end
 
 
-local function do_event(source, event, data, pid)
-  log(DEBUG, "worker-events: handling event; source=",source,
-      ", event=", event, ", pid=", pid) --,", data=",tostring(data))
-      -- do not log potentially private data, hence skip 'data'
-
-  local list = _callbacks
-  do_handlerlist(list, source, event, data, pid)
-  list = list.subs[source]
-  do_handlerlist(list, source, event, data, pid)
-  list = list.subs[event]
-  do_handlerlist(list, source, event, data, pid)
-end
-
 -- Handle incoming table based event
 function _M.do_event(d)
-  return do_event(d.source, d.event, d.data, d.pid)
+    local source = d.source
+    local event  = d.event
+    local data   = d.data
+    local pid    = d.pid
+
+    log(DEBUG, "worker-events: handling event; source=", source,
+        ", event=", event, ", pid=", pid) --,", data=",tostring(data))
+        -- do not log potentially private data, hence skip 'data'
+
+    local list = _callbacks
+    do_handlerlist(list, source, event, data, pid)
+    list = list.subs[source]
+    do_handlerlist(list, source, event, data, pid)
+    list = list.subs[event]
+    do_handlerlist(list, source, event, data, pid)
 end
 
 -- @param mode either "weak" or "strong"
