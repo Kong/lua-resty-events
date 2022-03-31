@@ -12,39 +12,39 @@ local _MT = { __index = _M, }
 local MAX_QUEUE_LEN = 1024
 
 function _M.new()
-  local self = {
-    semaphore = assert(semaphore.new()),
-    count = 0,
-  }
+    local self = {
+        semaphore = assert(semaphore.new()),
+        count = 0,
+    }
 
-  return setmetatable(self, _MT)
+    return setmetatable(self, _MT)
 end
 
 
 function _M:push(item)
-  if self.count >= MAX_QUEUE_LEN then
-      return nil, "queue overflow"
-  end
+    if self.count >= MAX_QUEUE_LEN then
+        return nil, "queue overflow"
+    end
 
-  table_insert(self, item)
-  self.count = self.count + 1
+    table_insert(self, item)
+    self.count = self.count + 1
 
-  self.semaphore:post()
+    self.semaphore:post()
 
-  return true
+    return true
 end
 
 
 function _M:pop()
-  local ok, err = self.semaphore:wait(5)
-  if not ok then
-    return nil, err
-  end
+    local ok, err = self.semaphore:wait(5)
+    if not ok then
+        return nil, err
+    end
 
-  local item = assert(table_remove(self, 1))
-  self.count = self.count - 1
+    local item = assert(table_remove(self, 1))
+    self.count = self.count - 1
 
-  return item
+    return item
 end
 
 
