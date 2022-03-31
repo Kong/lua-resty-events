@@ -43,8 +43,8 @@ end
 function _M.configure(opts)
     assert(type(opts) == "table", "Expected a table, got " .. type(opts))
 
-    local DEFAULT_UNIQUE_TIMEOUT = 5
     local UNIX_PREFIX = "unix:"
+    local DEFAULT_UNIQUE_TIMEOUT = 5
 
     local worker_id = ngx.worker.id()
     local worker_count = ngx.worker.count()
@@ -110,7 +110,7 @@ function _M.poll()
     return "done"
 end
 
-_M.run = broker.run
+_M.run           = broker.run
 
 _M.post          = worker.post
 _M.post_local    = worker.post_local
