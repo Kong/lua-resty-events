@@ -85,7 +85,7 @@ function _M.run()
 
       d, err = decode(data)
       if not d then
-        log(ERR, "worker-events: failed decoding json event data: ", err)
+        log(ERR, "worker-events: failed decoding event data: ", err)
         goto continue
       end
 
@@ -116,7 +116,7 @@ function _M.run()
           end
         end
 
-      end
+      end  -- for q in pairs(_clients)
 
       log(DEBUG, "event published to ", n, " workers")
 

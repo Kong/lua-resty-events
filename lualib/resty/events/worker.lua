@@ -32,13 +32,13 @@ local EVENT_T = {
   pid = '',
 }
 
+local SPEC_T = {
+  unique = '',
+}
+
 local PAYLOAD_T = {
   spec = EMPTY_T,
   data = '',
-}
-
-local SPEC_T = {
-  unique = '',
 }
 
 local _M = {
@@ -109,7 +109,7 @@ communicate = function(premature)
 
       local d, err = decode(data)
       if not d then
-        return nil, "worker-events: failed decoding json event data: " .. err
+        return nil, "worker-events: failed decoding event data: " .. err
       end
 
       -- got an event data, callback

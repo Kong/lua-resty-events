@@ -14,7 +14,7 @@ local tostring = tostring
 
 
 local _M = {
-  _VERSION = "0.1.0"
+    _VERSION = "0.1.0"
 }
 
 
@@ -26,7 +26,7 @@ local MAX_PAYLOAD_LEN = 65535
 
 local function uint16_to_bytes(num)
     if num < 0 or num > MAX_PAYLOAD_LEN then
-      error("number " .. tostring(num) .. " out of range", 2)
+        error("number " .. tostring(num) .. " out of range", 2)
     end
 
     return char(band(rshift(num, 8), 0xFF),
