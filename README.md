@@ -109,10 +109,6 @@ to all callbacks, _so do not change the value in your handler, unless you know w
 The return value of `register` will be `true`, or it will throw an error if `callback` is not a
 function value.
 
-*WARNING*: event handlers must return quickly. If a handler takes more time than
-the configured `timeout` value, events will be dropped!
-
-*Note*: to receive the process own `started` event, the handler must be registered before
 calling [configure](#configure)
 
 [Back to TOC](#table-of-contents)
