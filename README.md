@@ -31,7 +31,7 @@ Synopsis
 
 ```nginx
 http {
-    lua_package_path "/path/to/lua-resty-worker-events/lib/?.lua;;";
+    lua_package_path "/path/to/lua-resty-events/lib/?.lua;;";
 
 }
 ```
@@ -50,6 +50,19 @@ Methods
 configure
 ---------
 `syntax: ok, err = events.configure(opts)`
+
+Will initialize the event listener. This should typically be called from the
+`init_worker_by_lua` handler, because it will make sure all workers start with the
+first event.
+
+The `opts` parameter is a Lua table with named options:
+
+* `listening`:
+* `broker_id`: default 0.
+* `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default 2.
+  See the `unique` parameter of the [post](#post) method.
+
+The return value will be `true`, or `nil` and an error message.
 
 [Back to TOC](#table-of-contents)
 
