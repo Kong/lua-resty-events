@@ -90,10 +90,6 @@ communicate = function(premature)
         while not exiting() do
             local data, err = conn:recv_frame()
 
-            if exiting() then
-                return
-            end
-
             if err then
                 if not is_timeout(err) then
                     return nil, err
@@ -105,6 +101,10 @@ communicate = function(premature)
 
             if not data then
                 return nil, "did not receive event from broker"
+            end
+
+            if exiting() then
+                return
             end
 
             local d, err = decode(data)
