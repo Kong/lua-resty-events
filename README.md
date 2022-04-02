@@ -31,13 +31,62 @@ Synopsis
 
 ```nginx
 http {
-    lua_package_path "/path/to/lua-resty-events/lib/?.lua;;";
+    lua_package_path "/path/to/lua-resty-events/lib/?/init.lua;;";
 
+    init_worker_by_lua_block {
+        local opts = {
+            broker_id = 0,
+            listening = "unix:/tmp/nginx.sock",
+        }
+
+        local ev = require "resty.events"
+
+        local handler = function(data, event, source, pid)
+            print("received event; source=",source,
+                  ", event=",event,
+                  ", data=", tostring(data),
+                  ", from process ",pid)
+        end
+
+        ev.register(handler)
+
+        local ok, err = ev.configure(opts)
+        if not ok then
+            ngx.log(ngx.ERR, "failed to configure events: ", err)
+        end
+    }
+
+    # create a listening unix domain socket
+    server {
+        listen unix:/tmp/nginx.sock;
+        location / {
+            content_by_lua_block {
+                 require("resty.events").run()
+            }
+        }
+    }
 }
 ```
 
 Description
 ===========
+
+This module provides a way to send events to the other worker processes in an Nginx
+server. Communication is through a unix domain socket which is listened by one and
+only one Nginx worker.
+
+The design allows for 3 usecases;
+
+1. broadcast an event to all workers processes, see [post](#post). Example;
+a healthcheck running in one worker, but informing all workers of a failed
+upstream node.
+2. broadcast an event to the local worker only, see [post_local](#post_local).
+3. coalesce external events to a single action. Example; all workers watch
+external events indicating an in-memory cache needs to be refreshed. When
+receiving it they all post it with a unique event hash (all workers generate the
+same hash), see `unique` parameter of [post](#post). Now only 1 worker will
+receive the event _only once_, so only one worker will hit the upstream
+database to refresh the in-memory data.
 
 [Back to TOC](#table-of-contents)
 
