@@ -35,7 +35,6 @@ http {
 
     init_worker_by_lua_block {
         local opts = {
-            broker_id = 0,
             listening = "unix:/tmp/nginx.sock",
         }
 
