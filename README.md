@@ -76,7 +76,7 @@ only one Nginx worker.
 
 The design allows for 3 usecases;
 
-1. broadcast an event to all workers processes, see [post](#post). Example;
+1. broadcast an event to all workers processes, see [post](#post). Example:
 a healthcheck running in one worker, but informing all workers of a failed
 upstream node.
 2. broadcast an event to the local worker only, see [post_local](#post_local).
@@ -119,7 +119,7 @@ post
 `syntax: success, err = events.post(source, event, data, unique)`
 
 Will post a new event. `source` and `event` are both strings. `data` can be anything (including `nil`)
-as long as it is (de)serializable by the cjson module.
+as long as it is (de)serializable by the cjson or other module.
 
 If the `unique` parameter is provided then only one worker will execute the event,
 the other workers will ignore it. Also any follow up events with the same `unique`
@@ -141,7 +141,7 @@ post_local
 
 The same as [post](#post) except that the event will be local to the worker process,
 it will not be broadcasted to other workers. With this method, the `data` element
-will not be jsonified.
+will not be serialized.
 
 The return value will be `true` when the event was successfully posted or
 `nil + error` in case of failure.
