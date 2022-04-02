@@ -101,13 +101,13 @@ configure
 `syntax: ok, err = events.configure(opts)`
 
 Will initialize the event listener. This should typically be called from the
-`init_worker_by_lua` handler, because it will make sure all workers start with the
-first event.
+`init_worker_by_lua` handler, because it will make sure only one Nginx worker
+starts to listen on unix domain socket.
 
 The `opts` parameter is a Lua table with named options:
 
-* `listening`:
-* `broker_id`: default 0.
+* `listening`: the unix doamin socket, which must be same as another `server` block.
+* `broker_id`: (optional) the worker id that will start to listen, default 0.
 * `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default 2.
   See the `unique` parameter of the [post](#post) method.
 
