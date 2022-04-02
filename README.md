@@ -2,7 +2,7 @@
 lua-resty-events
 =======================
 
-Inter process Pub/Sub pattern for Nginx worker processes
+Inter process Pub/Sub pattern events propagation for Nginx worker processes
 
 Table of Contents
 =================
