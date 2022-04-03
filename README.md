@@ -116,7 +116,7 @@ The return value will be `true`, or `nil` and an error message.
 
 post
 ----
-`syntax: success, err = events.post(source, event, data, unique)`
+`syntax: ok, err = events.post(source, event, data, unique)`
 
 Will post a new event. `source` and `event` are both strings. `data` can be anything (including `nil`)
 as long as it is (de)serializable by the cjson or other module.
@@ -137,7 +137,7 @@ posting code, but only when receiving it.
 
 post_local
 ----------
-`syntax: success, err = events.post_local(source, event, data)`
+`syntax: ok, err = events.post_local(source, event, data)`
 
 The same as [post](#post) except that the event will be local to the worker process,
 it will not be broadcasted to other workers. With this method, the `data` element
