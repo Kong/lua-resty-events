@@ -123,7 +123,7 @@ as long as it is (de)serializable by the cjson or other module.
 
 If the `unique` parameter is provided then only one worker will execute the event,
 the other workers will ignore it. Also any follow up events with the same `unique`
-value will be ignored (for the `timeout` period specified to [configure](#configure)).
+value will be ignored (for the `unique_timeout` period specified to [configure](#configure)).
 The process executing the event will not necessarily be the process posting the event.
 
 The return value will be `true` when the event was successfully posted or
