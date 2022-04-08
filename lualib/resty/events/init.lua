@@ -107,6 +107,8 @@ end
 
 _M.run           = broker.run
 
+_M.publish       = worker.publish
+
 _M.post          = worker.post
 _M.post_local    = worker.post_local
 

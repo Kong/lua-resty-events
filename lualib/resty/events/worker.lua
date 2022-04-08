@@ -295,4 +295,48 @@ function _M.post_local(source, event, data)
     return true
 end
 
+function _M.publish(target, source, event, data)
+    local ok, err
+
+    if not _connected then
+        return nil, "not initialized yet"
+    end
+
+    if type(target) ~= "string" or target == "" then
+        return nil, "target is required"
+    end
+
+    if type(source) ~= "string" or source == "" then
+        return nil, "source is required"
+    end
+
+    if type(event) ~= "string" or event == "" then
+        return nil, "event is required"
+    end
+
+    if target == "current" then
+        ok, err = _local_queue:push({
+            source = source,
+            event = event,
+            data = data,
+        })
+
+    else
+        if target == "all" then
+            SPEC_T.unique = nil
+
+        else -- unique hash string
+            SPEC_T.unique = target
+        end
+
+        ok, err = post_event(source, event, data, SPEC_T)
+    end
+
+    if not ok then
+        return nil, "failed to publish event: " .. err
+    end
+
+    return true
+end
+
 return _M
