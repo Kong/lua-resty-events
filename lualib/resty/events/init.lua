@@ -113,8 +113,8 @@ _M.publish       = worker.publish
 _M.disable_listening = disable_listening
 
 -- compatible
-_M.post          = worker.post
-_M.post_local    = worker.post_local
+--_M.post          = worker.post
+--_M.post_local    = worker.post_local
 
 -- compatible
 _M.register      = callback.register

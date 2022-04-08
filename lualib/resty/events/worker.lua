@@ -239,62 +239,6 @@ local function post_event(source, event, data, spec)
     return true
 end
 
-local function check_event(source, event)
-    if not _connected then
-        return nil, "not initialized yet"
-    end
-
-    if type(source) ~= "string" or source == "" then
-        return nil, "source is required"
-    end
-
-    if type(event) ~= "string" or event == "" then
-        return nil, "event is required"
-    end
-
-    return true
-end
-
-function _M.post(source, event, data, unique)
-    local ok, err
-
-    ok, err = check_event(source, event)
-    if not ok then
-        return nil, err
-    end
-
-    SPEC_T.unique = unique
-
-    ok, err = post_event(source, event, data, SPEC_T)
-    if not ok then
-        log(ERR, "post event: ", err)
-        return nil, err
-    end
-
-    return true
-end
-
-function _M.post_local(source, event, data)
-    local ok, err
-
-    ok, err = check_event(source, event)
-    if not ok then
-        return nil, err
-    end
-
-    ok, err = _local_queue:push({
-        source = source,
-        event = event,
-        data = data,
-    })
-
-    if not ok then
-        return nil, "failed to publish event: " .. err
-    end
-
-    return true
-end
-
 function _M.publish(target, source, event, data)
     local ok, err
 
