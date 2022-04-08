@@ -105,19 +105,10 @@ function _M.configure(opts)
     return true
 end
 
--- compatible with lua-resty-worker-events
-function _M.poll()
-    return "done"
-end
-
 _M.run           = broker.run
 
 _M.post          = worker.post
 _M.post_local    = worker.post_local
-
-_M.register      = callback.register
-_M.register_weak = callback.register_weak
-_M.unregister    = callback.unregister
 
 -- for test only
 _M.disable_listening = disable_listening
