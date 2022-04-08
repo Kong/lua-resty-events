@@ -29,7 +29,7 @@ __DATA__
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
             }
 
-            local ev = require "resty.events"
+            local ev = require "resty.events.compat"
             local ok, err = ev.configure(opts)
             if not ok then
                 ngx.log(ngx.ERR, "failed to configure events: ", err)
@@ -112,7 +112,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
             }
 
-            local ev = require "resty.events"
+            local ev = require "resty.events.compat"
             local ok, err = ev.configure(opts)
             if not ok then
                 ngx.log(ngx.ERR, "failed to configure events: ", err)
@@ -197,7 +197,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
             }
 
-            local ev = require "resty.events"
+            local ev = require "resty.events.compat"
             local ok, err = ev.configure(opts)
             if not ok then
                 ngx.log(ngx.ERR, "failed to configure events: ", err)
