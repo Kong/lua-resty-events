@@ -23,7 +23,7 @@ __DATA__
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
     init_worker_by_lua_block {
-        local ec = require "resty.events.callback"
+        local ec = require "resty.events.compat.callback"
         local cb = function(extra, data, event, source, pid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                     ", data=", data, ", callback=",extra)
@@ -42,7 +42,7 @@ __DATA__
 --- config
     location = /test {
         content_by_lua_block {
-            local ec = require "resty.events.callback"
+            local ec = require "resty.events.compat.callback"
             local pid = ngx.worker.pid()
 
             local post = function(s, e, d)
@@ -130,7 +130,7 @@ worker-events: handling event; source=content_by_lua, event=request3, pid=\d+$/
 --- config
     location = /test {
         content_by_lua_block {
-            local ec = require "resty.events.callback"
+            local ec = require "resty.events.compat.callback"
 
             local post = function(s, e, d)
                 ec.do_event({source = s, event = e, data = d, pid = pid})
@@ -198,7 +198,7 @@ after GC:0
 --- config
     location = /test {
         content_by_lua_block {
-            local ec = require "resty.events.callback"
+            local ec = require "resty.events.compat.callback"
 
             local post = function(s, e, d)
                 ec.do_event({source = s, event = e, data = d, pid = pid})
@@ -237,7 +237,7 @@ something went wrong here!
 --- config
     location = /test {
         content_by_lua_block {
-            local ec = require "resty.events.callback"
+            local ec = require "resty.events.compat.callback"
 
             local post = function(s, e, d)
                 ec.do_event({source = s, event = e, data = d, pid = pid})

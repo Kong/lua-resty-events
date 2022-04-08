@@ -1,5 +1,5 @@
 local events = require "resty.events"
-local callback = require "resty.events.callback"
+local callback = require "resty.events.compat.callback"
 
 local _M = {
     _VERSION = '0.1.0',
