@@ -109,10 +109,16 @@ _M.run           = broker.run
 
 _M.publish       = worker.publish
 
+-- for test only
+_M.disable_listening = disable_listening
+
+-- compatible
 _M.post          = worker.post
 _M.post_local    = worker.post_local
 
--- for test only
-_M.disable_listening = disable_listening
+-- compatible
+_M.register      = callback.register
+_M.register_weak = callback.register_weak
+_M.unregister    = callback.unregister
 
 return _M

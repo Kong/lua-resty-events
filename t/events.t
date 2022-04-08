@@ -28,7 +28,7 @@ __DATA__
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require "resty.events.compat"
+        local ev = require "resty.events"
         local ok, err = ev.configure(opts)
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
@@ -53,9 +53,9 @@ __DATA__
         content_by_lua_block {
             local ev = require "resty.events"
 
-            ev.post("content_by_lua","request1","01234567890")
-            ev.post_local("content_by_lua","request2","01234567890")
-            ev.post("content_by_lua","request3","01234567890")
+            ev.publish("all", "content_by_lua","request1","01234567890")
+            ev.publish("current", "content_by_lua","request2","01234567890")
+            ev.publish("all", "content_by_lua","request3","01234567890")
 
             ngx.say("ok")
         }
@@ -89,7 +89,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require "resty.events.compat"
+        local ev = require "resty.events"
         local ok, err = ev.configure(opts)
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
@@ -114,9 +114,9 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
         content_by_lua_block {
             local ev = require "resty.events"
 
-            ev.post("content_by_lua","request1","01234567890")
-            ev.post_local("content_by_lua","request2","01234567890")
-            ev.post("content_by_lua","request3","01234567890")
+            ev.publish("all", "content_by_lua","request1","01234567890")
+            ev.publish("current", "content_by_lua","request2","01234567890")
+            ev.publish("all", "content_by_lua","request3","01234567890")
 
             ngx.say("ok")
         }
@@ -151,7 +151,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require "resty.events.compat"
+        local ev = require "resty.events"
         local ok, err = ev.configure(opts)
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
@@ -176,15 +176,15 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
         content_by_lua_block {
             local ev = require "resty.events"
 
-            ev.post("content_by_lua","request1","01234567890")
-            ev.post("content_by_lua","request2","01234567890", "unique_value")
-            ev.post("content_by_lua","request3","01234567890", "unique_value")
+            ev.publish("all", "content_by_lua","request1","01234567890")
+            ev.publish("unique_value", "content_by_lua","request2","01234567890")
+            ev.publish("unique_value", "content_by_lua","request3","01234567890")
 
             ngx.sleep(0.1) -- wait for unique timeout to expire
 
-            ev.post("content_by_lua","request4","01234567890", "unique_value")
-            ev.post("content_by_lua","request5","01234567890", "unique_value")
-            ev.post("content_by_lua","request6","01234567890")
+            ev.publish("unique_value", "content_by_lua","request4","01234567890")
+            ev.publish("unique_value", "content_by_lua","request5","01234567890")
+            ev.publish("all", "content_by_lua","request6","01234567890")
 
             ngx.say("ok")
         }
