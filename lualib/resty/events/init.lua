@@ -8,6 +8,9 @@ local type = type
 local setmetatable = setmetatable
 local str_sub = string.sub
 
+local worker_id = ngx.worker.id()
+local worker_count = ngx.worker.count()
+
 local _M = {
     _VERSION = '0.1.0',
 }
@@ -55,9 +58,6 @@ function _M:configure(opts)
 
     local UNIX_PREFIX = "unix:"
     local DEFAULT_UNIQUE_TIMEOUT = 5
-
-    local worker_id = ngx.worker.id()
-    local worker_count = ngx.worker.count()
 
     opts.broker_id = opts.broker_id or 0
 
