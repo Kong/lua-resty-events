@@ -4,7 +4,6 @@ local xpcall = xpcall
 local type = type
 local assert = assert
 local tostring = tostring
-local table_insert = table.insert
 local traceback = debug.traceback
 
 local ngx = ngx
@@ -56,8 +55,6 @@ function _M.unsubscribe(source, event, id)
         _callbacks[source] = {}
         return
     end
-
-    local list
 
     -- clear source/event callbacks
     if not id then
@@ -129,7 +126,6 @@ function _M.do_event(d)
     local list
 
     -- global events
-    list = _callbacks['*']['*']
     list = get_callback_list("*", "*")
     do_handlerlist(list, source, event, data, pid)
 
