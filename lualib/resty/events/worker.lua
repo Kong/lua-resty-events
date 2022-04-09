@@ -135,30 +135,30 @@ function _M:communicate(premature)
     end)  -- read_thread
 
     local write_thread = spawn(function()
-      while not exiting() do
-        local payload, err = self._queue:pop()
+        while not exiting() do
+            local payload, err = self._queue:pop()
 
-        if not payload then
-            if not is_timeout(err) then
-                return nil, "semaphore wait error: " .. err
+            if not payload then
+                if not is_timeout(err) then
+                    return nil, "semaphore wait error: " .. err
+                end
+
+                -- timeout
+                goto continue
             end
 
-            -- timeout
-            goto continue
-        end
+            if exiting() then
+                return
+            end
 
-        if exiting() then
-            return
-        end
+            local _, err = conn:send_frame(payload)
+            if err then
+                log(ERR, "failed to send event: ", err)
+                return
+            end
 
-        local _, err = conn:send_frame(payload)
-        if err then
-            log(ERR, "failed to send event: ", err)
-            return
-        end
-
-        ::continue::
-      end -- while not exiting
+            ::continue::
+        end -- while not exiting
     end)  -- write_thread
 
     local local_thread = spawn(function()
