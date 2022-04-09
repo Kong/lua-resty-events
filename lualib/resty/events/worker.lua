@@ -2,7 +2,6 @@ local cjson = require "cjson.safe"
 local que = require "resty.events.queue"
 local client = require("resty.events.protocol").client
 local do_event = require("resty.events.callback").do_event
---local do_event = require("resty.events.compat.callback").do_event
 
 local type = type
 local assert = assert

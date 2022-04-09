@@ -72,17 +72,10 @@ function _M.unsubscribe(source, event, id)
     end
 
     -- clear one handler
-    assert(_callbacks[source][event])
 
-    local id = tostring(id)
+    local list = get_callback_list(source, event)
 
-    if not _callbacks[source][event][id] then
-        return nil, "failed to unsubscribe callback " .. id
-    end
-
-    _callbacks[source][event][id] = nil
-
-    return true
+    list[tostring(id)] = nil
 end
 
 local function do_handlerlist(list, source, event, data, pid)
