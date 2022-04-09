@@ -266,12 +266,8 @@ function _M.publish(target, source, event, data)
         })
 
     else
-        if target == "all" then
-            SPEC_T.unique = nil
-
-        else -- unique hash string
-            SPEC_T.unique = target
-        end
+        -- add unique hash string
+        SPEC_T.unique = target ~= "all" and target or nil
 
         ok, err = post_event(source, event, data, SPEC_T)
     end
