@@ -49,13 +49,32 @@ function _M.subscribe(source, event, callback)
 end
 
 function _M.unsubscribe(source, event, id)
-    assert(type(id) == "number", "expected number, got: "..
-           type(id))
+    assert(source, "expect source")
 
+    -- clear source callbacks
+    if not event and not id then
+        _callbacks[source] = {}
+        return
+    end
+
+    local list
+
+    -- clear source/event callbacks
+    if not id then
+        assert(_callbacks[source])
+        _callbacks[source][event] = {count = 0,}
+        return
+    end
+
+    -- clear one handler
+    assert(_callbacks[source][event])
+    _callbacks[source][event][id] = nil
 end
 
 local function do_handlerlist(list, source, event, data, pid)
     local ok, err
+
+    --log(DEBUG, "source=", source, "event=", event, "count=", list.count)
 
     local i = 1
     while i <= list.count do
