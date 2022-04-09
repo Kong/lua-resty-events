@@ -42,6 +42,8 @@ local PAYLOAD_T = {
     data = '',
 }
 
+local _worker_pid = ngx.worker.pid()
+
 local _M = {
     _VERSION = '0.1.0',
 }
@@ -55,14 +57,6 @@ end
 local function is_timeout(err)
     return err and str_sub(err, -7) == "timeout"
 end
-
-local _worker_pid = ngx.worker.pid()
-
--- local _queue = que.new()
--- local _local_queue = que.new()
-
--- local _connected
--- local _opts
 
 local function do_event(self, d)
     self._callback:do_event(d)

@@ -106,11 +106,6 @@ end
 
 _M.run          = broker.run
 
---_M.publish      = worker.publish
-
---_M.subscribe    = worker.subscribe
---_M.unsubscribe  = worker.unsubscribe
-
 function _M.publish(target, source, event, data)
     return worker:publish(target, source, event, data)
 end
@@ -122,6 +117,7 @@ end
 function _M.unsubscribe(source, event, id)
     return worker:unsubscribe(source, event, id)
 end
+
 -- for test only
 _M.disable_listening = disable_listening
 
