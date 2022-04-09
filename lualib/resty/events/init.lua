@@ -1,6 +1,5 @@
 require "resty.core.base"
 
-local callback  = require "resty.events.callback"
 local broker    = require "resty.events.broker"
 local worker    = require "resty.events.worker"
 

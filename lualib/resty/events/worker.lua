@@ -45,6 +45,7 @@ local PAYLOAD_T = {
 local _M = {
     _VERSION = '0.1.0',
 }
+--local _MT = { __index = _M, }
 
 local function do_event(d)
     callbacks:do_event(d)

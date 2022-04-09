@@ -19,8 +19,6 @@ local _M = {
 }
 local _MT = { __index = _M, }
 
---local _callbacks = {}
-
 function _M.new()
     local self = {
         _callbacks = {},
