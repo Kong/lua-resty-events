@@ -1,6 +1,6 @@
 require "resty.core.base"
 
-local callback  = require "resty.events.compat.callback"
+local callback  = require "resty.events.callback"
 local broker    = require "resty.events.broker"
 local worker    = require "resty.events.worker"
 
@@ -105,9 +105,11 @@ function _M.configure(opts)
     return true
 end
 
-_M.run           = broker.run
+_M.run          = broker.run
 
-_M.publish       = worker.publish
+_M.publish      = worker.publish
+
+_M.subscribe    = callback.subscribe
 
 -- for test only
 _M.disable_listening = disable_listening
@@ -117,8 +119,10 @@ _M.disable_listening = disable_listening
 --_M.post_local    = worker.post_local
 
 -- compatible
-_M.register      = callback.register
-_M.register_weak = callback.register_weak
-_M.unregister    = callback.unregister
+local comapt_callback  = require "resty.events.compat.callback"
+
+_M.register      = comapt_callback.register
+_M.register_weak = comapt_callback.register_weak
+_M.unregister    = comapt_callback.unregister
 
 return _M
