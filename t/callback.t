@@ -25,7 +25,7 @@ __DATA__
 --- config
     location = /test {
         content_by_lua_block {
-            local ec = require "resty.events.callback"
+            local ec = require("resty.events.callback").new()
 
             local pid = ngx.worker.pid()
             local cb = function(extra, data, event, source, pid)
@@ -38,14 +38,14 @@ __DATA__
             ngx.cb_event12 = function(...) return cb("event12", ...) end
             ngx.cb_event3  = function(...) return cb("event3", ...) end
 
-            local id1 = ec.subscribe("*", "*", ngx.cb_global)
-            local id2 = ec.subscribe("content_by_lua", '*', ngx.cb_source)
-            local id3 = ec.subscribe("content_by_lua", "request1", ngx.cb_event12)
-            local id4 = ec.subscribe("content_by_lua", "request2", ngx.cb_event12)
-            local id5 = ec.subscribe("content_by_lua", "request3", ngx.cb_event3)
+            local id1 = ec:subscribe("*", "*", ngx.cb_global)
+            local id2 = ec:subscribe("content_by_lua", '*', ngx.cb_source)
+            local id3 = ec:subscribe("content_by_lua", "request1", ngx.cb_event12)
+            local id4 = ec:subscribe("content_by_lua", "request2", ngx.cb_event12)
+            local id5 = ec:subscribe("content_by_lua", "request3", ngx.cb_event3)
 
             local post = function(s, e, d)
-                ec.do_event({source = s, event = e, data = d, pid = pid})
+                ec:do_event({source = s, event = e, data = d, pid = pid})
             end
 
             post("content_by_lua","request1","123")
@@ -53,25 +53,25 @@ __DATA__
             post("content_by_lua","request3","123")
 
             --ec.unsubscribe("*", "*")
-            ec.unsubscribe("*", "*", id1)
+            ec:unsubscribe("*", "*", id1)
 
             post("content_by_lua","request1","124")
             post("content_by_lua","request2","124")
             post("content_by_lua","request3","124")
 
-            ec.unsubscribe("content_by_lua", "*")
+            ec:unsubscribe("content_by_lua", "*")
 
             post("content_by_lua","request1","125")
             post("content_by_lua","request2","125")
             post("content_by_lua","request3","125")
 
-            ec.unsubscribe("content_by_lua", "request1", id3)
-            ec.unsubscribe("content_by_lua", "request2", id4)
+            ec:unsubscribe("content_by_lua", "request1", id3)
+            ec:unsubscribe("content_by_lua", "request2", id4)
             post("content_by_lua","request1","126")
             post("content_by_lua","request2","126")
             post("content_by_lua","request3","126")
 
-            ec.unsubscribe("content_by_lua", "request3", id5)
+            ec:unsubscribe("content_by_lua", "request3", id5)
             post("content_by_lua","request1","127")
             post("content_by_lua","request2","127")
             post("content_by_lua","request3","127")
@@ -131,10 +131,10 @@ worker-events: handling event; source=content_by_lua, event=request3, pid=\d+$/
 --- config
     location = /test {
         content_by_lua_block {
-            local ec = require "resty.events.callback"
+            local ec = require("resty.events.callback").new()
 
             local post = function(s, e, d)
-                ec.do_event({source = s, event = e, data = d, pid = pid})
+                ec:do_event({source = s, event = e, data = d, pid = pid})
             end
 
             local error_func = function()
@@ -143,7 +143,7 @@ worker-events: handling event; source=content_by_lua, event=request3, pid=\d+$/
             local test_callback = function(source, event, data, pid)
               error_func() -- nested call to check stack trace
             end
-            ec.subscribe("*", "*", test_callback)
+            ec:subscribe("*", "*", test_callback)
 
             -- non-serializable test data containing a function value
             -- use "nil" as data, reproducing issue #5
@@ -170,10 +170,10 @@ something went wrong here!
 --- config
     location = /test {
         content_by_lua_block {
-            local ec = require "resty.events.callback"
+            local ec = require("resty.events.callback").new()
 
             local post = function(s, e, d)
-                ec.do_event({source = s, event = e, data = d, pid = pid})
+                ec:do_event({source = s, event = e, data = d, pid = pid})
             end
 
             local error_func = function()
@@ -186,7 +186,7 @@ something went wrong here!
               in_between() -- nested call to check stack trace
             end
 
-            ec.subscribe("*", "*", test_callback)
+            ec:subscribe("*", "*", test_callback)
             post("content_by_lua","test_event")
 
             ngx.say("ok")

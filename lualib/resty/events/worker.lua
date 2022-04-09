@@ -1,7 +1,8 @@
 local cjson = require "cjson.safe"
 local que = require "resty.events.queue"
 local client = require("resty.events.protocol").client
-local do_event = require("resty.events.callback").do_event
+
+local callbacks = require("resty.events.callback").new()
 
 local type = type
 local assert = assert
@@ -44,6 +45,10 @@ local PAYLOAD_T = {
 local _M = {
     _VERSION = '0.1.0',
 }
+
+local function do_event(d)
+    callbacks:do_event(d)
+end
 
 -- gen a random number [0.2, 2.0]
 local function random_delay()
@@ -277,6 +282,14 @@ function _M.publish(target, source, event, data)
     end
 
     return true
+end
+
+function _M.subscribe(source, event, callback)
+    return callbacks:subscribe(source, event, callback)
+end
+
+function _M.unsubscribe(source, event, id)
+    return callbacks:unsubscribe(source, event, id)
 end
 
 return _M

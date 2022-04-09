@@ -17,10 +17,21 @@ local encode = cjson.encode
 local _M = {
   _VERSION = '0.1.0',
 }
+local _MT = { __index = _M, }
 
-local _callbacks = {}
+--local _callbacks = {}
 
-local function get_callback_list(source, event)
+function _M.new()
+    local self = {
+        _callbacks = {},
+    }
+
+    return setmetatable(self, _MT)
+end
+
+local function get_callback_list(self, source, event)
+    local _callbacks = self._callbacks
+
     if not _callbacks[source] then
         _callbacks[source] = {}
     end
@@ -38,11 +49,13 @@ end
 -- subscribe('*', '*', func)
 -- subscribe('s', '*', func)
 -- subscribe('s', 'e', func)
-function _M.subscribe(source, event, callback)
+function _M:subscribe(source, event, callback)
     assert(type(callback) == "function", "expected function, got: "..
            type(callback))
 
-    local list = get_callback_list(source, event)
+    local _callbacks = self._callbacks
+
+    local list = get_callback_list(self, source, event)
 
     local count_key = event .. "n"
     local count = _callbacks[source][count_key] + 1
@@ -55,8 +68,10 @@ function _M.subscribe(source, event, callback)
     return id
 end
 
-function _M.unsubscribe(source, event, id)
+function _M:unsubscribe(source, event, id)
     assert(source, "expect source")
+
+    local _callbacks = self._callbacks
 
     -- clear source callbacks
     if not event and not id then
@@ -73,7 +88,7 @@ function _M.unsubscribe(source, event, id)
 
     -- clear one handler
 
-    local list = get_callback_list(source, event)
+    local list = get_callback_list(self, source, event)
 
     list[tostring(id)] = nil
 end
@@ -109,7 +124,7 @@ local function do_handlerlist(list, source, event, data, pid)
 end
 
 -- Handle incoming table based event
-function _M.do_event(d)
+function _M:do_event(d)
     local source = d.source
     local event  = d.event
     local data   = d.data
@@ -121,15 +136,15 @@ function _M.do_event(d)
     local list
 
     -- global events
-    list = get_callback_list("*", "*")
+    list = get_callback_list(self, "*", "*")
     do_handlerlist(list, source, event, data, pid)
 
     -- source events
-    list = get_callback_list(source, "*")
+    list = get_callback_list(self, source, "*")
     do_handlerlist(list, source, event, data, pid)
 
     -- source/event events
-    list = get_callback_list(source, event)
+    list = get_callback_list(self, source, event)
     do_handlerlist(list, source, event, data, pid)
 end
 
