@@ -2,6 +2,7 @@ local cjson = require "cjson.safe"
 
 local xpcall = xpcall
 local type = type
+local pairs = pairs
 local assert = assert
 local tostring = tostring
 local traceback = debug.traceback
@@ -25,7 +26,10 @@ local function get_callback_list(source, event)
     end
 
     if not _callbacks[source][event] then
-        _callbacks[source][event] = {count = 0,}
+        _callbacks[source][event] = {}
+
+        local count_key = event .. "n"
+        _callbacks[source][count_key] = 0
     end
 
     return _callbacks[source][event]
@@ -39,9 +43,11 @@ function _M.subscribe(source, event, callback)
            type(callback))
 
     local list = get_callback_list(source, event)
-    local count = list.count + 1
 
-    list.count = count
+    local count_key = event .. "n"
+    local count = _callbacks[source][count_key] + 1
+
+    _callbacks[source][count_key] = count
 
     local id = tostring(count)
     list[id] = callback
@@ -61,7 +67,7 @@ function _M.unsubscribe(source, event, id)
     -- clear source/event callbacks
     if not id then
         assert(_callbacks[source])
-        _callbacks[source][event] = {count = 0,}
+        _callbacks[source][event] = {}
         return
     end
 
@@ -82,34 +88,30 @@ end
 local function do_handlerlist(list, source, event, data, pid)
     local ok, err
 
-    --log(DEBUG, "source=", source, "event=", event, "count=", list.count)
+    --log(DEBUG, "source=", source, "event=", event)
 
     for _, handler in pairs(list) do
-        if type(handler) ~= "function" then
-            goto continue
-        end
+        assert(type(handler) == "function")
 
         ok, err = xpcall(handler, traceback, data, event, source, pid)
 
         if not ok then
-          local str, e
+            local str, e
 
-          if type(data) == "table" then
-            str, e = encode(data)
-            if not str then
-                str = tostring(e)
+            if type(data) == "table" then
+                str, e = encode(data)
+                if not str then
+                    str = tostring(e)
+                end
+
+            else
+                str = tostring(data)
             end
 
-          else
-            str = tostring(data)
-          end
-
-          log(ERR, "worker-events: event callback failed; source=",source,
-                   ", event=", event,", pid=",pid, " error='", tostring(err),
-                   "', data=", str)
+            log(ERR, "worker-events: event callback failed; source=", source,
+                     ", event=", event,", pid=",pid, " error='", tostring(err),
+                     "', data=", str)
         end
-
-        ::continue::
     end
 end
 
