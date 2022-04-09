@@ -1,6 +1,6 @@
 require "resty.core.base"
 
-local broker    = require "resty.events.broker"
+local broker    = require("resty.events.broker").new()
 local worker    = require("resty.events.worker").new()
 
 local ngx = ngx
@@ -86,7 +86,7 @@ function _M.configure(opts)
 
     -- only enable listening on special worker id
     if is_broker then
-        ok, err = broker.configure(opts)
+        ok, err = broker:configure(opts)
 
     else
         ok, err = disable_listening(opts.listening)
@@ -104,7 +104,9 @@ function _M.configure(opts)
     return true
 end
 
-_M.run          = broker.run
+function _M.run()
+    return broker:run()
+end
 
 function _M.publish(target, source, event, data)
     return worker:publish(target, source, event, data)
