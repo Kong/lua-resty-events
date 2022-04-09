@@ -20,6 +20,18 @@ local _M = {
 
 local _callbacks = {}
 
+local function get_callback_list(source, event)
+    if not _callbacks[source] then
+        _callbacks[source] = {}
+    end
+
+    if not _callbacks[source][event] then
+        _callbacks[source][event] = {count = 0,}
+    end
+
+    return _callbacks[source][event]
+end
+
 -- subscribe('*', '*', func)
 -- subscribe('s', '*', func)
 -- subscribe('s', 'e', func)
@@ -27,24 +39,38 @@ function _M.subscribe(source, event, callback)
     assert(type(callback) == "function", "expected function, got: "..
            type(callback))
 
-    if not _callbacks[source] then
-        _callbacks[source] = {count = 0,}
-    end
+    local list = get_callback_list(source, event)
+    local count = list.count + 1
 
-    if not _callbacks[source][event] then
-        _callbacks[source][event] = {count = 0,}
-    end
+    list.count = count
+    list[count] = callback
 
-    --local count = #_callbacks[source][event]
-    table_insert(_callbacks[source][event], callback)
-
-    return true
+    return count
 end
 
-local function do_handlerlist(handler_list, source, event, data, pid)
+function _M.unsubscribe(source, event, id)
+    assert(type(id) == "number", "expected number, got: "..
+           type(id))
+
+end
+
+local function do_handlerlist(list, source, event, data, pid)
     local ok, err
 
-    for _, handler in ipairs(handler_list) do
+    local i = 1
+    while i <= list.count do
+        local handler = list[i]
+
+        -- handler is nil, move last handler to here
+        if type(handler) ~= "function" then
+            list[i] = list[list.count]
+            list[list.count] = nil
+            list.count = list.count - 1
+
+            goto continue
+        end
+
+        -- handler is a function
         ok, err = xpcall(handler, traceback, data, event, source, pid)
 
         if not ok then
@@ -64,6 +90,10 @@ local function do_handlerlist(handler_list, source, event, data, pid)
                    ", event=", event,", pid=",pid, " error='", tostring(err),
                    "', data=", str)
         end
+
+        i = i + 1
+
+        ::continue::
     end
 end
 
@@ -81,14 +111,15 @@ function _M.do_event(d)
 
     -- global events
     list = _callbacks['*']['*']
+    list = get_callback_list("*", "*")
     do_handlerlist(list, source, event, data, pid)
 
     -- source events
-    list = _callbacks[source]['*']
+    list = get_callback_list(source, "*")
     do_handlerlist(list, source, event, data, pid)
 
     -- source/event events
-    list = _callbacks[source][event]
+    list = get_callback_list(source, event)
     do_handlerlist(list, source, event, data, pid)
 end
 
