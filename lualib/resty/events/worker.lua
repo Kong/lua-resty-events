@@ -2,7 +2,7 @@ local cjson = require "cjson.safe"
 local que = require "resty.events.queue"
 local client = require("resty.events.protocol").client
 
-local callbacks = require("resty.events.callback").new()
+local callback = require "resty.events.callback"
 
 local type = type
 local assert = assert
@@ -45,11 +45,7 @@ local PAYLOAD_T = {
 local _M = {
     _VERSION = '0.1.0',
 }
---local _MT = { __index = _M, }
-
-local function do_event(d)
-    callbacks:do_event(d)
-end
+local _MT = { __index = _M, }
 
 -- gen a random number [0.2, 2.0]
 local function random_delay()
@@ -62,15 +58,35 @@ end
 
 local _worker_pid = ngx.worker.pid()
 
-local _queue = que.new()
-local _local_queue = que.new()
+-- local _queue = que.new()
+-- local _local_queue = que.new()
 
-local _connected
-local _opts
+-- local _connected
+-- local _opts
 
-local communicate
+local function do_event(self, d)
+    self._callback:do_event(d)
+end
 
-communicate = function(premature)
+local function start_timer(self, delay)
+    assert(timer_at(delay, function(premature)
+        self:communicate(premature)
+    end))
+end
+
+function _M.new()
+    local self = {
+        _queue = que.new(),
+        _local_queue = que.new(),
+        _callback = callback.new(),
+        _connected = nil,
+        _opts = nil,
+    }
+
+    return setmetatable(self, _MT)
+end
+
+function _M:communicate(premature)
     if premature then
         -- worker wants to exit
         return
@@ -78,19 +94,17 @@ communicate = function(premature)
 
     local conn = assert(client:new())
 
-    local ok, err = conn:connect(_opts.listening)
+    local ok, err = conn:connect(self._opts.listening)
     if not ok then
         log(ERR, "failed to connect: ", err)
 
         -- try to reconnect broker
-        assert(timer_at(random_delay(), function(premature)
-            communicate(premature)
-        end))
+        start_timer(self, random_delay())
 
         return
     end
 
-    _connected = true
+    self._connected = true
 
     local read_thread = spawn(function()
         while not exiting() do
@@ -119,7 +133,7 @@ communicate = function(premature)
             end
 
             -- got an event data, callback
-            do_event(d)
+            do_event(self, d)
 
             ::continue::
         end -- while not exiting
@@ -127,7 +141,7 @@ communicate = function(premature)
 
     local write_thread = spawn(function()
       while not exiting() do
-        local payload, err = _queue:pop()
+        local payload, err = self._queue:pop()
 
         if not payload then
             if not is_timeout(err) then
@@ -154,7 +168,7 @@ communicate = function(premature)
 
     local local_thread = spawn(function()
         while not exiting() do
-            local data, err = _local_queue:pop()
+            local data, err = self._local_queue:pop()
 
             if not data then
                 if not is_timeout(err) then
@@ -170,7 +184,7 @@ communicate = function(premature)
             end
 
             -- got an event data, callback
-            do_event(data)
+            do_event(self, data)
 
             ::continue::
         end -- while not exiting
@@ -182,7 +196,7 @@ communicate = function(premature)
     kill(read_thread)
     kill(local_thread)
 
-    _connected = nil
+    self._connected = nil
 
     if not ok then
         log(ERR, "event worker failed: ", err)
@@ -193,26 +207,22 @@ communicate = function(premature)
     end
 
     if not exiting() then
-        assert(timer_at(random_delay(), function(premature)
-            communicate(premature)
-        end))
+        start_timer(self, random_delay())
     end
 end
 
-function _M.configure(opts)
-    assert(not _opts)
+function _M:configure(opts)
+    assert(not self._opts)
 
-    _opts = opts
+    self._opts = opts
 
-    assert(timer_at(0, function(premature)
-        communicate(premature)
-    end))
+    start_timer(self, 0)
 
     return true
 end
 
 -- posts a new event
-local function post_event(source, event, data, spec)
+local function post_event(self, source, event, data, spec)
     local json, err
 
     EVENT_T.source = source
@@ -237,7 +247,7 @@ local function post_event(source, event, data, spec)
         return nil, err
     end
 
-    local ok, err = _queue:push(json)
+    local ok, err = self._queue:push(json)
     if not ok then
         return nil, "failed to publish event: " .. err
     end
@@ -245,10 +255,10 @@ local function post_event(source, event, data, spec)
     return true
 end
 
-function _M.publish(target, source, event, data)
+function _M:publish(target, source, event, data)
     local ok, err
 
-    if not _connected then
+    if not self._connected then
         return nil, "not initialized yet"
     end
 
@@ -265,7 +275,7 @@ function _M.publish(target, source, event, data)
     end
 
     if target == "current" then
-        ok, err = _local_queue:push({
+        ok, err = self._local_queue:push({
             source = source,
             event = event,
             data = data,
@@ -275,7 +285,7 @@ function _M.publish(target, source, event, data)
         -- add unique hash string
         SPEC_T.unique = target ~= "all" and target or nil
 
-        ok, err = post_event(source, event, data, SPEC_T)
+        ok, err = post_event(self, source, event, data, SPEC_T)
     end
 
     if not ok then
@@ -285,12 +295,12 @@ function _M.publish(target, source, event, data)
     return true
 end
 
-function _M.subscribe(source, event, callback)
-    return callbacks:subscribe(source, event, callback)
+function _M:subscribe(source, event, callback)
+    return self._callback:subscribe(source, event, callback)
 end
 
-function _M.unsubscribe(source, event, id)
-    return callbacks:unsubscribe(source, event, id)
+function _M:unsubscribe(source, event, id)
+    return self._callback:unsubscribe(source, event, id)
 end
 
 return _M

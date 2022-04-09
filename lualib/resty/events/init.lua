@@ -1,7 +1,7 @@
 require "resty.core.base"
 
 local broker    = require "resty.events.broker"
-local worker    = require "resty.events.worker"
+local worker    = require("resty.events.worker").new()
 
 local ngx = ngx
 local type = type
@@ -96,7 +96,7 @@ function _M.configure(opts)
         return nil, err
     end
 
-    ok, err = worker.configure(opts)
+    ok, err = worker:configure(opts)
     if not ok then
         return nil, err
     end
@@ -106,11 +106,22 @@ end
 
 _M.run          = broker.run
 
-_M.publish      = worker.publish
+--_M.publish      = worker.publish
 
-_M.subscribe    = worker.subscribe
-_M.unsubscribe  = worker.unsubscribe
+--_M.subscribe    = worker.subscribe
+--_M.unsubscribe  = worker.unsubscribe
 
+function _M.publish(target, source, event, data)
+    return worker:publish(target, source, event, data)
+end
+
+function _M.subscribe(source, event, callback)
+    return worker:subscribe(source, event, callback)
+end
+
+function _M.unsubscribe(source, event, id)
+    return worker:unsubscribe(source, event, id)
+end
 -- for test only
 _M.disable_listening = disable_listening
 
