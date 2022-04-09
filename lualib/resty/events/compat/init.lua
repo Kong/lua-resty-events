@@ -23,8 +23,15 @@ _M.post_local = function(source, event, data)
     return events.publish("current", source, event, data)
 end
 
-_M.register      = callback.register
-_M.register_weak = callback.register_weak
-_M.unregister    = callback.unregister
+-- only for test
+_M.register = function(callback, source, event, ...)
+    return events.subscribe(source or "*", event or "*", callback)
+end
+
+--_M.register_weak = callback.register_weak
+
+-- only for test
+_M.unregister = function(callback, source, ...)
+end
 
 return _M

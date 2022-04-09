@@ -36,7 +36,7 @@ __DATA__
                 ngx.log(ngx.ERR, "failed to configure events: ", err)
             end
 
-            ev.register(function(data, event, source, pid)
+            ev.subscribe("*", "*", function(data, event, source, pid)
                 ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                         ", data=", data)
                     end)
@@ -119,7 +119,7 @@ worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, d
                 ngx.log(ngx.ERR, "failed to configure events: ", err)
             end
 
-            ev.register(function(data, event, source, pid)
+            ev.subscribe("*", "*", function(data, event, source, pid)
                 ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                         ", data=", data)
                     end)
@@ -209,7 +209,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
                 ngx.log(ngx.ERR, "failed to configure events: ", err)
             end
 
-            ev.register(function(data, event, source, pid)
+            ev.subscribe("*", "*", function(data, event, source, pid)
                 ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                         ", data=", tostring(data))
                     end)

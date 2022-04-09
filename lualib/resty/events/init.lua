@@ -110,6 +110,7 @@ _M.run          = broker.run
 _M.publish      = worker.publish
 
 _M.subscribe    = callback.subscribe
+_M.unsubscribe    = callback.unsubscribe
 
 -- for test only
 _M.disable_listening = disable_listening
