@@ -43,7 +43,7 @@ function _M.new()
 end
 
 function _M:configure(opts)
-    assert(not _opts)
+    assert(not self._opts)
 
     self._opts = opts
 
