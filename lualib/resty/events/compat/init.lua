@@ -1,11 +1,11 @@
+-- compatible with lua-resty-worker-events
+
 local events = require "resty.events"
---local callback = require "resty.events.compat.callback"
 
 local _M = {
     _VERSION = '0.1.0',
 }
 
--- compatible with lua-resty-worker-events
 function _M.poll()
     return "done"
 end
