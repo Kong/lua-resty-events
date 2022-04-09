@@ -42,9 +42,11 @@ function _M.subscribe(source, event, callback)
     local count = list.count + 1
 
     list.count = count
-    list[count] = callback
 
-    return count
+    local id = tostring(count)
+    list[id] = callback
+
+    return id
 end
 
 function _M.unsubscribe(source, event, id)
@@ -65,7 +67,16 @@ function _M.unsubscribe(source, event, id)
 
     -- clear one handler
     assert(_callbacks[source][event])
+
+    local id = tostring(id)
+
+    if not _callbacks[source][event][id] then
+        return nil, "failed to unsubscribe callback " .. id
+    end
+
     _callbacks[source][event][id] = nil
+
+    return true
 end
 
 local function do_handlerlist(list, source, event, data, pid)
@@ -73,20 +84,11 @@ local function do_handlerlist(list, source, event, data, pid)
 
     --log(DEBUG, "source=", source, "event=", event, "count=", list.count)
 
-    local i = 1
-    while i <= list.count do
-        local handler = list[i]
-
-        -- handler is nil, move last handler to here
+    for _, handler in pairs(list) do
         if type(handler) ~= "function" then
-            list[i] = list[list.count]
-            list[list.count] = nil
-            list.count = list.count - 1
-
             goto continue
         end
 
-        -- handler is a function
         ok, err = xpcall(handler, traceback, data, event, source, pid)
 
         if not ok then
@@ -106,8 +108,6 @@ local function do_handlerlist(list, source, event, data, pid)
                    ", event=", event,", pid=",pid, " error='", tostring(err),
                    "', data=", str)
         end
-
-        i = i + 1
 
         ::continue::
     end
