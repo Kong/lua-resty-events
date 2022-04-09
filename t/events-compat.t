@@ -44,7 +44,7 @@ __DATA__
         listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
         location / {
             content_by_lua_block {
-                 require("resty.events").run()
+                 require("resty.events.compat").run()
             }
         }
     }
@@ -105,7 +105,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
         listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
         location / {
             content_by_lua_block {
-                 require("resty.events").run()
+                 require("resty.events.compat").run()
             }
         }
     }
@@ -167,7 +167,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
         listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
         location / {
             content_by_lua_block {
-                 require("resty.events").run()
+                 require("resty.events.compat").run()
             }
         }
     }

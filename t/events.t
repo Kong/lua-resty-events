@@ -28,34 +28,36 @@ __DATA__
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require "resty.events"
-        local ok, err = ev.configure(opts)
+        local ev = require("resty.events").new()
+        local ok, err = ev:configure(opts)
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
 
-        ev.subscribe("*", "*", function(data, event, source, pid)
+        ev:subscribe("*", "*", function(data, event, source, pid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                     ", data=", data)
                 end)
+
+        _G.ev = ev
     }
 
     server {
         listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
         location / {
             content_by_lua_block {
-                 require("resty.events").run()
+                 _G.ev:run()
             }
         }
     }
 --- config
     location = /test {
         content_by_lua_block {
-            local ev = require "resty.events"
+            local ev = _G.ev
 
-            ev.publish("all", "content_by_lua","request1","01234567890")
-            ev.publish("current", "content_by_lua","request2","01234567890")
-            ev.publish("all", "content_by_lua","request3","01234567890")
+            ev:publish("all", "content_by_lua","request1","01234567890")
+            ev:publish("current", "content_by_lua","request2","01234567890")
+            ev:publish("all", "content_by_lua","request3","01234567890")
 
             ngx.say("ok")
         }
@@ -89,34 +91,36 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require "resty.events"
-        local ok, err = ev.configure(opts)
+        local ev = require("resty.events").new()
+        local ok, err = ev:configure(opts)
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
 
-        ev.subscribe("*", "*", function(data, event, source, pid)
+        ev:subscribe("*", "*", function(data, event, source, pid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                     ", data=", tostring(data))
                 end)
+
+        _G.ev = ev
     }
 
     server {
         listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
         location / {
             content_by_lua_block {
-                 require("resty.events").run()
+                 _G.ev:run()
             }
         }
     }
 --- config
     location = /test {
         content_by_lua_block {
-            local ev = require "resty.events"
+            local ev = _G.ev
 
-            ev.publish("all", "content_by_lua","request1","01234567890")
-            ev.publish("current", "content_by_lua","request2","01234567890")
-            ev.publish("all", "content_by_lua","request3","01234567890")
+            ev:publish("all", "content_by_lua","request1","01234567890")
+            ev:publish("current", "content_by_lua","request2","01234567890")
+            ev:publish("all", "content_by_lua","request3","01234567890")
 
             ngx.say("ok")
         }
@@ -151,40 +155,42 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require "resty.events"
-        local ok, err = ev.configure(opts)
+        local ev = require("resty.events").new()
+        local ok, err = ev:configure(opts)
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
 
-        ev.subscribe("*", "*", function(data, event, source, pid)
+        ev:subscribe("*", "*", function(data, event, source, pid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                     ", data=", tostring(data))
                 end)
+
+        _G.ev = ev
     }
 
     server {
         listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
         location / {
             content_by_lua_block {
-                 require("resty.events").run()
+                 _G.ev:run()
             }
         }
     }
 --- config
     location = /test {
         content_by_lua_block {
-            local ev = require "resty.events"
+            local ev = _G.ev
 
-            ev.publish("all", "content_by_lua","request1","01234567890")
-            ev.publish("unique_value", "content_by_lua","request2","01234567890")
-            ev.publish("unique_value", "content_by_lua","request3","01234567890")
+            ev:publish("all", "content_by_lua","request1","01234567890")
+            ev:publish("unique_value", "content_by_lua","request2","01234567890")
+            ev:publish("unique_value", "content_by_lua","request3","01234567890")
 
             ngx.sleep(0.1) -- wait for unique timeout to expire
 
-            ev.publish("unique_value", "content_by_lua","request4","01234567890")
-            ev.publish("unique_value", "content_by_lua","request5","01234567890")
-            ev.publish("all", "content_by_lua","request6","01234567890")
+            ev:publish("unique_value", "content_by_lua","request4","01234567890")
+            ev:publish("unique_value", "content_by_lua","request5","01234567890")
+            ev:publish("all", "content_by_lua","request6","01234567890")
 
             ngx.say("ok")
         }

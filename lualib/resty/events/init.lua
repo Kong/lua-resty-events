@@ -1,7 +1,7 @@
 require "resty.core.base"
 
-local broker    = require("resty.events.broker").new()
-local worker    = require("resty.events.worker").new()
+local events_broker = require "resty.events.broker"
+local events_worker = require "resty.events.worker"
 
 local ngx = ngx
 local type = type
@@ -10,6 +10,7 @@ local str_sub = string.sub
 local _M = {
     _VERSION = '0.1.0',
 }
+local _MT = { __index = _M, }
 
 local disable_listening
 do
@@ -38,8 +39,17 @@ do
     end
 end
 
+function _M.new()
+    local self = {
+        broker = events_broker.new(),
+        worker = events_worker.new(),
+    }
+
+    return setmetatable(self, _MT)
+end
+
 -- opts = {broker_id = n, listening = 'unix:...', unique_timeout = x,}
-function _M.configure(opts)
+function _M:configure(opts)
     assert(type(opts) == "table", "Expected a table, got " .. type(opts))
 
     local UNIX_PREFIX = "unix:"
@@ -86,7 +96,7 @@ function _M.configure(opts)
 
     -- only enable listening on special worker id
     if is_broker then
-        ok, err = broker:configure(opts)
+        ok, err = self.broker:configure(opts)
 
     else
         ok, err = disable_listening(opts.listening)
@@ -96,7 +106,7 @@ function _M.configure(opts)
         return nil, err
     end
 
-    ok, err = worker:configure(opts)
+    ok, err = self.worker:configure(opts)
     if not ok then
         return nil, err
     end
@@ -104,20 +114,20 @@ function _M.configure(opts)
     return true
 end
 
-function _M.run()
-    return broker:run()
+function _M:run()
+    return self.broker:run()
 end
 
-function _M.publish(target, source, event, data)
-    return worker:publish(target, source, event, data)
+function _M:publish(target, source, event, data)
+    return self.worker:publish(target, source, event, data)
 end
 
-function _M.subscribe(source, event, callback)
-    return worker:subscribe(source, event, callback)
+function _M:subscribe(source, event, callback)
+    return self.worker:subscribe(source, event, callback)
 end
 
-function _M.unsubscribe(source, event, id)
-    return worker:unsubscribe(source, event, id)
+function _M:unsubscribe(source, event, id)
+    return self.worker:unsubscribe(source, event, id)
 end
 
 -- for test only

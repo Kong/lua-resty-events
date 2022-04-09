@@ -127,12 +127,12 @@ unix ok #1
 --- config
     location = /test {
         content_by_lua_block {
-            local ev = require("resty.events")
+            local ev = require("resty.events").new()
 
             local _, err = ev.disable_listening("unix:/tmp/xxx.sock")
             ngx.say(err)
 
-            local _, err = ev.configure({listening = "/tmp/xxx.sock"})
+            local _, err = ev:configure({listening = "/tmp/xxx.sock"})
             ngx.say(err)
         }
     }
