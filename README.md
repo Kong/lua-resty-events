@@ -16,7 +16,6 @@ Table of Contents
     * [post](#post)
     * [post_local](#post_local)
     * [register](#register)
-    * [register_weak](#register_weak)
     * [unregister](#unregister)
 * [Copyright and License](#copyright-and-license)
 * [See Also](#see-also)
@@ -171,15 +170,6 @@ The return value of `register` will be `true`, or it will throw an error if `cal
 function value.
 
 calling [configure](#configure)
-
-[Back to TOC](#table-of-contents)
-
-register_weak
--------------
-`syntax: events.register_weak(callback, source, event1, event2, ...)`
-
-This function is identical to `register`, with the exception that the module
-will only hold _weak references_ to the `callback` function.
 
 [Back to TOC](#table-of-contents)
 
