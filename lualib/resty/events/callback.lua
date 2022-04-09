@@ -5,6 +5,7 @@ local type = type
 local pairs = pairs
 local assert = assert
 local tostring = tostring
+local setmetatable = setmetatable
 local traceback = debug.traceback
 
 local ngx = ngx

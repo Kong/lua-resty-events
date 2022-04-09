@@ -5,6 +5,7 @@ local events_worker = require "resty.events.worker"
 
 local ngx = ngx
 local type = type
+local setmetatable = setmetatable
 local str_sub = string.sub
 
 local _M = {

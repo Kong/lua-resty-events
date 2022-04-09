@@ -6,6 +6,7 @@ local client = require("resty.events.protocol").client
 
 local type = type
 local assert = assert
+local setmetatable = setmetatable
 local str_sub = string.sub
 local random = math.random
 
