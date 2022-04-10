@@ -1,5 +1,3 @@
-require "resty.core.base"
-
 local events_broker = require "resty.events.broker"
 local events_worker = require "resty.events.worker"
 
@@ -18,6 +16,8 @@ local _MT = { __index = _M, }
 
 local disable_listening
 do
+    require "resty.core.base" -- for ngx_str_t
+
     local ffi = require "ffi"
     local C = ffi.C
 
