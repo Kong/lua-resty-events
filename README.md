@@ -135,38 +135,6 @@ Active service to all Nginx workers, it must be called in `content_by_lua*`.
 
 `ev` object must be the same object returned by [new](#new).
 
-Example in http subsystem:
-
-```
-http {
-    ...
-    server {
-        ...
-        location / {
-            content_by_lua_block {
-                local ev = _G.ev
-                ev:run()
-            }
-        }
-    }
-}
-```
-
-Example in stream subsystem:
-
-```
-stream {
-    ...
-    server {
-        ...
-        content_by_lua_block {
-            local ev = _G.ev
-            ev:run()
-        }
-    }
-}
-```
-
 [Back to TOC](#table-of-contents)
 
 publish
@@ -182,7 +150,7 @@ The `target` parameter could be:
 * "current": the event will be local to the worker process,
 it will not be broadcasted to other workers. With this method, the `data` element
 will not be serialized.
-* any unique hash: the event will be send to only one worker.
+* unique hash: the event will be send to only one worker.
 Also any follow up events with the same hash value will be ignored
 (for the `unique_timeout` period specified to [configure](#configure)).
 
