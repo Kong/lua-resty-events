@@ -139,7 +139,7 @@ Active service to all Nginx workers, it must be called in `content_by_lua*`.
 
 publish
 ----
-`syntax: ok, err = ev:publish(target ,source, event, data)`
+`syntax: ok, err = ev:publish(target, source, event, data)`
 
 Will post a new event. `target` `source` and `event` are all strings. `data` can be anything (including `nil`)
 as long as it is (de)serializable by the cjson or other module.
