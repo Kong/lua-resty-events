@@ -104,7 +104,4 @@ function _M:unsubscribe(source, event, id)
     return self.worker:unsubscribe(source, event, id)
 end
 
--- for test only
-_M.disable_listening = disable_listening
-
 return _M

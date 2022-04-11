@@ -62,7 +62,7 @@ connect unix ok
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
     init_worker_by_lua_block {
       if ngx.worker.id() ~= 1 then
-        require("resty.events").disable_listening("unix:$TEST_NGINX_HTML_DIR/nginx.sock")
+        require("resty.events.disable_listening")("unix:$TEST_NGINX_HTML_DIR/nginx.sock")
       end
     }
 
@@ -127,9 +127,10 @@ unix ok #1
 --- config
     location = /test {
         content_by_lua_block {
+            local disable = require("resty.events.disable_listening")
             local ev = require("resty.events").new()
 
-            local _, err = ev.disable_listening("unix:/tmp/xxx.sock")
+            local _, err = disable("unix:/tmp/xxx.sock")
             ngx.say(err)
 
             local _, err = ev:configure({listening = "/tmp/xxx.sock"})
