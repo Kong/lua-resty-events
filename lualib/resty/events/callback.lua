@@ -68,7 +68,7 @@ function _M:subscribe(source, event, callback)
 end
 
 function _M:unsubscribe(source, event, id)
-    assert(source, "expect source")
+    assert(source, "source is required")
 
     local _callbacks = self._callbacks
 
