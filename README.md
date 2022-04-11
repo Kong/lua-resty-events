@@ -12,11 +12,12 @@ Table of Contents
 * [Synopsis](#synopsis)
 * [Description](#description)
 * [Methods](#methods)
+    * [new](#new)
     * [configure](#configure)
-    * [post](#post)
-    * [post_local](#post_local)
-    * [register](#register)
-    * [unregister](#unregister)
+    * [run](#run)
+    * [publish](#publish)
+    * [subscribe](#subscribe)
+    * [unsubscribe](#unsubscribe)
 * [Copyright and License](#copyright-and-license)
 * [See Also](#see-also)
 
@@ -37,7 +38,7 @@ http {
             listening = "unix:/tmp/nginx.sock",
         }
 
-        local ev = require "resty.events"
+        local ev = require("resty.events").new()
 
         local handler = function(data, event, source, pid)
             print("received event; source=",source,
@@ -46,12 +47,15 @@ http {
                   ", from process ",pid)
         end
 
-        ev.register(handler)
+        ev:subscribe(handler)
 
-        local ok, err = ev.configure(opts)
+        local ok, err = ev:configure(opts)
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
+
+        -- store ev to global
+        _G.ev = ev
     }
 
     # create a listening unix domain socket
@@ -59,7 +63,9 @@ http {
         listen unix:/tmp/nginx.sock;
         location / {
             content_by_lua_block {
-                 require("resty.events").run()
+                -- fetch ev from global
+                local ev = _G.ev
+                ev:run()
             }
         }
     }
@@ -75,14 +81,14 @@ only one Nginx worker.
 
 The design allows for 3 usecases;
 
-1. broadcast an event to all workers processes, see [post](#post). Example:
+1. broadcast an event to all workers processes, see [publish](#publish). Example:
 a healthcheck running in one worker, but informing all workers of a failed
 upstream node.
-2. broadcast an event to the local worker only, see [post_local](#post_local).
+2. broadcast an event to the current worker only, see [subscribe](#subscribe).
 3. coalesce external events to a single action. Example; all workers watch
 external events indicating an in-memory cache needs to be refreshed. When
 receiving it they all post it with a unique event hash (all workers generate the
-same hash), see `unique` parameter of [post](#post). Now only 1 worker will
+same hash), see `unique` parameter of [publish](#publish). Now only 1 worker will
 receive the event _only once_, so only one worker will hit the upstream
 database to refresh the in-memory data.
 
@@ -94,9 +100,17 @@ Methods
 
 [Back to TOC](#table-of-contents)
 
+new
+---------
+`syntax: ev = events.new()`
+
+Create a new events object.
+
+[Back to TOC](#table-of-contents)
+
 configure
 ---------
-`syntax: ok, err = events.configure(opts)`
+`syntax: ok, err = ev:configure(opts)`
 
 Will initialize the event listener. This should typically be called from the
 `init_worker_by_lua` handler, because it will make sure only one Nginx worker
@@ -107,15 +121,51 @@ The `opts` parameter is a Lua table with named options:
 * `listening`: the unix doamin socket, which must be same as another `server` block.
 * `broker_id`: (optional) the worker id that will start to listen, default 0.
 * `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default 2.
-  See the `unique` parameter of the [post](#post) method.
+  See the `unique` parameter of the [publish](#publish) method.
 
 The return value will be `true`, or `nil` and an error message.
 
 [Back to TOC](#table-of-contents)
 
-post
+run
+---------
+`syntax: ev:run()`
+
+Active service to all Nginx workers, it must be called in `content_by_lua*`.
+
+```
+http {
+    ...
+    server {
+        ...
+        location / {
+            content_by_lua_block {
+                local ev = _G.ev
+                ev:run()
+            }
+        }
+    }
+}
+```
+
+```
+stream {
+    ...
+    server {
+        ...
+        content_by_lua_block {
+            local ev = _G.ev
+            ev:run()
+        }
+    }
+}
+```
+
+[Back to TOC](#table-of-contents)
+
+publish
 ----
-`syntax: ok, err = events.post(source, event, data, unique)`
+`syntax: ok, err = ev:publish(target ,source, event, data)`
 
 Will post a new event. `source` and `event` are both strings. `data` can be anything (including `nil`)
 as long as it is (de)serializable by the cjson or other module.
@@ -128,28 +178,19 @@ The process executing the event will not necessarily be the process posting the 
 The return value will be `true` when the event was successfully posted or
 `nil + error` in case of failure.
 
+The same as [publish](#publish) except that the event will be local to the worker process,
+it will not be broadcasted to other workers. With this method, the `data` element
+will not be serialized.
+
 *Note*: the worker process sending the event, will also receive the event! So if
 the eventsource will also act upon the event, it should not do so from the event
 posting code, but only when receiving it.
 
 [Back to TOC](#table-of-contents)
 
-post_local
-----------
-`syntax: ok, err = events.post_local(source, event, data)`
-
-The same as [post](#post) except that the event will be local to the worker process,
-it will not be broadcasted to other workers. With this method, the `data` element
-will not be serialized.
-
-The return value will be `true` when the event was successfully posted or
-`nil + error` in case of failure.
-
-[Back to TOC](#table-of-contents)
-
-register
+subscribe
 --------
-`syntax: events.register(callback, source, event1, event2, ...)`
+`syntax: ev:subscribe(source, event, callback)`
 
 Will register a callback function to receive events. If `source` and `event` are omitted, then the
 callback will be executed on _every_ event, if `source` is provided, then only events with a
@@ -160,7 +201,7 @@ The callback should have the following signature;
 
 `syntax: callback = function(data, event, source, pid)`
 
-The parameters will be the same as the ones provided to [post](#post), except for the extra value
+The parameters will be the same as the ones provided to [publish](#publish), except for the extra value
 `pid` which will be the pid of the originating worker process, or `nil` if it was a local event
 only. Any return value from `callback` will be discarded.
 *Note:* `data` may be a reference type of data (eg. a Lua `table`  type). The same value is passed
@@ -173,12 +214,12 @@ calling [configure](#configure)
 
 [Back to TOC](#table-of-contents)
 
-unregister
+unsubscribe
 ----------
-`syntax: events.unregister(callback, source, event1, event2, ...)`
+`syntax: ev:unsubscribe(source, event, id)`
 
 Will unregister the callback function and prevent it from receiving further events. The parameters
-work exactly the same as with [register](#register).
+work exactly the same as with [subscribe](#subscribe).
 
 The return value will be `true` if it was removed, `false` if it was not in the handlers list, or
 it will throw an error if `callback` is not a function value.
