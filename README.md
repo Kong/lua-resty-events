@@ -169,7 +169,7 @@ subscribe
 
 Will register a callback function to receive events. If `source` and `event` are `*`, then the
 callback will be executed on _every_ event, if `source` is provided and `event` is `*`, then only events with a
-matching source will be passed. If (one or more) event name is given, then only when
+matching source will be passed. If event name is given, then only when
 both `source` and `event` match the callback is invoked.
 
 The callback should have the following signature;
