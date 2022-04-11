@@ -1,6 +1,8 @@
 local events_broker = require "resty.events.broker"
 local events_worker = require "resty.events.worker"
 
+local disable_listening = require "resty.events.disable_listening"
+
 local ngx = ngx
 local type = type
 local setmetatable = setmetatable
@@ -13,35 +15,6 @@ local _M = {
     _VERSION = '0.1.0',
 }
 local _MT = { __index = _M, }
-
-local disable_listening
-do
-    require "resty.core.base" -- for ngx_str_t
-
-    local ffi = require "ffi"
-    local C = ffi.C
-
-    local NGX_OK = ngx.OK
-
-    ffi.cdef[[
-        int ngx_lua_ffi_disable_listening_unix_socket(ngx_str_t *sock_name);
-    ]]
-
-    local sock_name_str = ffi.new("ngx_str_t[1]")
-
-    disable_listening = function(sock_name)
-        sock_name_str[0].data = sock_name
-        sock_name_str[0].len = #sock_name
-
-        local rc = C.ngx_lua_ffi_disable_listening_unix_socket(sock_name_str)
-
-        if rc ~= NGX_OK then
-            return nil, "failed to disable listening: " .. sock_name
-        end
-
-        return true
-    end
-end
 
 function _M.new()
     local self = {
