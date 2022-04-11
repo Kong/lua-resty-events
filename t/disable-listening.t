@@ -128,20 +128,19 @@ unix ok #1
     location = /test {
         content_by_lua_block {
             local disable = require("resty.events.disable_listening")
-            local ev = require("resty.events").new()
 
-            local _, err = disable("unix:/tmp/xxx.sock")
+            local _, err = disable("unix:")
             ngx.say(err)
 
-            local _, err = ev:configure({listening = "/tmp/xxx.sock"})
+            local _, err = disable("unix:/tmp/xxx.sock")
             ngx.say(err)
         }
     }
 --- request
 GET /test
 --- response_body
+failed to disable listening: unix:
 failed to disable listening: unix:/tmp/xxx.sock
-"listening" option must start with unix:
 --- no_error_log
 [error]
 [crit]

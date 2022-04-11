@@ -7,7 +7,7 @@ use Test::Nginx::Socket::Lua;
 
 #repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 7) + 1;
+plan tests => repeat_each() * (blocks() * 7);
 
 $ENV{TEST_NGINX_HTML_DIR} ||= html_dir();
 
@@ -218,4 +218,53 @@ worker-events: handling event; source=content_by_lua, event=request6, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890$/
 
 
+=== TEST 4: configure with wrong params
+--- http_config
+    lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
+--- config
+    location = /test {
+        content_by_lua_block {
+            local ev = require("resty.events").new()
+
+            local _, err = ev:configure({broker_id = "1"})
+            ngx.say(err)
+
+            local _, err = ev:configure({broker_id = -1})
+            ngx.say(err)
+
+            local _, err = ev:configure({broker_id = 2})
+            ngx.say(err)
+
+            local _, err = ev:configure({})
+            ngx.say(err)
+
+            local _, err = ev:configure({listening = 123})
+            ngx.say(err)
+
+            local _, err = ev:configure({listening = "/tmp/xxx.sock"})
+            ngx.say(err)
+
+            local _, err = ev:configure({listening = "unix:x", unique_timeout = '1'})
+            ngx.say(err)
+
+            local _, err = ev:configure({listening = "unix:x", unique_timeout = -1})
+            ngx.say(err)
+        }
+    }
+--- request
+GET /test
+--- response_body
+"worker_id" option must be a number
+"worker_id" option is invalid
+"worker_id" option is invalid
+"listening" option required to start
+"listening" option must be a string
+"listening" option must start with unix:
+optional "unique_timeout" option must be a number
+"unique_timeout" must be greater than 0
+--- no_error_log
+[error]
+[crit]
+[alert]
+[emerg]
 
