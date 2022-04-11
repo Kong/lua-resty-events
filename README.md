@@ -88,7 +88,7 @@ upstream node.
 3. coalesce external events to a single action. Example; all workers watch
 external events indicating an in-memory cache needs to be refreshed. When
 receiving it they all post it with a unique event hash (all workers generate the
-same hash), see `unique` parameter of [publish](#publish). Now only 1 worker will
+same hash), see `target` parameter of [publish](#publish). Now only 1 worker will
 receive the event _only once_, so only one worker will hit the upstream
 database to refresh the in-memory data.
 
@@ -104,7 +104,7 @@ new
 ---------
 `syntax: ev = events.new()`
 
-Create a new events object.
+Return a new events object.
 
 [Back to TOC](#table-of-contents)
 
@@ -121,7 +121,7 @@ The `opts` parameter is a Lua table with named options:
 * `listening`: the unix doamin socket, which must be same as another `server` block.
 * `broker_id`: (optional) the worker id that will start to listen, default 0.
 * `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default 2.
-  See the `unique` parameter of the [publish](#publish) method.
+  See the `target` parameter of the [publish](#publish) method.
 
 The return value will be `true`, or `nil` and an error message.
 
@@ -132,6 +132,10 @@ run
 `syntax: ev:run()`
 
 Active service to all Nginx workers, it must be called in `content_by_lua*`.
+
+`ev` object must be the same object returned by [new](#new).
+
+Example in http subsystem:
 
 ```
 http {
@@ -147,6 +151,8 @@ http {
     }
 }
 ```
+
+Example in stream subsystem:
 
 ```
 stream {
@@ -167,20 +173,21 @@ publish
 ----
 `syntax: ok, err = ev:publish(target ,source, event, data)`
 
-Will post a new event. `source` and `event` are both strings. `data` can be anything (including `nil`)
+Will post a new event. `target` `source` and `event` are all strings. `data` can be anything (including `nil`)
 as long as it is (de)serializable by the cjson or other module.
 
-If the `unique` parameter is provided then only one worker will execute the event,
-the other workers will ignore it. Also any follow up events with the same `unique`
-value will be ignored (for the `unique_timeout` period specified to [configure](#configure)).
-The process executing the event will not necessarily be the process posting the event.
+The `target` parameter could be:
 
-The return value will be `true` when the event was successfully posted or
-`nil + error` in case of failure.
-
-The same as [publish](#publish) except that the event will be local to the worker process,
+* "all": the event will be broadcasted to all workers.
+* "current": the event will be local to the worker process,
 it will not be broadcasted to other workers. With this method, the `data` element
 will not be serialized.
+* any unique hash: the event will be send to only one worker.
+Also any follow up events with the same hash value will be ignored
+(for the `unique_timeout` period specified to [configure](#configure)).
+
+The return value will be `true` when the event was successfully published or
+`nil + error` in case of failure.
 
 *Note*: the worker process sending the event, will also receive the event! So if
 the eventsource will also act upon the event, it should not do so from the event
@@ -190,10 +197,10 @@ posting code, but only when receiving it.
 
 subscribe
 --------
-`syntax: ev:subscribe(source, event, callback)`
+`syntax: id = ev:subscribe(source, event, callback)`
 
-Will register a callback function to receive events. If `source` and `event` are omitted, then the
-callback will be executed on _every_ event, if `source` is provided, then only events with a
+Will register a callback function to receive events. If `source` and `event` are `*`, then the
+callback will be executed on _every_ event, if `source` is provided and `event` is `*`, then only events with a
 matching source will be passed. If (one or more) event name is given, then only when
 both `source` and `event` match the callback is invoked.
 
@@ -207,10 +214,8 @@ only. Any return value from `callback` will be discarded.
 *Note:* `data` may be a reference type of data (eg. a Lua `table`  type). The same value is passed
 to all callbacks, _so do not change the value in your handler, unless you know what you are doing!_
 
-The return value of `register` will be `true`, or it will throw an error if `callback` is not a
+The return value of `subscribe` will be a callback id, or it will throw an error if `callback` is not a
 function value.
-
-calling [configure](#configure)
 
 [Back to TOC](#table-of-contents)
 
@@ -219,7 +224,7 @@ unsubscribe
 `syntax: ev:unsubscribe(source, event, id)`
 
 Will unregister the callback function and prevent it from receiving further events. The parameters
-work exactly the same as with [subscribe](#subscribe).
+work the same as with [subscribe](#subscribe).
 
 The return value will be `true` if it was removed, `false` if it was not in the handlers list, or
 it will throw an error if `callback` is not a function value.
