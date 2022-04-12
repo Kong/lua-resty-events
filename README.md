@@ -86,8 +86,9 @@ The design allows for 3 usecases;
 1. broadcast an event to all workers processes, see [publish](#publish). Example:
 a healthcheck running in one worker, but informing all workers of a failed
 upstream node.
-2. broadcast an event to the current worker only, see [subscribe](#subscribe).
-3. coalesce external events to a single action. Example; all workers watch
+2. broadcast an event to the current worker only,
+see `target` parameter of [publish](#publish).
+3. coalesce external events to a single action. Example: all workers watch
 external events indicating an in-memory cache needs to be refreshed. When
 receiving it they all post it with a unique event hash (all workers generate the
 same hash), see `target` parameter of [publish](#publish). Now only 1 worker will
@@ -134,7 +135,8 @@ run
 ---------
 `syntax: ev:run()`
 
-Active the event loop only in Nginx broker process, it must be called in `content_by_lua*`.
+Active the event loop only in Nginx broker process, see opts `broker_id` of [configure](#configure).
+it must be called in `content_by_lua*`.
 
 `ev` object must be the same object returned by [new](#new).
 
