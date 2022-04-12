@@ -35,7 +35,7 @@ http {
 
     init_worker_by_lua_block {
         local opts = {
-            listening = "unix:/tmp/nginx.sock",
+            listening = "unix:/tmp/events.sock",
         }
 
         local ev = require("resty.events").new()
@@ -62,7 +62,7 @@ http {
 
     # create a listening unix domain socket
     server {
-        listen unix:/tmp/nginx.sock;
+        listen unix:/tmp/events.sock;
         location / {
             content_by_lua_block {
                 -- fetch ev from global
