@@ -200,8 +200,6 @@ Will unregister the callback function and prevent it from receiving further even
 `source` and `event` work the same as with [subscribe](#subscribe),
 and the parameter `id` is the return value of [subscribe](#subscribe).
 
-The return value will be `true` if it was removed, `false` if it was not in the handlers list.
-
 [Back to TOC](#table-of-contents)
 
 
