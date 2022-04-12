@@ -47,16 +47,14 @@ http {
                   ", from process ",pid)
         end
 
-        ev:subscribe(handler)
+        ev:subscribe("*", "*", handler)
+        ev:subscribe("source", "*", handler)
+        ev:subscribe("source", "event", handler)
 
         local ok, err = ev:configure(opts)
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
-
-        ev:subscribe("*", "*", handler)
-        ev:subscribe("source", "*", handler)
-        ev:subscribe("source", "event", handler)
 
         -- store ev to global
         _G.ev = ev
