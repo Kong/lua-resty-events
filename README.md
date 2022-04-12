@@ -123,7 +123,7 @@ The `opts` parameter is a Lua table with named options:
 
 * `listening`: the unix doamin socket, which must be same as another `server` block.
 * `broker_id`: (optional) the worker id that will start to listen, default 0.
-* `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default 2.
+* `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default 5.
   See the `target` parameter of the [publish](#publish) method.
 
 The return value will be `true`, or `nil` and an error message.
@@ -134,7 +134,7 @@ run
 ---------
 `syntax: ev:run()`
 
-Active the event loop for all Nginx workers, it must be called in `content_by_lua*`.
+Active the event loop only in Nginx broker process, it must be called in `content_by_lua*`.
 
 `ev` object must be the same object returned by [new](#new).
 
@@ -158,7 +158,7 @@ Also any follow up events with the same hash value will be ignored
 (for the `unique_timeout` period specified to [configure](#configure)).
 
 The return value will be `true` when the event was successfully published or
-`nil + error` in case of failure.
+`nil + error` in case of cjson serializition failure or event queue full.
 
 *Note*: the worker process sending the event, will also receive the event! So if
 the eventsource will also act upon the event, it should not do so from the event
