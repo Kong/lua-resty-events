@@ -54,6 +54,10 @@ http {
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
 
+        ev:subscribe("*", "*", handler)
+        ev:subscribe("source", "*", handler)
+        ev:subscribe("source", "event", handler)
+
         -- store ev to global
         _G.ev = ev
     }
@@ -105,6 +109,7 @@ new
 `syntax: ev = events.new()`
 
 Return a new events object.
+It should be stored in global scope for [run](#run).
 
 [Back to TOC](#table-of-contents)
 
@@ -131,7 +136,7 @@ run
 ---------
 `syntax: ev:run()`
 
-Active service to all Nginx workers, it must be called in `content_by_lua*`.
+Active the event loop for all Nginx workers, it must be called in `content_by_lua*`.
 
 `ev` object must be the same object returned by [new](#new).
 
@@ -146,11 +151,11 @@ as long as it is (de)serializable by the cjson or other module.
 
 The `target` parameter could be:
 
-* "all": the event will be broadcasted to all workers.
-* "current": the event will be local to the worker process,
+* "all" : the event will be broadcasted to all workers.
+* "current" : the event will be local to the worker process,
 it will not be broadcasted to other workers. With this method, the `data` element
 will not be serialized.
-* unique hash: the event will be send to only one worker.
+* _unique hash_ : the event will be send to only one worker.
 Also any follow up events with the same hash value will be ignored
 (for the `unique_timeout` period specified to [configure](#configure)).
 
@@ -192,10 +197,10 @@ unsubscribe
 `syntax: ev:unsubscribe(source, event, id)`
 
 Will unregister the callback function and prevent it from receiving further events. The parameters
-work the same as with [subscribe](#subscribe).
+`source` and `event` work the same as with [subscribe](#subscribe),
+and the parameter `id` is the return value of [subscribe](#subscribe).
 
-The return value will be `true` if it was removed, `false` if it was not in the handlers list, or
-it will throw an error if `callback` is not a function value.
+The return value will be `true` if it was removed, `false` if it was not in the handlers list.
 
 [Back to TOC](#table-of-contents)
 
