@@ -47,9 +47,9 @@ http {
                   ", from process ",pid)
         end
 
-        ev:subscribe("*", "*", handler)
-        ev:subscribe("source", "*", handler)
-        ev:subscribe("source", "event", handler)
+        local id1 = ev:subscribe("*", "*", handler)
+        local id2 = ev:subscribe("source", "*", handler)
+        local id3 = ev:subscribe("source", "event", handler)
 
         local ok, err = ev:configure(opts)
         if not ok then
@@ -194,11 +194,10 @@ function value.
 
 unsubscribe
 ----------
-`syntax: ev:unsubscribe(source, event, id)`
+`syntax: ev:unsubscribe(id)`
 
-Will unregister the callback function and prevent it from receiving further events. The parameters
-`source` and `event` work the same as with [subscribe](#subscribe),
-and the parameter `id` is the return value of [subscribe](#subscribe).
+Will unregister the callback function and prevent it from receiving further events. The
+parameter `id` is the return value of [subscribe](#subscribe).
 
 [Back to TOC](#table-of-contents)
 
