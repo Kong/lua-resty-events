@@ -146,7 +146,7 @@ publish
 ----
 `syntax: ok, err = ev:publish(target, source, event, data)`
 
-Will post a new event. `target` `source` and `event` are all strings. `data` can be anything (including `nil`)
+Will post a new event. `target`, `source` and `event` are all strings. `data` can be anything (including `nil`)
 as long as it is (de)serializable by the cjson or other module.
 
 The `target` parameter could be:
