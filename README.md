@@ -162,9 +162,9 @@ Also any follow up events with the same hash value will be ignored
 The return value will be `true` when the event was successfully published or
 `nil + error` in case of cjson serializition failure or event queue full.
 
-*Note*: the worker process sending the event, will also receive the event! So if
-the eventsource will also act upon the event, it should not do so from the event
-posting code, but only when receiving it.
+*Note*: in case of "all" and "current" the worker process sending the event,
+will also receive the event! So if the eventsource will also act upon the event,
+it should not do so from the event posting code, but only when receiving it.
 
 [Back to TOC](#table-of-contents)
 
