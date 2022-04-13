@@ -53,25 +53,28 @@ __DATA__
             post("content_by_lua","request3","123")
 
             --ec.unsubscribe("*", "*")
-            ec:unsubscribe("*", "*", id1)
+            ec:unsubscribe(id1)
 
             post("content_by_lua","request1","124")
             post("content_by_lua","request2","124")
             post("content_by_lua","request3","124")
 
-            ec:unsubscribe("content_by_lua", "*")
+            --ec:unsubscribe("content_by_lua", "*")
+            ec:unsubscribe(id2)
 
             post("content_by_lua","request1","125")
             post("content_by_lua","request2","125")
             post("content_by_lua","request3","125")
 
-            ec:unsubscribe("content_by_lua", "request1", id3)
-            ec:unsubscribe("content_by_lua", "request2", id4)
+            ec:unsubscribe(id3)
+            ec:unsubscribe(id4)
+
             post("content_by_lua","request1","126")
             post("content_by_lua","request2","126")
             post("content_by_lua","request3","126")
 
-            ec:unsubscribe("content_by_lua", "request3", id5)
+            ec:unsubscribe(id5)
+
             post("content_by_lua","request1","127")
             post("content_by_lua","request2","127")
             post("content_by_lua","request3","127")

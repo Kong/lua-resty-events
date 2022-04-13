@@ -23,6 +23,8 @@ local _MT = { __index = _M, }
 function _M.new()
     local self = {
         _callbacks = {},
+        _funcs = {},
+        _counter = 0,
     }
 
     return setmetatable(self, _MT)
@@ -37,9 +39,6 @@ local function get_callback_list(self, source, event)
 
     if not _callbacks[source][event] then
         _callbacks[source][event] = {}
-
-        local count_key = event .. "n"
-        _callbacks[source][count_key] = 0
     end
 
     return _callbacks[source][event]
@@ -52,52 +51,38 @@ function _M:subscribe(source, event, callback)
     assert(type(callback) == "function", "expected function, got: "..
            type(callback))
 
-    local _callbacks = self._callbacks
-
     local list = get_callback_list(self, source, event)
 
-    local count_key = event .. "n"
-    local count = _callbacks[source][count_key] + 1
-
-    _callbacks[source][count_key] = count
+    local count = self._counter + 1
+    self._counter = count
 
     local id = tostring(count)
-    list[id] = callback
+
+    self._funcs[id] = callback
+    list[id] = true
 
     return id
 end
 
-function _M:unsubscribe(source, event, id)
-    assert(source, "source is required")
+function _M:unsubscribe(id)
+    assert(id, "id is required")
 
-    local _callbacks = self._callbacks
-
-    -- clear source callbacks
-    if not event and not id then
-        _callbacks[source] = {}
-        return
-    end
-
-    -- clear source/event callbacks
-    if not id then
-        assert(_callbacks[source])
-        _callbacks[source][event] = {}
-        return
-    end
-
-    -- clear one handler
-
-    local list = get_callback_list(self, source, event)
-
-    list[tostring(id)] = nil
+    self._funcs[tostring(id)] = nil
 end
 
-local function do_handlerlist(list, source, event, data, pid)
+local function do_handlerlist(funcs, list, source, event, data, pid)
     local ok, err
 
     --log(DEBUG, "source=", source, "event=", event)
 
-    for _, handler in pairs(list) do
+    for id, _ in pairs(list) do
+        local handler = funcs[id]
+
+        if type(handler) ~= "function" then
+            list[id] = nil
+            goto continue
+        end
+
         assert(type(handler) == "function")
 
         ok, err = xpcall(handler, traceback, data, event, source, pid)
@@ -119,6 +104,8 @@ local function do_handlerlist(list, source, event, data, pid)
                      ", event=", event,", pid=",pid, " error='", tostring(err),
                      "', data=", str)
         end
+
+        ::continue::
     end
 end
 
@@ -132,19 +119,20 @@ function _M:do_event(d)
     log(DEBUG, "worker-events: handling event; source=", source,
         ", event=", event, ", pid=", pid)
 
+    local funcs = self._funcs
     local list
 
     -- global events
     list = get_callback_list(self, "*", "*")
-    do_handlerlist(list, source, event, data, pid)
+    do_handlerlist(funcs, list, source, event, data, pid)
 
     -- source events
     list = get_callback_list(self, source, "*")
-    do_handlerlist(list, source, event, data, pid)
+    do_handlerlist(funcs, list, source, event, data, pid)
 
     -- source/event events
     list = get_callback_list(self, source, event)
-    do_handlerlist(list, source, event, data, pid)
+    do_handlerlist(funcs, list, source, event, data, pid)
 end
 
 return _M
