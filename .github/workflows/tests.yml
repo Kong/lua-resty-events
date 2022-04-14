@@ -12,7 +12,7 @@ jobs:
         include:
         # TODO: arm64
         - openresty: "1.19.9.1"
-        #- openresty: "1.21.4.1rc2"
+        - openresty: "1.21.4.1rc2"
 
     env:
       JOBS: 1  # must be 1 as socket tests interfere with each other
@@ -57,7 +57,6 @@ jobs:
 
     - name: Run Test
       run: |
-        #export PATH=/usr/local/openresty/bin:$PATH
         export PATH=${BASE_PATH}/openresty/bin:$PATH
         openresty -V
         make test OPENRESTY_PREFIX=${BASE_PATH}/openresty
