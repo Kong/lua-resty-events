@@ -18,7 +18,7 @@ jobs:
       JOBS: 1  # must be 1 as socket tests interfere with each other
 
       OPENRESTY: ${{ matrix.openresty }}
-      CODE_PATH: ${{ github.workspace}}
+      CODE_PATH: ${{ github.workspace }}
       BASE_PATH: /home/runner/work/cache
 
     steps:
