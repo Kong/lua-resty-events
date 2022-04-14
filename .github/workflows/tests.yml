@@ -18,6 +18,8 @@ jobs:
       JOBS: 1  # must be 1 as socket tests interfere with each other
 
       OPENRESTY: ${{ matrix.openresty }}
+      CODE_PATH: ${{ github.workspace }}
+      BASE_PATH: /home/runner/work/cache
 
     steps:
     - name: Checkout source code
@@ -38,20 +40,24 @@ jobs:
         sudo apt update
         sudo apt-get install -qq -y wget cpanminus net-tools libpcre3-dev build-essential valgrind
         if [ ! -e perl ]; then sudo cpanm --notest Test::Nginx > build.log 2>&1 || (cat build.log && exit 1); cp -r /usr/local/share/perl/ .; else sudo cp -r perl /usr/local/share; fi
-        cd ..
+
+    - name: Download OpenResty
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
         wget https://openresty.org/download/openresty-${OPENRESTY}.tar.gz
-        tar xfz openresty-${OPENRESTY}.tar.gz
+        mkdir -p ${BASE_PATH}
+        tar xfz openresty-${OPENRESTY}.tar.gz -C ${BASE_PATH}
 
     - name: Setup tools
-      #if: steps.cache-deps.outputs.cache-hit != 'true'
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
-        cd ../openresty-${OPENRESTY}
-        ./configure --with-debug --add-module=../lua-resty-events
-        make && sudo make install
+        cd ${BASE_PATH}/openresty-${OPENRESTY}
+        ./configure --prefix=${BASE_PATH}/openresty --with-debug --add-module=${CODE_PATH}
+        make && make install
 
     - name: Run Test
       run: |
-        export PATH=/usr/local/openresty/bin:$PATH
+        export PATH=${BASE_PATH}/openresty/bin:$PATH
         openresty -V
-        make test
+        make test OPENRESTY_PREFIX=${BASE_PATH}/openresty
 
