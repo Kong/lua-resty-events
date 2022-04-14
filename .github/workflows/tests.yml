@@ -51,7 +51,7 @@ jobs:
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
         cd ${BASE_PATH}/openresty-${OPENRESTY}
-        ./configure ----prefix=${BASE_PATH}/openresty --with-debug --add-module=../lua-resty-events
+        ./configure --prefix=${BASE_PATH}/openresty --with-debug --add-module=../lua-resty-events
         make && sudo make install
 
     - name: Run Test
