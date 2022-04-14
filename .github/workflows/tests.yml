@@ -12,12 +12,13 @@ jobs:
         include:
         # TODO: arm64
         - openresty: "1.19.9.1"
-        - openresty: "1.21.4.1rc2"
+        #- openresty: "1.21.4.1rc2"
 
     env:
       JOBS: 1  # must be 1 as socket tests interfere with each other
 
       OPENRESTY: ${{ matrix.openresty }}
+      BASE_PATH: /home/runner/work/cache
 
     steps:
     - name: Checkout source code
@@ -43,19 +44,19 @@ jobs:
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
         wget https://openresty.org/download/openresty-${OPENRESTY}.tar.gz
-        tar xfz openresty-${OPENRESTY}.tar.gz -C /home/runner/work/cache/
+        tar xfz openresty-${OPENRESTY}.tar.gz -C ${BASE_PATH}
 
     - name: Setup tools
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
-        cd /home/runner/work/cache/openresty-${OPENRESTY}
-        ./configure ----prefix=/home/runner/work/cache/openresty --with-debug --add-module=../lua-resty-events
+        cd ${BASE_PATH}/openresty-${OPENRESTY}
+        ./configure ----prefix=${BASE_PATH}/openresty --with-debug --add-module=../lua-resty-events
         make && sudo make install
 
     - name: Run Test
       run: |
         #export PATH=/usr/local/openresty/bin:$PATH
-        export PATH=/home/runner/work/cache/openresty/bin:$PATH
+        export PATH=${BASE_PATH}/openresty/bin:$PATH
         openresty -V
         make test
 
