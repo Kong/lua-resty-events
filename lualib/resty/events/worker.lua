@@ -294,8 +294,8 @@ function _M:subscribe(source, event, callback)
     return self._callback:subscribe(source, event, callback)
 end
 
-function _M:unsubscribe(source, event, id)
-    return self._callback:unsubscribe(source, event, id)
+function _M:unsubscribe(id)
+    return self._callback:unsubscribe(id)
 end
 
 return _M
