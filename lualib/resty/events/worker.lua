@@ -1,4 +1,4 @@
-local cjson = require "cjson.safe"
+local codec = require "resty.events.codec"
 local que = require "resty.events.queue"
 local callback = require "resty.events.callback"
 
@@ -22,8 +22,8 @@ local wait = ngx.thread.wait
 
 local timer_at = ngx.timer.at
 
-local encode = cjson.encode
-local decode = cjson.decode
+local encode = codec.encode
+local decode = codec.decode
 
 local EMPTY_T = {}
 

@@ -1,4 +1,4 @@
-local cjson = require "cjson.safe"
+local codec = require "resty.events.codec"
 local lrucache = require "resty.lrucache"
 
 local que = require "resty.events.queue"
@@ -19,7 +19,7 @@ local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
 local wait = ngx.thread.wait
 
-local decode = cjson.decode
+local decode = codec.decode
 
 local MAX_UNIQUE_EVENTS = 1024
 
