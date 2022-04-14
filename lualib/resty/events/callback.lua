@@ -48,9 +48,6 @@ end
 -- subscribe('s', '*', func)
 -- subscribe('s', 'e', func)
 function _M:subscribe(source, event, callback)
-    assert(type(callback) == "function", "expected function, got: "..
-           type(callback))
-
     local list = get_callback_list(self, source, event)
 
     local count = self._counter + 1
@@ -65,8 +62,6 @@ function _M:subscribe(source, event, callback)
 end
 
 function _M:unsubscribe(id)
-    assert(id, "id is required")
-
     self._funcs[tostring(id)] = nil
 end
 

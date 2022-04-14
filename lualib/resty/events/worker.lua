@@ -291,10 +291,25 @@ function _M:publish(target, source, event, data)
 end
 
 function _M:subscribe(source, event, callback)
+    if type(source) ~= "string" or source == "" then
+        return nil, "source is required"
+    end
+
+    if type(event) ~= "string" or event == "" then
+        return nil, "event is required"
+    end
+
+    assert(type(callback) == "function", "expected function, got: "..
+           type(callback))
+
     return self._callback:subscribe(source, event, callback)
 end
 
 function _M:unsubscribe(id)
+    if type(id) ~= "string" or id == "" then
+        return nil, "id is required"
+    end
+
     return self._callback:unsubscribe(id)
 end
 
