@@ -100,8 +100,8 @@ function _M:subscribe(source, event, callback)
     return self.worker:subscribe(source, event, callback)
 end
 
-function _M:unsubscribe(source, event, id)
-    return self.worker:unsubscribe(source, event, id)
+function _M:unsubscribe(id)
+    return self.worker:unsubscribe(id)
 end
 
 return _M
