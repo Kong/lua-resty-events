@@ -218,7 +218,7 @@ end
 
 -- posts a new event
 local function post_event(self, source, event, data, spec)
-    local json, err
+    local str, err
 
     EVENT_T.source = source
     EVENT_T.event = event
@@ -226,23 +226,23 @@ local function post_event(self, source, event, data, spec)
     EVENT_T.pid = _worker_pid
 
     -- encode event info
-    json, err = encode(EVENT_T)
+    str, err = encode(EVENT_T)
 
-    if not json then
+    if not str then
         return nil, err
     end
 
     PAYLOAD_T.spec = spec or EMPTY_T
-    PAYLOAD_T.data = json
+    PAYLOAD_T.data = str
 
     -- encode spec info
-    json, err = encode(PAYLOAD_T)
+    str, err = encode(PAYLOAD_T)
 
-    if not json then
+    if not str then
         return nil, err
     end
 
-    local ok, err = self._queue:push(json)
+    local ok, err = self._queue:push(str)
     if not ok then
         return nil, "failed to publish event: " .. err
     end
