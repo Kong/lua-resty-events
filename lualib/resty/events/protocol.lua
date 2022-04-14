@@ -16,7 +16,7 @@ local type = type
 local str_sub = string.sub
 local setmetatable = setmetatable
 
-local DEFAULT_TIMEOUT = 1000     -- 1000ms
+local DEFAULT_TIMEOUT = 5000     -- 5000ms
 
 local function recv_frame(self)
     local sock = self.sock
