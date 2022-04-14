@@ -60,5 +60,5 @@ jobs:
         #export PATH=/usr/local/openresty/bin:$PATH
         export PATH=${BASE_PATH}/openresty/bin:$PATH
         openresty -V
-        OPENRESTY_PREFIX=${BASE_PATH}/openresty make test
+        OPENRESTY_PREFIX="${BASE_PATH}/openresty" make test
 
