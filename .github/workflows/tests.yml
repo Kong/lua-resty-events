@@ -53,7 +53,7 @@ jobs:
       run: |
         cd ${BASE_PATH}/openresty-${OPENRESTY}
         ./configure --prefix=${BASE_PATH}/openresty --with-debug --add-module=${CODE_PATH}
-        make && sudo make install
+        make && make install
 
     - name: Run Test
       run: |
