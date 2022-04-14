@@ -44,6 +44,7 @@ jobs:
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
         wget https://openresty.org/download/openresty-${OPENRESTY}.tar.gz
+        mkdir -p ${BASE_PATH}
         tar xfz openresty-${OPENRESTY}.tar.gz -C ${BASE_PATH}
 
     - name: Setup tools
