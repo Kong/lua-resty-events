@@ -1,4 +1,4 @@
-local cjson = require "cjson.safe"
+local codec = require "resty.events.codec"
 local lrucache = require "resty.lrucache"
 
 local que = require "resty.events.queue"
@@ -19,40 +19,48 @@ local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
 local wait = ngx.thread.wait
 
-local decode = cjson.decode
+local decode = codec.decode
 
 local MAX_UNIQUE_EVENTS = 1024
-
-local _opts
-local _clients
-local _uniques
 
 local _M = {
     _VERSION = '0.1.0',
 }
+local _MT = { __index = _M, }
 
 local function is_timeout(err)
     return err and str_sub(err, -7) == "timeout"
 end
 
-function _M.configure(opts)
-    assert(not _opts)
+function _M.new()
+    local self = {
+        _opts = nil,
+        _uniques = nil,
+        _clients = nil,
+    }
 
-    _opts = opts
+    return setmetatable(self, _MT)
+end
 
-    local err
+function _M:configure(opts)
+    assert(not self._opts)
 
-    _uniques, err = lrucache.new(MAX_UNIQUE_EVENTS)
+    self._opts = opts
+
+    local _uniques, err = lrucache.new(MAX_UNIQUE_EVENTS)
     if not _uniques then
         return nil, "failed to create the events cache: " .. (err or "unknown")
     end
 
-    _clients = setmetatable({}, { __mode = "k", })
+    local _clients = setmetatable({}, { __mode = "k", })
+
+    self._uniques = _uniques
+    self._clients = _clients
 
     return true
 end
 
-function _M.run()
+function _M:run()
     local conn, err = server:new()
 
     if not conn then
@@ -62,7 +70,7 @@ function _M.run()
 
     local queue = que.new()
 
-    _clients[conn] = queue
+    self._clients[conn] = queue
 
     local read_thread = spawn(function()
         while not exiting() do
@@ -92,17 +100,17 @@ function _M.run()
             -- unique event
             local unique = d.spec.unique
             if unique then
-                if _uniques:get(unique) then
+                if self._uniques:get(unique) then
                     log(DEBUG, "unique event is duplicate: ", unique)
                     goto continue
                 end
 
-                _uniques:set(unique, 1, _opts.unique_timeout)
+                self._uniques:set(unique, 1, self._opts.unique_timeout)
             end
 
             -- broadcast to all/unique workers
             local n = 0
-            for _, q in pairs(_clients) do
+            for _, q in pairs(self._clients) do
                 local ok, err = q:push(d.data)
 
                 if not ok then
@@ -151,7 +159,7 @@ function _M.run()
 
     local ok, err, perr = wait(write_thread, read_thread)
 
-    _clients[conn] = nil
+    self._clients[conn] = nil
 
     kill(write_thread)
     kill(read_thread)
