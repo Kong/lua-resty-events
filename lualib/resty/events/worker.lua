@@ -249,9 +249,9 @@ end
 function _M:publish(target, source, event, data)
     local ok, err
 
-    if not self._connected then
-        return nil, "not initialized yet"
-    end
+    -- if not self._connected then
+    --     return nil, "not initialized yet"
+    -- end
 
     if type(target) ~= "string" or target == "" then
         return nil, "target is required"
