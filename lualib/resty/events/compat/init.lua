@@ -2,6 +2,9 @@
 
 local ev = require("resty.events").new()
 
+-- store id for unsubscribe
+local handlers = {}
+
 local _M = {
     _VERSION = '0.1.0',
 }
@@ -27,12 +30,25 @@ _M.post_local = function(source, event, data)
 end
 
 _M.register = function(callback, source, event, ...)
-    return ev:subscribe(source or "*", event or "*", callback)
+    local events = {event, ...}
+
+    for _, e in ipairs(events) do
+        local id = ev:subscribe(source or "*", e or "*", callback)
+
+        handlers[callback] = id
+    end
 end
 
 _M.register_weak = _M.register
 
 _M.unregister = function(callback, source, ...)
+    local id = handlers[callback]
+
+    if not id then
+        return
+    end
+
+    return ev:unsubscribe(id)
 end
 
 return _M
