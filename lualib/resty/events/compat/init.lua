@@ -1,4 +1,4 @@
--- compatible with lua-resty-worker-events
+-- compatible with lua-resty-worker-events 1.0.0
 
 local ev = require("resty.events").new()
 
@@ -22,11 +22,23 @@ function _M.run()
 end
 
 _M.post = function(source, event, data, unique)
-    return ev:publish(unique or "all", source, event, data)
+    local ok, err = ev:publish(unique or "all", source, event, data)
+
+    if not ok then
+        return nil, err
+    end
+
+    return "done"
 end
 
 _M.post_local = function(source, event, data)
-    return ev:publish("current", source, event, data)
+    local ok, err = ev:publish("current", source, event, data)
+
+    if not ok then
+        return nil, err
+    end
+
+    return "done"
 end
 
 _M.register = function(callback, source, event, ...)
