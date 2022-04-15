@@ -3,10 +3,10 @@ local lrucache = require "resty.lrucache"
 
 local que = require "resty.events.queue"
 local server = require("resty.events.protocol").server
+local is_timeout = server.is_timeout
 
 local pairs = pairs
 local setmetatable = setmetatable
-local str_sub = string.sub
 
 local ngx = ngx
 local log = ngx.log
@@ -27,10 +27,6 @@ local _M = {
     _VERSION = '0.1.0',
 }
 local _MT = { __index = _M, }
-
-local function is_timeout(err)
-    return err and str_sub(err, -7) == "timeout"
-end
 
 function _M.new()
     local self = {

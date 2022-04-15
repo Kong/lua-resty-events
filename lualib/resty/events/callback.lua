@@ -117,15 +117,15 @@ function _M:do_event(d)
     local funcs = self._funcs
     local list
 
-    -- global events
+    -- global callback
     list = get_callback_list(self, "*", "*")
     do_handlerlist(funcs, list, source, event, data, pid)
 
-    -- source events
+    -- source callback
     list = get_callback_list(self, source, "*")
     do_handlerlist(funcs, list, source, event, data, pid)
 
-    -- source/event events
+    -- source+event callback
     list = get_callback_list(self, source, event)
     do_handlerlist(funcs, list, source, event, data, pid)
 end

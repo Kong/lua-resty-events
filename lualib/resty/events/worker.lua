@@ -3,11 +3,11 @@ local que = require "resty.events.queue"
 local callback = require "resty.events.callback"
 
 local client = require("resty.events.protocol").client
+local is_timeout = client.is_timeout
 
 local type = type
 local assert = assert
 local setmetatable = setmetatable
-local str_sub = string.sub
 local random = math.random
 
 local ngx = ngx
@@ -53,10 +53,6 @@ local _MT = { __index = _M, }
 -- gen a random number [0.2, 2.0]
 local function random_delay()
     return random(2, 20) / 10
-end
-
-local function is_timeout(err)
-    return err and str_sub(err, -7) == "timeout"
 end
 
 local function do_event(self, d)
