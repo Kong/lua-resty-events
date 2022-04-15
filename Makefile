@@ -12,7 +12,7 @@ all: ;
 install: all
 	$(INSTALL) -d $(DESTDIR)/$(LUA_LIB_DIR)/resty/events/
 	$(INSTALL) -m 664 lualib/resty/events/*.lua $(DESTDIR)/$(LUA_LIB_DIR)/resty/events/
-	$(INSTALL) -m 664 lualib/resty/events/compat/*.lua $(DESTDIR)/$(LUA_LIB_DIR)/resty/events/compat
+	$(INSTALL) -m 664 lualib/resty/events/compat/*.lua $(DESTDIR)/$(LUA_LIB_DIR)/resty/events/compat/
 
 test: all
 	PATH=$(OPENRESTY_PREFIX)/nginx/sbin:$$PATH prove -I../test-nginx/lib -r t
