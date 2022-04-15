@@ -12,6 +12,7 @@ all: ;
 install: all
 	$(INSTALL) -d $(DESTDIR)/$(LUA_LIB_DIR)/resty/events/
 	$(INSTALL) -m 664 lualib/resty/events/*.lua $(DESTDIR)/$(LUA_LIB_DIR)/resty/events/
+	$(INSTALL) -d $(DESTDIR)/$(LUA_LIB_DIR)/resty/events/compat/
 	$(INSTALL) -m 664 lualib/resty/events/compat/*.lua $(DESTDIR)/$(LUA_LIB_DIR)/resty/events/compat/
 
 test: all
