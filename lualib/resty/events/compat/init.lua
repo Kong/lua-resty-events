@@ -30,7 +30,7 @@ _M.post_local = function(source, event, data)
 end
 
 _M.register = function(callback, source, event, ...)
-    local events = {event, ...}
+    local events = {event or "*", ...}
 
     for _, e in ipairs(events) do
         local id = ev:subscribe(source or "*", e or "*", callback)
