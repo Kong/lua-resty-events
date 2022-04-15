@@ -48,6 +48,8 @@ _M.unregister = function(callback, source, ...)
         return
     end
 
+    handlers[callback] = nil
+
     return ev:unsubscribe(id)
 end
 
