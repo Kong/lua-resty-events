@@ -9,12 +9,26 @@ local _M = {
     _VERSION = '0.1.0',
 }
 
+local _configured
+
 function _M.poll()
     return "done"
 end
 
 function _M.configure(opts)
-    return ev:configure(opts)
+    local ok, err = ev:configure(opts)
+
+    if not ok then
+        return nil, err
+    end
+
+    _configured = true
+
+    return true
+end
+
+function _M.configured()
+    return _configured
 end
 
 function _M.run()
