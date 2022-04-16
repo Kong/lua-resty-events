@@ -218,7 +218,7 @@ worker-events: handling event; source=content_by_lua, event=request6, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890$/
 
 
-=== TEST 4: publish events before configure
+=== TEST 4: publish events at anywhere
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
     init_worker_by_lua_block {
@@ -228,18 +228,21 @@ worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, d
         }
 
         local ev = require("resty.events").new()
+
+        ev:publish("all", "content_by_lua","request1","01234567890")
+
         local ok, err = ev:configure(opts)
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
+
+        ev:publish("current", "content_by_lua","request2","01234567890")
 
         ev:subscribe("*", "*", function(data, event, source, pid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                     ", data=", tostring(data))
                 end)
 
-        ev:publish("all", "content_by_lua","request1","01234567890")
-        ev:publish("current", "content_by_lua","request2","01234567890")
         ev:publish("all", "content_by_lua","request3","01234567890")
 
         _G.ev = ev
