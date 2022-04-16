@@ -5,11 +5,11 @@ local ev = require("resty.events").new()
 -- store id for unsubscribe
 local handlers = {}
 
+local _configured
+
 local _M = {
     _VERSION = '0.1.0',
 }
-
-local _configured
 
 function _M.poll()
     return "done"
