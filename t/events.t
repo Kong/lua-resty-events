@@ -218,7 +218,68 @@ worker-events: handling event; source=content_by_lua, event=request6, pid=\d+
 worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890$/
 
 
-=== TEST 4: configure with wrong params
+=== TEST 4: publish events before configure
+--- http_config
+    lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
+    init_worker_by_lua_block {
+        local opts = {
+            --broker_id = 0,
+            listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
+        }
+
+        local ev = require("resty.events").new()
+        local ok, err = ev:configure(opts)
+        if not ok then
+            ngx.log(ngx.ERR, "failed to configure events: ", err)
+        end
+
+        ev:subscribe("*", "*", function(data, event, source, pid)
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
+                    ", data=", tostring(data))
+                end)
+
+        ev:publish("all", "content_by_lua","request1","01234567890")
+        ev:publish("current", "content_by_lua","request2","01234567890")
+        ev:publish("all", "content_by_lua","request3","01234567890")
+
+        _G.ev = ev
+    }
+
+    server {
+        listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
+        location / {
+            content_by_lua_block {
+                 _G.ev:run()
+            }
+        }
+    }
+--- config
+    location = /test {
+        content_by_lua_block {
+            ngx.say("ok")
+        }
+    }
+--- request
+GET /test
+--- response_body
+ok
+--- error_log
+event published to 1 workers
+--- no_error_log
+[error]
+[crit]
+[alert]
+--- grep_error_log eval: qr/worker-events: .*/
+--- grep_error_log_out eval
+qr/^worker-events: handling event; source=content_by_lua, event=request2, pid=nil
+worker-events: handler event;  source=content_by_lua, event=request2, pid=nil, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=01234567890$/
+
+
+=== TEST 5: configure with wrong params
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
 --- config
