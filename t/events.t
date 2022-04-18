@@ -34,6 +34,8 @@ __DATA__
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
 
+        assert(not ev:is_ready())
+
         ev:subscribe("*", "*", function(data, event, source, pid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                     ", data=", data)
@@ -54,6 +56,8 @@ __DATA__
     location = /test {
         content_by_lua_block {
             local ev = _G.ev
+
+            assert(ev:is_ready())
 
             ev:publish("all", "content_by_lua","request1","01234567890")
             ev:publish("current", "content_by_lua","request2","01234567890")
@@ -97,6 +101,8 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
 
+        assert(not ev:is_ready())
+
         ev:subscribe("*", "*", function(data, event, source, pid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                     ", data=", tostring(data))
@@ -117,6 +123,8 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
     location = /test {
         content_by_lua_block {
             local ev = _G.ev
+
+            assert(ev:is_ready())
 
             ev:publish("all", "content_by_lua","request1","01234567890")
             ev:publish("current", "content_by_lua","request2","01234567890")
@@ -161,6 +169,8 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
 
+        assert(not ev:is_ready())
+
         ev:subscribe("*", "*", function(data, event, source, pid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
                     ", data=", tostring(data))
@@ -181,6 +191,8 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
     location = /test {
         content_by_lua_block {
             local ev = _G.ev
+
+            assert(ev:is_ready())
 
             ev:publish("all", "content_by_lua","request1","01234567890")
             ev:publish("unique_value", "content_by_lua","request2","01234567890")
@@ -235,6 +247,8 @@ worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, d
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
+
+        assert(not ev:is_ready())
 
         ev:publish("current", "content_by_lua","request2","01234567890")
 

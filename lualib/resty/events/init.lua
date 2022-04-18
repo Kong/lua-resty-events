@@ -104,4 +104,8 @@ function _M:unsubscribe(id)
     return self.worker:unsubscribe(id)
 end
 
+function _M:is_ready()
+    return self.worker:is_ready()
+end
+
 return _M

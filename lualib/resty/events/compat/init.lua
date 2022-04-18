@@ -15,7 +15,10 @@ local _M = {
 }
 
 function _M.poll()
-    sleep(0.002) -- wait events unix socket connect
+    if not ev:is_ready() then
+        sleep(0.002) -- wait events unix socket connect
+    end
+
     return "done"
 end
 

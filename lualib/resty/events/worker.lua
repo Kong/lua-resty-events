@@ -309,4 +309,8 @@ function _M:unsubscribe(id)
     return self._callback:unsubscribe(id)
 end
 
+function _M:is_ready()
+    return self._connected
+end
+
 return _M
