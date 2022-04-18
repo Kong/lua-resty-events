@@ -2,6 +2,9 @@
 
 local ev = require("resty.events").new()
 
+local ngx = ngx
+local sleep = ngx.sleep
+
 -- store id for unsubscribe
 local handlers = {}
 
@@ -12,6 +15,7 @@ local _M = {
 }
 
 function _M.poll()
+    sleep(0.002) -- wait events unix socket connect
     return "done"
 end
 
