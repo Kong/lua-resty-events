@@ -3,6 +3,8 @@
 local ev = require("resty.events").new()
 
 local ngx = ngx
+local log = ngx.log
+local DEBUG = ngx.DEBUG
 local sleep = ngx.sleep
 
 -- store id for unsubscribe
@@ -18,6 +20,8 @@ function _M.poll()
     if not ev:is_ready() then
         sleep(0.002) -- wait events unix socket connect
     end
+
+    log(DEBUG, "worker-events: emulate poll method")
 
     return "done"
 end
