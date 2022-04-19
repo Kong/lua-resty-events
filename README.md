@@ -24,7 +24,7 @@ Table of Contents
 Status
 ======
 
-This library is currently considered experimental.
+This library is still under development, APIs may be changed without notification.
 
 Synopsis
 ========
@@ -40,11 +40,11 @@ http {
 
         local ev = require("resty.events").new()
 
-        local handler = function(data, event, source, pid)
-            print("received event; source=",source,
-                  ", event=",event,
+        local handler = function(data, event, source, wid)
+            print("received event; source=", source,
+                  ", event=", event,
                   ", data=", tostring(data),
-                  ", from process ",pid)
+                  ", from process ", wid)
         end
 
         local id1 = ev:subscribe("*", "*", handler)
@@ -108,7 +108,7 @@ new
 `syntax: ev = events.new()`
 
 Return a new events object.
-It should be stored in global scope for [run](#run).
+It should be stored in global scope for [run](#run) later.
 
 [Back to TOC](#table-of-contents)
 
@@ -179,10 +179,10 @@ both `source` and `event` match the callback is invoked.
 
 The callback should have the following signature;
 
-`syntax: callback = function(data, event, source, pid)`
+`syntax: callback = function(data, event, source, wid)`
 
 The parameters will be the same as the ones provided to [publish](#publish), except for the extra value
-`pid` which will be the pid of the originating worker process, or `nil` if it was a local event
+`wid` which will be the worker id of the originating worker process, or `nil` if it was a local event
 only. Any return value from `callback` will be discarded.
 *Note:* `data` may be a reference type of data (eg. a Lua `table`  type). The same value is passed
 to all callbacks, _so do not change the value in your handler, unless you know what you are doing!_
