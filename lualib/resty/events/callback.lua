@@ -65,7 +65,7 @@ function _M:unsubscribe(id)
     self._funcs[tostring(id)] = nil
 end
 
-local function do_handlerlist(funcs, list, source, event, data, pid)
+local function do_handlerlist(funcs, list, source, event, data, wid)
     local ok, err
 
     --log(DEBUG, "source=", source, "event=", event)
@@ -80,7 +80,7 @@ local function do_handlerlist(funcs, list, source, event, data, pid)
 
         assert(type(handler) == "function")
 
-        ok, err = xpcall(handler, traceback, data, event, source, pid)
+        ok, err = xpcall(handler, traceback, data, event, source, wid)
 
         if not ok then
             local str, e
@@ -96,7 +96,7 @@ local function do_handlerlist(funcs, list, source, event, data, pid)
             end
 
             log(ERR, "worker-events: event callback failed; source=", source,
-                     ", event=", event,", pid=",pid, " error='", tostring(err),
+                     ", event=", event,", wid=", wid, " error='", tostring(err),
                      "', data=", str)
         end
 
@@ -109,25 +109,25 @@ function _M:do_event(d)
     local source = d.source
     local event  = d.event
     local data   = d.data
-    local pid    = d.pid
+    local wid    = d.wid
 
     log(DEBUG, "worker-events: handling event; source=", source,
-        ", event=", event, ", pid=", pid)
+        ", event=", event, ", wid=", wid)
 
     local funcs = self._funcs
     local list
 
     -- global callback
     list = get_callback_list(self, "*", "*")
-    do_handlerlist(funcs, list, source, event, data, pid)
+    do_handlerlist(funcs, list, source, event, data, wid)
 
     -- source callback
     list = get_callback_list(self, source, "*")
-    do_handlerlist(funcs, list, source, event, data, pid)
+    do_handlerlist(funcs, list, source, event, data, wid)
 
     -- source+event callback
     list = get_callback_list(self, source, event)
-    do_handlerlist(funcs, list, source, event, data, pid)
+    do_handlerlist(funcs, list, source, event, data, wid)
 end
 
 return _M

@@ -31,7 +31,7 @@ local EVENT_T = {
     source = '',
     event = '',
     data = '',
-    pid = '',
+    wid = '',
 }
 
 local SPEC_T = {
@@ -43,7 +43,8 @@ local PAYLOAD_T = {
     data = '',
 }
 
-local _worker_pid = ngx.worker.pid()
+--local _worker_pid = ngx.worker.pid()
+local _worker_id = ngx.worker.id()
 
 local _M = {
     _VERSION = '0.1.0',
@@ -219,7 +220,7 @@ local function post_event(self, source, event, data, spec)
     EVENT_T.source = source
     EVENT_T.event = event
     EVENT_T.data = data
-    EVENT_T.pid = _worker_pid
+    EVENT_T.wid = _worker_id
 
     -- encode event info
     str, err = encode(EVENT_T)

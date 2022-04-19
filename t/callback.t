@@ -27,9 +27,9 @@ __DATA__
         content_by_lua_block {
             local ec = require("resty.events.callback").new()
 
-            local pid = ngx.worker.pid()
-            local cb = function(extra, data, event, source, pid)
-                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
+            local wid = ngx.worker.id()
+            local cb = function(extra, data, event, source, wid)
+                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
                         ", data=", data, ", callback=",extra)
             end
 
@@ -45,7 +45,7 @@ __DATA__
             local id5 = ec:subscribe("content_by_lua", "request3", ngx.cb_event3)
 
             local post = function(s, e, d)
-                ec:do_event({source = s, event = e, data = d, pid = pid})
+                ec:do_event({source = s, event = e, data = d, wid = wid})
             end
 
             post("content_by_lua","request1","123")
@@ -92,40 +92,40 @@ ok
 [alert]
 --- grep_error_log eval: qr/worker-events: .*/
 --- grep_error_log_out eval
-qr/^worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=123, callback=global
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=123, callback=source
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=123, callback=event12
-worker-events: handling event; source=content_by_lua, event=request2, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=123, callback=global
-worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=123, callback=source
-worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=123, callback=event12
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=123, callback=global
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=123, callback=source
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=123, callback=event3
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=124, callback=source
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=124, callback=event12
-worker-events: handling event; source=content_by_lua, event=request2, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=124, callback=source
-worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=124, callback=event12
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=124, callback=source
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=124, callback=event3
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=125, callback=event12
-worker-events: handling event; source=content_by_lua, event=request2, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=125, callback=event12
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=125, callback=event3
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handling event; source=content_by_lua, event=request2, pid=\d+
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=126, callback=event3
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handling event; source=content_by_lua, event=request2, pid=\d+
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+$/
+qr/^worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=123, callback=global
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=123, callback=source
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=123, callback=event12
+worker-events: handling event; source=content_by_lua, event=request2, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request2, wid=\d+, data=123, callback=global
+worker-events: handler event;  source=content_by_lua, event=request2, wid=\d+, data=123, callback=source
+worker-events: handler event;  source=content_by_lua, event=request2, wid=\d+, data=123, callback=event12
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=123, callback=global
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=123, callback=source
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=123, callback=event3
+worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=124, callback=source
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=124, callback=event12
+worker-events: handling event; source=content_by_lua, event=request2, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request2, wid=\d+, data=124, callback=source
+worker-events: handler event;  source=content_by_lua, event=request2, wid=\d+, data=124, callback=event12
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=124, callback=source
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=124, callback=event3
+worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=125, callback=event12
+worker-events: handling event; source=content_by_lua, event=request2, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request2, wid=\d+, data=125, callback=event12
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=125, callback=event3
+worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handling event; source=content_by_lua, event=request2, wid=\d+
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=126, callback=event3
+worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handling event; source=content_by_lua, event=request2, wid=\d+
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+$/
 
 
 === TEST 2: callback error handling
@@ -137,13 +137,13 @@ worker-events: handling event; source=content_by_lua, event=request3, pid=\d+$/
             local ec = require("resty.events.callback").new()
 
             local post = function(s, e, d)
-                ec:do_event({source = s, event = e, data = d, pid = pid})
+                ec:do_event({source = s, event = e, data = d, wid = wid})
             end
 
             local error_func = function()
               error("something went wrong here!")
             end
-            local test_callback = function(source, event, data, pid)
+            local test_callback = function(source, event, data, wid)
               error_func() -- nested call to check stack trace
             end
             ec:subscribe("*", "*", test_callback)
@@ -176,7 +176,7 @@ something went wrong here!
             local ec = require("resty.events.callback").new()
 
             local post = function(s, e, d)
-                ec:do_event({source = s, event = e, data = d, pid = pid})
+                ec:do_event({source = s, event = e, data = d, wid = wid})
             end
 
             local error_func = function()
@@ -185,7 +185,7 @@ something went wrong here!
             local in_between = function()
               error_func() -- nested call to check stack trace
             end
-            local test_callback = function(source, event, data, pid)
+            local test_callback = function(source, event, data, wid)
               in_between() -- nested call to check stack trace
             end
 

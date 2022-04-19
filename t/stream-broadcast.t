@@ -36,8 +36,8 @@ __DATA__
                 ngx.log(ngx.ERR, "failed to configure events: ", err)
             end
 
-            ev:subscribe("*", "*", function(data, event, source, pid)
-                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
+            ev:subscribe("*", "*", function(data, event, source, wid)
+                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
                         ", data=", data)
                     end)
 
@@ -95,14 +95,14 @@ event published to 4 workers
 [alert]
 --- grep_error_log eval: qr/worker-events: .*/
 --- grep_error_log_out eval
-qr/^worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890$/
+qr/^worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890$/
 
 
 === TEST 2: posting events and handling events, local
@@ -121,8 +121,8 @@ worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, d
                 ngx.log(ngx.ERR, "failed to configure events: ", err)
             end
 
-            ev:subscribe("*", "*", function(data, event, source, pid)
-                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
+            ev:subscribe("*", "*", function(data, event, source, wid)
+                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
                         ", data=", data)
                     end)
 
@@ -182,18 +182,18 @@ event published to 4 workers
 [alert]
 --- grep_error_log eval: qr/worker-events: .*/
 --- grep_error_log_out eval
-qr/^worker-events: handling event; source=content_by_lua, event=request1, pid=nil
-worker-events: handler event;  source=content_by_lua, event=request1, pid=nil, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request2, pid=nil
-worker-events: handler event;  source=content_by_lua, event=request2, pid=nil, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=01234567890$/
+qr/^worker-events: handling event; source=content_by_lua, event=request1, wid=nil
+worker-events: handler event;  source=content_by_lua, event=request1, wid=nil, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request2, wid=nil
+worker-events: handler event;  source=content_by_lua, event=request2, wid=nil, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=01234567890$/
 
 
 === TEST 3: worker.events 'one' being done, and only once
@@ -213,8 +213,8 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
                 ngx.log(ngx.ERR, "failed to configure events: ", err)
             end
 
-            ev:subscribe("*", "*", function(data, event, source, pid)
-                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
+            ev:subscribe("*", "*", function(data, event, source, wid)
+                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
                         ", data=", tostring(data))
                     end)
 
@@ -288,16 +288,16 @@ event published to 4 workers
 [alert]
 --- grep_error_log eval: qr/worker-events: handler .*/
 --- grep_error_log_out eval
-qr/^worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=01234567890
-worker-events: handler event;  source=content_by_lua, event=request4, pid=\d+, data=01234567890
-worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890
-worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890
-worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890
-worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890$/
+qr/^worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
+worker-events: handler event;  source=content_by_lua, event=request2, wid=\d+, data=01234567890
+worker-events: handler event;  source=content_by_lua, event=request4, wid=\d+, data=01234567890
+worker-events: handler event;  source=content_by_lua, event=request6, wid=\d+, data=01234567890
+worker-events: handler event;  source=content_by_lua, event=request6, wid=\d+, data=01234567890
+worker-events: handler event;  source=content_by_lua, event=request6, wid=\d+, data=01234567890
+worker-events: handler event;  source=content_by_lua, event=request6, wid=\d+, data=01234567890$/
 
 
 
