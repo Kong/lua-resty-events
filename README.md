@@ -13,7 +13,7 @@ Table of Contents
 * [Description](#description)
 * [Methods](#methods)
     * [new](#new)
-    * [configure](#configure)
+    * [init_worker](#init_worker)
     * [run](#run)
     * [publish](#publish)
     * [subscribe](#subscribe)
@@ -38,7 +38,10 @@ http {
             listening = "unix:/tmp/events.sock",
         }
 
-        local ev = require("resty.events").new()
+        local ev = require("resty.events").new(opts)
+        if not ev then
+            ngx.log(ngx.ERR, "failed to new events object: ", err)
+        end
 
         local handler = function(data, event, source, wid)
             print("received event; source=", source,
@@ -51,9 +54,9 @@ http {
         local id2 = ev:subscribe("source", "*", handler)
         local id3 = ev:subscribe("source", "event", handler)
 
-        local ok, err = ev:configure(opts)
+        local ok, err = ev:init_worker()
         if not ok then
-            ngx.log(ngx.ERR, "failed to configure events: ", err)
+            ngx.log(ngx.ERR, "failed to init events: ", err)
         end
 
         -- store ev to global
@@ -105,20 +108,10 @@ Methods
 
 new
 ---------
-`syntax: ev = events.new()`
+`syntax: ev = events.new(opts)`
 
 Return a new events object.
 It should be stored in global scope for [run](#run) later.
-
-[Back to TOC](#table-of-contents)
-
-configure
----------
-`syntax: ok, err = ev:configure(opts)`
-
-Will initialize the event listener. This should typically be called from the
-`init_worker_by_lua` handler, because it will make sure only one Nginx worker
-starts to listen on unix domain socket.
 
 The `opts` parameter is a Lua table with named options:
 
@@ -126,6 +119,18 @@ The `opts` parameter is a Lua table with named options:
 * `broker_id`: (optional) the worker id that will start to listen, default 0.
 * `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default 5.
   See the `target` parameter of the [publish](#publish) method.
+
+The return value will be the event object, or `nil` and an error message.
+
+[Back to TOC](#table-of-contents)
+
+init_worker
+---------
+`syntax: ok, err = ev:init_worker()`
+
+Will initialize the event listener. This should typically be called from the
+`init_worker_by_lua` handler, because it will make sure only one Nginx worker
+starts to listen on unix domain socket.
 
 The return value will be `true`, or `nil` and an error message.
 
@@ -135,7 +140,7 @@ run
 ---------
 `syntax: ev:run()`
 
-Active the event loop only in Nginx broker process, see opts `broker_id` of [configure](#configure).
+Active the event loop only in Nginx broker process, see opts `broker_id` of [new](#new).
 it must be called in `content_by_lua*`.
 
 `ev` object must be the same object returned by [new](#new).
@@ -157,7 +162,7 @@ it will not be broadcasted to other workers. With this method, the `data` elemen
 will not be serialized.
 * _unique hash_ : the event will be send to only one worker.
 Also any follow up events with the same hash value will be ignored
-(for the `unique_timeout` period specified to [configure](#configure)).
+(for the `unique_timeout` period specified to [new](#new)).
 
 The return value will be `true` when the event was successfully published or
 `nil + error` in case of cjson serializition failure or event queue full.
