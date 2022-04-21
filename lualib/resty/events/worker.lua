@@ -203,7 +203,7 @@ function _M:communicate(premature)
     end
 end
 
-function _M:configure(opts)
+function _M:init(opts)
     assert(not self._opts)
 
     self._opts = opts

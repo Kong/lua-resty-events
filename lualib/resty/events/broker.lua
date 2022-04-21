@@ -38,7 +38,7 @@ function _M.new()
     return setmetatable(self, _MT)
 end
 
-function _M:configure(opts)
+function _M:init(opts)
     assert(not self._opts)
 
     self._opts = opts

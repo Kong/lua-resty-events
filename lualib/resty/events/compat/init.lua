@@ -34,7 +34,7 @@ function _M.configure(opts)
         return nil, err
     end
 
-    ok, err = ev:configure()
+    ok, err = ev:init_worker()
 
     if not ok then
         return nil, err

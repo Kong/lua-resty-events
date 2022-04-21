@@ -74,7 +74,7 @@ function _M.new(opts)
 end
 
 -- opts = {broker_id = n, listening = 'unix:...', unique_timeout = x,}
-function _M:configure()
+function _M:init_worker()
     local opts = self.opts
 
     local is_broker = ngx_worker_id() == opts.broker_id
@@ -83,7 +83,7 @@ function _M:configure()
 
     -- only enable listening on special worker id
     if is_broker then
-        ok, err = self.broker:configure(opts)
+        ok, err = self.broker:init(opts)
 
     else
         ok, err = disable_listening(opts.listening)
@@ -93,7 +93,7 @@ function _M:configure()
         return nil, err
     end
 
-    ok, err = self.worker:configure(opts)
+    ok, err = self.worker:init(opts)
     if not ok then
         return nil, err
     end

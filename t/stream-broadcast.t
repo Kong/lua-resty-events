@@ -35,9 +35,9 @@ __DATA__
                 ngx.log(ngx.ERR, "failed to new events: ", err)
             end
 
-            local ok, err = ev:configure()
+            local ok, err = ev:init_worker()
             if not ok then
-                ngx.log(ngx.ERR, "failed to configure events: ", err)
+                ngx.log(ngx.ERR, "failed to init_worker events: ", err)
             end
 
             ev:subscribe("*", "*", function(data, event, source, wid)
@@ -124,9 +124,9 @@ worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, d
                 ngx.log(ngx.ERR, "failed to new events: ", err)
             end
 
-            local ok, err = ev:configure()
+            local ok, err = ev:init_worker()
             if not ok then
-                ngx.log(ngx.ERR, "failed to configure events: ", err)
+                ngx.log(ngx.ERR, "failed to init_worker events: ", err)
             end
 
             ev:subscribe("*", "*", function(data, event, source, wid)
@@ -220,9 +220,9 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
                 ngx.log(ngx.ERR, "failed to new events: ", err)
             end
 
-            local ok, err = ev:configure()
+            local ok, err = ev:init_worker()
             if not ok then
-                ngx.log(ngx.ERR, "failed to configure events: ", err)
+                ngx.log(ngx.ERR, "failed to init_worker events: ", err)
             end
 
             ev:subscribe("*", "*", function(data, event, source, wid)

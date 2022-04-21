@@ -33,9 +33,9 @@ __DATA__
             ngx.log(ngx.ERR, "failed to new events: ", err)
         end
 
-        local ok, err = ev:configure()
+        local ok, err = ev:init_worker()
         if not ok then
-            ngx.log(ngx.ERR, "failed to configure events: ", err)
+            ngx.log(ngx.ERR, "failed to init_worker events: ", err)
         end
 
         assert(not ev:is_ready())
@@ -104,9 +104,9 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
             ngx.log(ngx.ERR, "failed to new events: ", err)
         end
 
-        local ok, err = ev:configure()
+        local ok, err = ev:init_worker()
         if not ok then
-            ngx.log(ngx.ERR, "failed to configure events: ", err)
+            ngx.log(ngx.ERR, "failed to init_worker events: ", err)
         end
 
         assert(not ev:is_ready())
@@ -176,9 +176,9 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
             ngx.log(ngx.ERR, "failed to new events: ", err)
         end
 
-        local ok, err = ev:configure()
+        local ok, err = ev:init_worker()
         if not ok then
-            ngx.log(ngx.ERR, "failed to configure events: ", err)
+            ngx.log(ngx.ERR, "failed to init_worker events: ", err)
         end
 
         assert(not ev:is_ready())
@@ -258,9 +258,9 @@ worker-events: handler event;  source=content_by_lua, event=request6, wid=\d+, d
 
         ev:publish("all", "content_by_lua","request1","01234567890")
 
-        local ok, err = ev:configure()
+        local ok, err = ev:init_worker()
         if not ok then
-            ngx.log(ngx.ERR, "failed to configure events: ", err)
+            ngx.log(ngx.ERR, "failed to init_worker events: ", err)
         end
 
         assert(not ev:is_ready())
