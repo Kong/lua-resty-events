@@ -28,8 +28,12 @@ __DATA__
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require("resty.events").new()
-        local ok, err = ev:configure(opts)
+        local ev = require("resty.events").new(opts)
+        if not ev then
+            ngx.log(ngx.ERR, "failed to new events: ", err)
+        end
+
+        local ok, err = ev:configure()
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
@@ -95,8 +99,12 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require("resty.events").new()
-        local ok, err = ev:configure(opts)
+        local ev = require("resty.events").new(opts)
+        if not ev then
+            ngx.log(ngx.ERR, "failed to new events: ", err)
+        end
+
+        local ok, err = ev:configure()
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
@@ -163,8 +171,12 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require("resty.events").new()
-        local ok, err = ev:configure(opts)
+        local ev = require("resty.events").new(opts)
+        if not ev then
+            ngx.log(ngx.ERR, "failed to new events: ", err)
+        end
+
+        local ok, err = ev:configure()
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
@@ -239,11 +251,14 @@ worker-events: handler event;  source=content_by_lua, event=request6, wid=\d+, d
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require("resty.events").new()
+        local ev = require("resty.events").new(opts)
+        if not ev then
+            ngx.log(ngx.ERR, "failed to new events: ", err)
+        end
 
         ev:publish("all", "content_by_lua","request1","01234567890")
 
-        local ok, err = ev:configure(opts)
+        local ok, err = ev:configure()
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
@@ -302,30 +317,30 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 --- config
     location = /test {
         content_by_lua_block {
-            local ev = require("resty.events").new()
+            local ev = require("resty.events")
 
-            local _, err = ev:configure({broker_id = "1"})
+            local _, err = ev.new({broker_id = "1"})
             ngx.say(err)
 
-            local _, err = ev:configure({broker_id = -1})
+            local _, err = ev.new({broker_id = -1})
             ngx.say(err)
 
-            local _, err = ev:configure({broker_id = 2})
+            local _, err = ev.new({broker_id = 2})
             ngx.say(err)
 
-            local _, err = ev:configure({})
+            local _, err = ev.new({})
             ngx.say(err)
 
-            local _, err = ev:configure({listening = 123})
+            local _, err = ev.new({listening = 123})
             ngx.say(err)
 
-            local _, err = ev:configure({listening = "/tmp/xxx.sock"})
+            local _, err = ev.new({listening = "/tmp/xxx.sock"})
             ngx.say(err)
 
-            local _, err = ev:configure({listening = "unix:x", unique_timeout = '1'})
+            local _, err = ev.new({listening = "unix:x", unique_timeout = '1'})
             ngx.say(err)
 
-            local _, err = ev:configure({listening = "unix:x", unique_timeout = -1})
+            local _, err = ev.new({listening = "unix:x", unique_timeout = -1})
             ngx.say(err)
         }
     }

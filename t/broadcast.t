@@ -29,8 +29,12 @@ __DATA__
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require("resty.events").new()
-        local ok, err = ev:configure(opts)
+        local ev = require("resty.events").new(opts)
+        if not ev then
+            ngx.log(ngx.ERR, "failed to new events: ", err)
+        end
+
+        local ok, err = ev:configure()
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
@@ -92,8 +96,12 @@ worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, d
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require("resty.events").new()
-        local ok, err = ev:configure(opts)
+        local ev = require("resty.events").new(opts)
+        if not ev then
+            ngx.log(ngx.ERR, "failed to new events: ", err)
+        end
+
+        local ok, err = ev:configure()
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
@@ -162,8 +170,12 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
         }
 
-        local ev = require("resty.events").new()
-        local ok, err = ev:configure(opts)
+        local ev = require("resty.events").new(opts)
+        if not ev then
+            ngx.log(ngx.ERR, "failed to new events: ", err)
+        end
+
+        local ok, err = ev:configure()
         if not ok then
             ngx.log(ngx.ERR, "failed to configure events: ", err)
         end
