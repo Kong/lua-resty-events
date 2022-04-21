@@ -1,11 +1,13 @@
-local cjson = require "cjson.safe"
+local codec = require "resty.events.codec"
 local que = require "resty.events.queue"
+local callback = require "resty.events.callback"
+
 local client = require("resty.events.protocol").client
-local do_event = require("resty.events.callback").do_event
+local is_timeout = client.is_timeout
 
 local type = type
 local assert = assert
-local str_sub = string.sub
+local setmetatable = setmetatable
 local random = math.random
 
 local ngx = ngx
@@ -20,8 +22,8 @@ local wait = ngx.thread.wait
 
 local timer_at = ngx.timer.at
 
-local encode = cjson.encode
-local decode = cjson.decode
+local encode = codec.encode
+local decode = codec.decode
 
 local EMPTY_T = {}
 
@@ -29,7 +31,7 @@ local EVENT_T = {
     source = '',
     event = '',
     data = '',
-    pid = '',
+    wid = '',
 }
 
 local SPEC_T = {
@@ -41,30 +43,42 @@ local PAYLOAD_T = {
     data = '',
 }
 
+--local _worker_pid = ngx.worker.pid()
+local _worker_id = ngx.worker.id()
+
 local _M = {
     _VERSION = '0.1.0',
 }
+local _MT = { __index = _M, }
 
 -- gen a random number [0.2, 2.0]
 local function random_delay()
     return random(2, 20) / 10
 end
 
-local function is_timeout(err)
-    return err and str_sub(err, -7) == "timeout"
+local function do_event(self, d)
+    self._callback:do_event(d)
 end
 
-local _worker_pid = ngx.worker.pid()
+local function start_timer(self, delay)
+    assert(timer_at(delay, function(premature)
+        self:communicate(premature)
+    end))
+end
 
-local _queue = que.new()
-local _local_queue = que.new()
+function _M.new()
+    local self = {
+        _queue = que.new(),
+        _local_queue = que.new(),
+        _callback = callback.new(),
+        _connected = nil,
+        _opts = nil,
+    }
 
-local _connected
-local _opts
+    return setmetatable(self, _MT)
+end
 
-local communicate
-
-communicate = function(premature)
+function _M:communicate(premature)
     if premature then
         -- worker wants to exit
         return
@@ -72,19 +86,17 @@ communicate = function(premature)
 
     local conn = assert(client:new())
 
-    local ok, err = conn:connect(_opts.listening)
+    local ok, err = conn:connect(self._opts.listening)
     if not ok then
         log(ERR, "failed to connect: ", err)
 
         -- try to reconnect broker
-        assert(timer_at(random_delay(), function(premature)
-            communicate(premature)
-        end))
+        start_timer(self, random_delay())
 
         return
     end
 
-    _connected = true
+    self._connected = true
 
     local read_thread = spawn(function()
         while not exiting() do
@@ -113,42 +125,42 @@ communicate = function(premature)
             end
 
             -- got an event data, callback
-            do_event(d)
+            do_event(self, d)
 
             ::continue::
         end -- while not exiting
     end)  -- read_thread
 
     local write_thread = spawn(function()
-      while not exiting() do
-        local payload, err = _queue:pop()
+        while not exiting() do
+            local payload, err = self._queue:pop()
 
-        if not payload then
-            if not is_timeout(err) then
-                return nil, "semaphore wait error: " .. err
+            if not payload then
+                if not is_timeout(err) then
+                    return nil, "semaphore wait error: " .. err
+                end
+
+                -- timeout
+                goto continue
             end
 
-            -- timeout
-            goto continue
-        end
+            if exiting() then
+                return
+            end
 
-        if exiting() then
-            return
-        end
+            local _, err = conn:send_frame(payload)
+            if err then
+                log(ERR, "failed to send event: ", err)
+                return
+            end
 
-        local _, err = conn:send_frame(payload)
-        if err then
-            log(ERR, "failed to send event: ", err)
-            return
-        end
-
-        ::continue::
-      end -- while not exiting
+            ::continue::
+        end -- while not exiting
     end)  -- write_thread
 
     local local_thread = spawn(function()
         while not exiting() do
-            local data, err = _local_queue:pop()
+            local data, err = self._local_queue:pop()
 
             if not data then
                 if not is_timeout(err) then
@@ -164,7 +176,7 @@ communicate = function(premature)
             end
 
             -- got an event data, callback
-            do_event(data)
+            do_event(self, data)
 
             ::continue::
         end -- while not exiting
@@ -176,7 +188,7 @@ communicate = function(premature)
     kill(read_thread)
     kill(local_thread)
 
-    _connected = nil
+    self._connected = nil
 
     if not ok then
         log(ERR, "event worker failed: ", err)
@@ -187,51 +199,47 @@ communicate = function(premature)
     end
 
     if not exiting() then
-        assert(timer_at(random_delay(), function(premature)
-            communicate(premature)
-        end))
+        start_timer(self, random_delay())
     end
 end
 
-function _M.configure(opts)
-    assert(not _opts)
+function _M:init(opts)
+    assert(not self._opts)
 
-    _opts = opts
+    self._opts = opts
 
-    assert(timer_at(0, function(premature)
-        communicate(premature)
-    end))
+    start_timer(self, 0)
 
     return true
 end
 
 -- posts a new event
-local function post_event(source, event, data, spec)
-    local json, err
+local function post_event(self, source, event, data, spec)
+    local str, err
 
     EVENT_T.source = source
     EVENT_T.event = event
     EVENT_T.data = data
-    EVENT_T.pid = _worker_pid
+    EVENT_T.wid = _worker_id
 
     -- encode event info
-    json, err = encode(EVENT_T)
+    str, err = encode(EVENT_T)
 
-    if not json then
+    if not str then
         return nil, err
     end
 
     PAYLOAD_T.spec = spec or EMPTY_T
-    PAYLOAD_T.data = json
+    PAYLOAD_T.data = str
 
     -- encode spec info
-    json, err = encode(PAYLOAD_T)
+    str, err = encode(PAYLOAD_T)
 
-    if not json then
+    if not str then
         return nil, err
     end
 
-    local ok, err = _queue:push(json)
+    local ok, err = self._queue:push(str)
     if not ok then
         return nil, "failed to publish event: " .. err
     end
@@ -239,9 +247,15 @@ local function post_event(source, event, data, spec)
     return true
 end
 
-local function check_event(source, event)
-    if not _connected then
-        return nil, "not initialized yet"
+function _M:publish(target, source, event, data)
+    local ok, err
+
+    -- if not self._connected then
+    --     return nil, "not initialized yet"
+    -- end
+
+    if type(target) ~= "string" or target == "" then
+        return nil, "target is required"
     end
 
     if type(source) ~= "string" or source == "" then
@@ -252,47 +266,52 @@ local function check_event(source, event)
         return nil, "event is required"
     end
 
-    return true
-end
+    if target == "current" then
+        ok, err = self._local_queue:push({
+            source = source,
+            event = event,
+            data = data,
+        })
 
-function _M.post(source, event, data, unique)
-    local ok, err
+    else
+        -- add unique hash string
+        SPEC_T.unique = target ~= "all" and target or nil
 
-    ok, err = check_event(source, event)
-    if not ok then
-        return nil, err
+        ok, err = post_event(self, source, event, data, SPEC_T)
     end
-
-    SPEC_T.unique = unique
-
-    ok, err = post_event(source, event, data, SPEC_T)
-    if not ok then
-        log(ERR, "post event: ", err)
-        return nil, err
-    end
-
-    return true
-end
-
-function _M.post_local(source, event, data)
-    local ok, err
-
-    ok, err = check_event(source, event)
-    if not ok then
-        return nil, err
-    end
-
-    ok, err = _local_queue:push({
-        source = source,
-        event = event,
-        data = data,
-    })
 
     if not ok then
         return nil, "failed to publish event: " .. err
     end
 
     return true
+end
+
+function _M:subscribe(source, event, callback)
+    if type(source) ~= "string" or source == "" then
+        return nil, "source is required"
+    end
+
+    if type(event) ~= "string" or event == "" then
+        return nil, "event is required"
+    end
+
+    assert(type(callback) == "function", "expected function, got: "..
+           type(callback))
+
+    return self._callback:subscribe(source, event, callback)
+end
+
+function _M:unsubscribe(id)
+    if type(id) ~= "string" or id == "" then
+        return nil, "id is required"
+    end
+
+    return self._callback:unsubscribe(id)
+end
+
+function _M:is_ready()
+    return self._connected
 end
 
 return _M

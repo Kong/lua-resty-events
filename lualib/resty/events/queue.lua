@@ -36,7 +36,7 @@ end
 
 
 function _M:pop()
-    local ok, err = self.semaphore:wait(5)
+    local ok, err = self.semaphore:wait(1)
     if not ok then
         return nil, err
     end

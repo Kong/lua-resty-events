@@ -1,53 +1,27 @@
-require "resty.core.base"
+local events_broker = require "resty.events.broker"
+local events_worker = require "resty.events.worker"
 
-local callback  = require "resty.events.callback"
-local broker    = require "resty.events.broker"
-local worker    = require "resty.events.worker"
+local disable_listening = require "resty.events.disable_listening"
 
 local ngx = ngx
+local ngx_worker_id = ngx.worker.id
+
 local type = type
+local setmetatable = setmetatable
 local str_sub = string.sub
+
+local worker_count = ngx.worker.count()
 
 local _M = {
     _VERSION = '0.1.0',
 }
+local _MT = { __index = _M, }
 
-local disable_listening
-do
-    local ffi = require "ffi"
-    local C = ffi.C
-
-    local NGX_OK = ngx.OK
-
-    ffi.cdef[[
-        int ngx_lua_ffi_disable_listening_unix_socket(ngx_str_t *sock_name);
-    ]]
-
-    local sock_name_str = ffi.new("ngx_str_t[1]")
-
-    disable_listening = function(sock_name)
-        sock_name_str[0].data = sock_name
-        sock_name_str[0].len = #sock_name
-
-        local rc = C.ngx_lua_ffi_disable_listening_unix_socket(sock_name_str)
-
-        if rc ~= NGX_OK then
-            return nil, "failed to disable listening: " .. sock_name
-        end
-
-        return true
-    end
-end
-
--- opts = {broker_id = n, listening = 'unix:...', unique_timeout = x,}
-function _M.configure(opts)
+local function check_options(opts)
     assert(type(opts) == "table", "Expected a table, got " .. type(opts))
 
     local UNIX_PREFIX = "unix:"
     local DEFAULT_UNIQUE_TIMEOUT = 5
-
-    local worker_id = ngx.worker.id()
-    local worker_count = ngx.worker.count()
 
     opts.broker_id = opts.broker_id or 0
 
@@ -81,13 +55,35 @@ function _M.configure(opts)
         return nil, '"unique_timeout" must be greater than 0'
     end
 
-    local is_broker = worker_id == opts.broker_id
+    return true
+end
+
+function _M.new(opts)
+    local ok, err = check_options(opts)
+    if not ok then
+        return nil, err
+    end
+
+    local self = {
+        opts   = opts,
+        broker = events_broker.new(),
+        worker = events_worker.new(),
+    }
+
+    return setmetatable(self, _MT)
+end
+
+-- opts = {broker_id = n, listening = 'unix:...', unique_timeout = x,}
+function _M:init_worker()
+    local opts = self.opts
+
+    local is_broker = ngx_worker_id() == opts.broker_id
 
     local ok, err
 
     -- only enable listening on special worker id
     if is_broker then
-        ok, err = broker.configure(opts)
+        ok, err = self.broker:init(opts)
 
     else
         ok, err = disable_listening(opts.listening)
@@ -97,7 +93,7 @@ function _M.configure(opts)
         return nil, err
     end
 
-    ok, err = worker.configure(opts)
+    ok, err = self.worker:init(opts)
     if not ok then
         return nil, err
     end
@@ -105,21 +101,24 @@ function _M.configure(opts)
     return true
 end
 
--- compatible with lua-resty-worker-events
-function _M.poll()
-    return "done"
+function _M:run()
+    return self.broker:run()
 end
 
-_M.run           = broker.run
+function _M:publish(target, source, event, data)
+    return self.worker:publish(target, source, event, data)
+end
 
-_M.post          = worker.post
-_M.post_local    = worker.post_local
+function _M:subscribe(source, event, callback)
+    return self.worker:subscribe(source, event, callback)
+end
 
-_M.register      = callback.register
-_M.register_weak = callback.register_weak
-_M.unregister    = callback.unregister
+function _M:unsubscribe(id)
+    return self.worker:unsubscribe(id)
+end
 
--- for test only
-_M.disable_listening = disable_listening
+function _M:is_ready()
+    return self.worker:is_ready()
+end
 
 return _M
