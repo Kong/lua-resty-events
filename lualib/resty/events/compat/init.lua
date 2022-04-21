@@ -1,6 +1,6 @@
 -- compatible with lua-resty-worker-events 1.0.0
 
-local ev = require("resty.events").new()
+local ev
 
 local ngx = ngx
 local log = ngx.log
@@ -27,7 +27,14 @@ function _M.poll()
 end
 
 function _M.configure(opts)
-    local ok, err = ev:configure(opts)
+    local ok, err
+
+    ev, err = require("resty.events").new(opts)
+    if not ev then
+        return nil, err
+    end
+
+    ok, err = ev:configure()
 
     if not ok then
         return nil, err

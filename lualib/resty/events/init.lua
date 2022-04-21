@@ -4,11 +4,12 @@ local events_worker = require "resty.events.worker"
 local disable_listening = require "resty.events.disable_listening"
 
 local ngx = ngx
+local ngx_worker_id = ngx.worker.id
+
 local type = type
 local setmetatable = setmetatable
 local str_sub = string.sub
 
-local worker_id = ngx.worker.id()
 local worker_count = ngx.worker.count()
 
 local _M = {
@@ -16,17 +17,7 @@ local _M = {
 }
 local _MT = { __index = _M, }
 
-function _M.new()
-    local self = {
-        broker = events_broker.new(),
-        worker = events_worker.new(),
-    }
-
-    return setmetatable(self, _MT)
-end
-
--- opts = {broker_id = n, listening = 'unix:...', unique_timeout = x,}
-function _M:configure(opts)
+local function check_options(opts)
     assert(type(opts) == "table", "Expected a table, got " .. type(opts))
 
     local UNIX_PREFIX = "unix:"
@@ -64,7 +55,29 @@ function _M:configure(opts)
         return nil, '"unique_timeout" must be greater than 0'
     end
 
-    local is_broker = worker_id == opts.broker_id
+    return true
+end
+
+function _M.new(opts)
+    local ok, err = check_options(opts)
+    if not ok then
+        return nil, err
+    end
+
+    local self = {
+        opts   = opts,
+        broker = events_broker.new(),
+        worker = events_worker.new(),
+    }
+
+    return setmetatable(self, _MT)
+end
+
+-- opts = {broker_id = n, listening = 'unix:...', unique_timeout = x,}
+function _M:configure()
+    local opts = self.opts
+
+    local is_broker = ngx_worker_id() == opts.broker_id
 
     local ok, err
 
