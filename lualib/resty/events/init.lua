@@ -66,8 +66,8 @@ function _M.new(opts)
 
     local self = {
         opts   = opts,
-        broker = events_broker.new(),
-        worker = events_worker.new(),
+        broker = events_broker.new(opts),
+        worker = events_worker.new(opts),
     }
 
     return setmetatable(self, _MT)
@@ -83,7 +83,7 @@ function _M:init_worker()
 
     -- only enable listening on special worker id
     if is_broker then
-        ok, err = self.broker:init(opts)
+        ok, err = self.broker:init()
 
     else
         ok, err = disable_listening(opts.listening)
@@ -93,7 +93,7 @@ function _M:init_worker()
         return nil, err
     end
 
-    ok, err = self.worker:init(opts)
+    ok, err = self.worker:init()
     if not ok then
         return nil, err
     end

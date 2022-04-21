@@ -66,13 +66,13 @@ local function start_timer(self, delay)
     end))
 end
 
-function _M.new()
+function _M.new(opts)
     local self = {
         _queue = que.new(),
         _local_queue = que.new(),
         _callback = callback.new(),
         _connected = nil,
-        _opts = nil,
+        _opts = opts,
     }
 
     return setmetatable(self, _MT)
@@ -203,10 +203,8 @@ function _M:communicate(premature)
     end
 end
 
-function _M:init(opts)
-    assert(not self._opts)
-
-    self._opts = opts
+function _M:init()
+    assert(self._opts)
 
     start_timer(self, 0)
 

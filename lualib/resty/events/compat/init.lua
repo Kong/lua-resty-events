@@ -2,6 +2,7 @@
 
 local ev
 
+local ipairs = ipairs
 local ngx = ngx
 local log = ngx.log
 local DEBUG = ngx.DEBUG

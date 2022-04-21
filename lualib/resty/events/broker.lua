@@ -28,9 +28,9 @@ local _M = {
 }
 local _MT = { __index = _M, }
 
-function _M.new()
+function _M.new(opts)
     local self = {
-        _opts = nil,
+        _opts = opts,
         _uniques = nil,
         _clients = nil,
     }
@@ -38,10 +38,8 @@ function _M.new()
     return setmetatable(self, _MT)
 end
 
-function _M:init(opts)
-    assert(not self._opts)
-
-    self._opts = opts
+function _M:init()
+    assert(self._opts)
 
     local _uniques, err = lrucache.new(MAX_UNIQUE_EVENTS)
     if not _uniques then
