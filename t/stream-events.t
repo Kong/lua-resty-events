@@ -29,32 +29,38 @@ __DATA__
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
             }
 
-            local ev = require "resty.events"
-            local ok, err = ev.configure(opts)
-            if not ok then
-                ngx.log(ngx.ERR, "failed to configure events: ", err)
+            local ev = require("resty.events").new(opts)
+            if not ev then
+                ngx.log(ngx.ERR, "failed to new events: ", err)
             end
 
-            ev.register(function(data, event, source, pid)
-                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
+            local ok, err = ev:init_worker()
+            if not ok then
+                ngx.log(ngx.ERR, "failed to init_worker events: ", err)
+            end
+
+            ev:subscribe("*", "*", function(data, event, source, wid)
+                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
                         ", data=", data)
                     end)
+
+            _G.ev = ev
         }
 
         server {
             listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
             content_by_lua_block {
-                 require("resty.events").run()
+                 _G.ev:run()
             }
         }
         server {
             listen 1985;
             content_by_lua_block {
-                local ev = require "resty.events"
+                local ev = _G.ev
 
-                ev.post("content_by_lua","request1","01234567890")
-                ev.post_local("content_by_lua","request2","01234567890")
-                ev.post("content_by_lua","request3","01234567890")
+                ev:publish("all", "content_by_lua","request1","01234567890")
+                ev:publish("current", "content_by_lua","request2","01234567890")
+                ev:publish("all", "content_by_lua","request3","01234567890")
 
                 ngx.say("ok")
             }
@@ -94,12 +100,12 @@ event published to 1 workers
 [alert]
 --- grep_error_log eval: qr/worker-events: .*/
 --- grep_error_log_out eval
-qr/^worker-events: handling event; source=content_by_lua, event=request2, pid=nil
-worker-events: handler event;  source=content_by_lua, event=request2, pid=nil, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=01234567890$/
+qr/^worker-events: handling event; source=content_by_lua, event=request2, wid=nil
+worker-events: handler event;  source=content_by_lua, event=request2, wid=nil, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=01234567890$/
 
 
 === TEST 2: worker.events handling remote events
@@ -112,33 +118,39 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
             }
 
-            local ev = require "resty.events"
-            local ok, err = ev.configure(opts)
-            if not ok then
-                ngx.log(ngx.ERR, "failed to configure events: ", err)
+            local ev = require("resty.events").new(opts)
+            if not ev then
+                ngx.log(ngx.ERR, "failed to new events: ", err)
             end
 
-            ev.register(function(data, event, source, pid)
-                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
+            local ok, err = ev:init_worker()
+            if not ok then
+                ngx.log(ngx.ERR, "failed to init_worker events: ", err)
+            end
+
+            ev:subscribe("*", "*", function(data, event, source, wid)
+                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
                         ", data=", tostring(data))
                     end)
+
+            _G.ev = ev
         }
 
         server {
             listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
             content_by_lua_block {
-                 require("resty.events").run()
+                 _G.ev:run()
             }
         }
 
         server {
             listen 1985;
             content_by_lua_block {
-                local ev = require "resty.events"
+                local ev = _G.ev
 
-                ev.post("content_by_lua","request1","01234567890")
-                ev.post_local("content_by_lua","request2","01234567890")
-                ev.post("content_by_lua","request3","01234567890")
+                ev:publish("all", "content_by_lua","request1","01234567890")
+                ev:publish("current", "content_by_lua","request2","01234567890")
+                ev:publish("all", "content_by_lua","request3","01234567890")
 
                 ngx.say("ok")
             }
@@ -178,12 +190,12 @@ event published to 1 workers
 [alert]
 --- grep_error_log eval: qr/worker-events: .*/
 --- grep_error_log_out eval
-qr/^worker-events: handling event; source=content_by_lua, event=request2, pid=nil
-worker-events: handler event;  source=content_by_lua, event=request2, pid=nil, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request3, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, data=01234567890$/
+qr/^worker-events: handling event; source=content_by_lua, event=request2, wid=nil
+worker-events: handler event;  source=content_by_lua, event=request2, wid=nil, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=01234567890$/
 
 
 === TEST 3: worker.events 'one' being done, and only once
@@ -197,38 +209,44 @@ worker-events: handler event;  source=content_by_lua, event=request3, pid=\d+, d
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
             }
 
-            local ev = require "resty.events"
-            local ok, err = ev.configure(opts)
-            if not ok then
-                ngx.log(ngx.ERR, "failed to configure events: ", err)
+            local ev = require("resty.events").new(opts)
+            if not ev then
+                ngx.log(ngx.ERR, "failed to new events: ", err)
             end
 
-            ev.register(function(data, event, source, pid)
-                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", pid=", pid,
+            local ok, err = ev:init_worker()
+            if not ok then
+                ngx.log(ngx.ERR, "failed to init_worker events: ", err)
+            end
+
+            ev:subscribe("*", "*", function(data, event, source, wid)
+                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
                         ", data=", tostring(data))
                     end)
+
+            _G.ev = ev
         }
 
         server {
             listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
             content_by_lua_block {
-                 require("resty.events").run()
+                 _G.ev:run()
             }
         }
         server {
             listen 1985;
             content_by_lua_block {
-                local ev = require "resty.events"
+                local ev = _G.ev
 
-                ev.post("content_by_lua","request1","01234567890")
-                ev.post("content_by_lua","request2","01234567890", "unique_value")
-                ev.post("content_by_lua","request3","01234567890", "unique_value")
+                ev:publish("all", "content_by_lua","request1","01234567890")
+                ev:publish("unique_value", "content_by_lua","request2","01234567890")
+                ev:publish("unique_value", "content_by_lua","request3","01234567890")
 
                 ngx.sleep(0.1) -- wait for unique timeout to expire
 
-                ev.post("content_by_lua","request4","01234567890", "unique_value")
-                ev.post("content_by_lua","request5","01234567890", "unique_value")
-                ev.post("content_by_lua","request6","01234567890")
+                ev:publish("unique_value", "content_by_lua","request4","01234567890")
+                ev:publish("unique_value", "content_by_lua","request5","01234567890")
+                ev:publish("all", "content_by_lua","request6","01234567890")
 
                 ngx.say("ok")
             }
@@ -269,14 +287,14 @@ unique event is duplicate: unique_value
 [alert]
 --- grep_error_log eval: qr/worker-events: .*/
 --- grep_error_log_out eval
-qr/^worker-events: handling event; source=content_by_lua, event=request1, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request1, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request2, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request2, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request4, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request4, pid=\d+, data=01234567890
-worker-events: handling event; source=content_by_lua, event=request6, pid=\d+
-worker-events: handler event;  source=content_by_lua, event=request6, pid=\d+, data=01234567890$/
+qr/^worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request2, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request2, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request4, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request4, wid=\d+, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request6, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request6, wid=\d+, data=01234567890$/
 
 
 
