@@ -221,7 +221,7 @@ All rights reserved.
 
 See Also
 ========
-* OpenResty: http://openresty.org
+* Kong: https://konghq.com/
 
 [Back to TOC](#table-of-contents)
 
