@@ -70,6 +70,10 @@ function _M:run()
         while not exiting() do
             local data, err = conn:recv_frame()
 
+            if exiting() then
+                return
+            end
+
             if err then
                 if not is_timeout(err) then
                   return nil, err
