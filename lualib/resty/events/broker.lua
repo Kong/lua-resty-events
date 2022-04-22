@@ -7,6 +7,7 @@ local is_timeout = server.is_timeout
 
 local pairs = pairs
 local setmetatable = setmetatable
+local str_sub = string.sub
 
 local ngx = ngx
 local log = ngx.log
@@ -162,7 +163,7 @@ function _M:run()
     kill(write_thread)
     kill(read_thread)
 
-    if not ok then
+    if not ok and str_sub(err, -6) ~= "closed" then
         log(ERR, "event broker failed: ", err)
         return exit(ngx.ERROR)
     end
