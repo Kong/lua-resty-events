@@ -168,7 +168,7 @@ function _M:run()
         return exit(ngx.ERROR)
     end
 
-    if perr then
+    if perr and str_sub(perr, -6) ~= "closed" then
         log(ERR, "event broker failed: ", perr)
         return exit(ngx.ERROR)
     end
