@@ -18,9 +18,7 @@ local _M = {
 }
 
 function _M.poll()
-    if not ev:is_ready() then
-        sleep(0.002) -- wait events unix socket connect
-    end
+    sleep(0.002) -- wait events sync by unix socket connect
 
     log(DEBUG, "worker-events: emulate poll method")
 
