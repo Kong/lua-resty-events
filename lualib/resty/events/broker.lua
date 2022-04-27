@@ -24,6 +24,10 @@ local decode = codec.decode
 
 local MAX_UNIQUE_EVENTS = 1024
 
+local function is_closed(err)
+    return err and str_sub(err, -6) == "closed"
+end
+
 local _M = {
     _VERSION = '0.1.0',
 }
@@ -163,12 +167,12 @@ function _M:run()
     kill(write_thread)
     kill(read_thread)
 
-    if not ok and str_sub(err, -6) ~= "closed" then
+    if not ok and not is_closed(err) then
         log(ERR, "event broker failed: ", err)
         return exit(ngx.ERROR)
     end
 
-    if perr and str_sub(perr, -6) ~= "closed" then
+    if perr and not is_closed(perr) then
         log(ERR, "event broker failed: ", perr)
         return exit(ngx.ERROR)
     end
