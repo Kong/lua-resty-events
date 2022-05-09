@@ -28,10 +28,7 @@ end
 function _M.configure(opts)
     local ok, err
 
-    ev, err = require("resty.events").new(opts)
-    if not ev then
-        return nil, err
-    end
+    ev = require("resty.events").new(opts)
 
     ok, err = ev:init_worker()
 

@@ -31,7 +31,7 @@ __DATA__
 
             local ev = require("resty.events").new(opts)
             if not ev then
-                ngx.log(ngx.ERR, "failed to new events: ", err)
+                ngx.log(ngx.ERR, "failed to new events")
             end
 
             local ok, err = ev:init_worker()
@@ -120,7 +120,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 
             local ev = require("resty.events").new(opts)
             if not ev then
-                ngx.log(ngx.ERR, "failed to new events: ", err)
+                ngx.log(ngx.ERR, "failed to new events")
             end
 
             local ok, err = ev:init_worker()
@@ -211,7 +211,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 
             local ev = require("resty.events").new(opts)
             if not ev then
-                ngx.log(ngx.ERR, "failed to new events: ", err)
+                ngx.log(ngx.ERR, "failed to new events")
             end
 
             local ok, err = ev:init_worker()
