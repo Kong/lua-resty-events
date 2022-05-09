@@ -26,11 +26,9 @@ function _M.poll()
 end
 
 function _M.configure(opts)
-    local ok, err
-
     ev = require("resty.events").new(opts)
 
-    ok, err = ev:init_worker()
+    local ok, err = ev:init_worker()
 
     if not ok then
         return nil, err
