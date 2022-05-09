@@ -14,16 +14,18 @@ local options = {
 local buf_enc = buffer.new(options)
 local buf_dec = buffer.new(options)
 
-local function encode(obj)
+local _M = {}
+local _MT = { __index = _M, }
+
+
+function _M.encode(obj)
   return buf_enc:reset():encode(obj):get()
 end
 
-local function decode(str)
+
+function _M.decode(str)
   return buf_dec:set(str):decode()
 end
 
-return {
-    encode = encode,
-    decode = decode,
-}
 
+return _M
