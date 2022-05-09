@@ -107,7 +107,7 @@ worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, d
         end
 
         ev:subscribe("*", "*", function(data, event, source, wid)
-            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=", source,", event=", event, ", wid=", wid,
                     ", data=", data)
                 end)
 
@@ -181,7 +181,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
         end
 
         ev:subscribe("*", "*", function(data, event, source, wid)
-            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=", source, ", event=", event, ", wid=", wid,
                     ", data=", tostring(data))
                 end)
 
@@ -210,12 +210,12 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 
             ngx.sleep(0.1) -- wait for unique timeout to expire
 
-            ev:publish("unique_value", "content_by_lua","request4","01234567890")
-            ev:publish("unique_value", "content_by_lua","request5","01234567890")
+            ev:publish("unique_value", "content_by_lua", "request4", "01234567890")
+            ev:publish("unique_value", "content_by_lua", "request5", "01234567890")
 
             ngx.sleep(0.05) -- wait for logs
 
-            ev:publish("all", "content_by_lua","request6","01234567890")
+            ev:publish("all", "content_by_lua", "request6", "01234567890")
 
             ngx.say("ok")
         }
