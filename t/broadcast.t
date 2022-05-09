@@ -60,7 +60,7 @@ __DATA__
         content_by_lua_block {
             local ev = _G.ev
 
-            ev:publish("all", "content_by_lua","request1","01234567890")
+            ev:publish("all", "content_by_lua", "request1", "01234567890")
 
             ngx.say("ok")
         }
