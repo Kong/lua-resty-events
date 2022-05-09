@@ -59,10 +59,7 @@ local function check_options(opts)
 end
 
 function _M.new(opts)
-    local ok, err = check_options(opts)
-    if not ok then
-        return nil, err
-    end
+    assert(check_options(opts))
 
     local self = {
         opts   = opts,
