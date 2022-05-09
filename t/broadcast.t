@@ -205,8 +205,8 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 
             ngx.sleep(0.05) -- wait for logs
 
-            ev:publish("unique_value", "content_by_lua","request2","01234567890")
-            ev:publish("unique_value", "content_by_lua","request3","01234567890")
+            ev:publish("unique_value", "content_by_lua", "request2", "01234567890")
+            ev:publish("unique_value", "content_by_lua", "request3", "01234567890")
 
             ngx.sleep(0.1) -- wait for unique timeout to expire
 
