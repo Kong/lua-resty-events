@@ -252,17 +252,9 @@ function _M:publish(target, source, event, data)
     --     return nil, "not initialized yet"
     -- end
 
-    if type(target) ~= "string" or target == "" then
-        return nil, "target is required"
-    end
-
-    if type(source) ~= "string" or source == "" then
-        return nil, "source is required"
-    end
-
-    if type(event) ~= "string" or event == "" then
-        return nil, "event is required"
-    end
+    assert(type(target) == "string" and target ~= "", "target is required")
+    assert(type(source) == "string" and source ~= "", "source is required")
+    assert(type(event) == "string" and event ~= "", "event is required")
 
     if target == "current" then
         ok, err = self._local_queue:push({
@@ -286,14 +278,8 @@ function _M:publish(target, source, event, data)
 end
 
 function _M:subscribe(source, event, callback)
-    if type(source) ~= "string" or source == "" then
-        return nil, "source is required"
-    end
-
-    if type(event) ~= "string" or event == "" then
-        return nil, "event is required"
-    end
-
+    assert(type(source) == "string" and source ~= "", "source is required")
+    assert(type(event) == "string" and event ~= "", "event is required")
     assert(type(callback) == "function", "expected function, got: "..
            type(callback))
 
@@ -301,9 +287,7 @@ function _M:subscribe(source, event, callback)
 end
 
 function _M:unsubscribe(id)
-    if type(id) ~= "string" or id == "" then
-        return nil, "id is required"
-    end
+    assert(type(id) == "string" and id ~= "", "id is required")
 
     return self._callback:unsubscribe(id)
 end
