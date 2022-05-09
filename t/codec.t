@@ -35,17 +35,19 @@ __DATA__
             local obj2 = codec.decode(str)
             assert(obj2)
 
-            ngx.say(obj2.n)
-            ngx.say(obj2.s)
-            ngx.say(obj2.b)
+            ngx.say(type(obj2))
+            ngx.say(type(obj2.n), obj2.n)
+            ngx.say(type(obj2.s), obj2.s)
+            ngx.say(type(obj2.b), obj2.b)
         }
     }
 --- request
 GET /test
 --- response_body
-100
-xxx
-true
+table
+number100
+stringxxx
+booleantrue
 --- no_error_log
 [error]
 [crit]
