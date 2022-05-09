@@ -33,7 +33,7 @@ Synopsis
 http {
     lua_package_path "/path/to/lua-resty-events/lib/?/init.lua;;";
 
-    init_worker_by_lua_block {
+    init_by_lua_block {
         local opts = {
             listening = "unix:/tmp/events.sock",
         }
@@ -42,6 +42,14 @@ http {
         if not ev then
             ngx.log(ngx.ERR, "failed to new events object: ", err)
         end
+
+        -- store ev to global
+        _G.ev = ev
+    }
+
+    init_worker_by_lua_block {
+        -- fetch ev from global
+        local ev = _G.ev
 
         local handler = function(data, event, source, wid)
             print("received event; source=", source,
@@ -58,9 +66,6 @@ http {
         if not ok then
             ngx.log(ngx.ERR, "failed to init events: ", err)
         end
-
-        -- store ev to global
-        _G.ev = ev
     }
 
     # create a listening unix domain socket
@@ -115,7 +120,7 @@ It should be stored in global scope for [run](#run) later.
 
 The `opts` parameter is a Lua table with named options:
 
-* `listening`: the unix doamin socket, which must be same as another `server` block.
+* `listening`: the unix domain socket, which must be same as another `server` block.
 * `broker_id`: (optional) the worker id that will start to listen, default 0.
 * `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default 5.
   See the `target` parameter of the [publish](#publish) method.
@@ -152,7 +157,7 @@ publish
 `syntax: ok, err = ev:publish(target, source, event, data)`
 
 Will post a new event. `target`, `source` and `event` are all strings. `data` can be anything (including `nil`)
-as long as it is (de)serializable by the cjson or other module.
+as long as it is (de)serializable by the LuaJIT string buffer serializer and cJSON (legacy).
 
 The `target` parameter could be:
 
