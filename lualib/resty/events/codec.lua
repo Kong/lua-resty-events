@@ -17,7 +17,9 @@ local buf_enc = buffer.new(options)
 local buf_dec = buffer.new(options)
 
 
-local _M = {}
+local _M = {
+    _VERSION = "0.1.0",
+}
 
 
 function _M.encode(obj)
