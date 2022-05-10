@@ -317,52 +317,56 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 --- config
     location = /test {
         content_by_lua_block {
+            local function trim(str)
+                return string.sub(str, #"lualib/resty/events/init.lua:62: " + 1)
+            end
+
             local ev = require("resty.events")
 
             local ok, err = pcall(ev.new, {broker_id = "1"})
             assert(not ok)
-            ngx.say(err)
+            ngx.say(trim(err))
 
             local ok, err = pcall(ev.new, {broker_id = -1})
             assert(not ok)
-            ngx.say(err)
+            ngx.say(trim(err))
 
             local ok, err = pcall(ev.new, {broker_id = 2})
             assert(not ok)
-            ngx.say(err)
+            ngx.say(trim(err))
 
             local ok, err = pcall(ev.new, {})
             assert(not ok)
-            ngx.say(err)
+            ngx.say(trim(err))
 
             local ok, err = pcall(ev.new, {listening = 123})
             assert(not ok)
-            ngx.say(err)
+            ngx.say(trim(err))
 
             local ok, err = pcall(ev.new, {listening = "/tmp/xxx.sock"})
             assert(not ok)
-            ngx.say(err)
+            ngx.say(trim(err))
 
             local ok, err = pcall(ev.new, {listening = "unix:x", unique_timeout = '1'})
             assert(not ok)
-            ngx.say(err)
+            ngx.say(trim(err))
 
             local ok, err = pcall(ev.new, {listening = "unix:x", unique_timeout = -1})
             assert(not ok)
-            ngx.say(err)
+            ngx.say(trim(err))
         }
     }
 --- request
 GET /test
 --- response_body
-lualib/resty/events/init.lua:62: "worker_id" option must be a number
-lualib/resty/events/init.lua:62: "worker_id" option is invalid
-lualib/resty/events/init.lua:62: "worker_id" option is invalid
-lualib/resty/events/init.lua:62: "listening" option required to start
-lualib/resty/events/init.lua:62: "listening" option must be a string
-lualib/resty/events/init.lua:62: "listening" option must start with unix:
-lualib/resty/events/init.lua:62: optional "unique_timeout" option must be a number
-lualib/resty/events/init.lua:62: "unique_timeout" must be greater than 0
+"worker_id" option must be a number
+"worker_id" option is invalid
+"worker_id" option is invalid
+"listening" option required to start
+"listening" option must be a string
+"listening" option must start with unix:
+optional "unique_timeout" option must be a number
+"unique_timeout" must be greater than 0
 --- no_error_log
 [error]
 [crit]
