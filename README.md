@@ -40,7 +40,7 @@ http {
 
         local ev = require("resty.events").new(opts)
         if not ev then
-            ngx.log(ngx.ERR, "failed to new events object: ", err)
+            ngx.log(ngx.ERR, "failed to new events object")
         end
 
         -- store ev to global
@@ -125,7 +125,7 @@ The `opts` parameter is a Lua table with named options:
 * `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default 5.
   See the `target` parameter of the [publish](#publish) method.
 
-The return value will be the event object, or `nil` and an error message.
+The return value will be the event object or `nil`.
 
 [Back to TOC](#table-of-contents)
 
