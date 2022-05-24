@@ -69,7 +69,7 @@ end
 function _M.new(opts)
     local self = {
         _queue = que.new(),
-        _local_queue = que.new(),
+        _current_queue = que.new(),
         _callback = callback.new(),
         _connected = nil,
         _opts = opts,
@@ -158,9 +158,9 @@ function _M:communicate(premature)
         end -- while not exiting
     end)  -- write_thread
 
-    local local_thread = spawn(function()
+    local current_thread = spawn(function()
         while not exiting() do
-            local data, err = self._local_queue:pop()
+            local data, err = self._current_queue:pop()
 
             if not data then
                 if not is_timeout(err) then
@@ -180,13 +180,13 @@ function _M:communicate(premature)
 
             ::continue::
         end -- while not exiting
-    end)  -- local_thread
+    end)  -- current_thread
 
-    local ok, err, perr = wait(write_thread, read_thread, local_thread)
+    local ok, err, perr = wait(write_thread, read_thread, current_thread)
 
     kill(write_thread)
     kill(read_thread)
-    kill(local_thread)
+    kill(current_thread)
 
     self._connected = nil
 
@@ -257,7 +257,7 @@ function _M:publish(target, source, event, data)
     assert(type(event) == "string" and event ~= "", "event is required")
 
     if target == "current" then
-        ok, err = self._local_queue:push({
+        ok, err = self._current_queue:push({
             source = source,
             event = event,
             data = data,
