@@ -162,7 +162,7 @@ publish
 ----
 **syntax:** *ok, err = ev:publish(target, source, event, data)*
 
-**context:** *all phases*
+**context:** *all phases except init_by_lua&#42;*
 
 Will post a new event. `target`, `source` and `event` are all strings. `data` can be anything (including `nil`)
 as long as it is (de)serializable by the LuaJIT string buffer serializer and cJSON (legacy).
@@ -190,7 +190,7 @@ subscribe
 --------
 **syntax:** *id = ev:subscribe(source, event, callback)*
 
-**context:** *all phases*
+**context:** *all phases except init_by_lua&#42;*
 
 Will register a callback function to receive events. If `source` and `event` are `*`, then the
 callback will be executed on _every_ event, if `source` is provided and `event` is `*`, then only events with a
@@ -216,7 +216,7 @@ unsubscribe
 ----------
 **syntax:** *ev:unsubscribe(id)*
 
-**context:** *all phases*
+**context:** *all phases except init_by_lua&#42;*
 
 Will unregister the callback function and prevent it from receiving further events. The
 parameter `id` is the return value of [subscribe](#subscribe).
