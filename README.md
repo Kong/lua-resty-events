@@ -24,7 +24,7 @@ Table of Contents
 Status
 ======
 
-This library is still under development, APIs may be changed without notification.
+This library is currently considered experimental.
 
 Synopsis
 ========
@@ -113,7 +113,9 @@ Methods
 
 new
 ---------
-`syntax: ev = events.new(opts)`
+**syntax:** *ev = events.new(opts)*
+
+**context:** *init_by_lua&#42;*
 
 Return a new events object.
 It should be stored in global scope for [run](#run) later.
@@ -131,7 +133,9 @@ The return value will be the event object or `nil`.
 
 init_worker
 ---------
-`syntax: ok, err = ev:init_worker()`
+**syntax:** *ok, err = ev:init_worker()*
+
+**context:** *init_worker_by_lua&#42;*
 
 Will initialize the event listener. This should typically be called from the
 `init_worker_by_lua` handler, because it will make sure only one Nginx worker
@@ -143,7 +147,9 @@ The return value will be `true`, or `nil` and an error message.
 
 run
 ---------
-`syntax: ev:run()`
+**syntax:** *ev:run()*
+
+**context:** *content_by_lua&#42;*
 
 Active the event loop only in Nginx broker process, see opts `broker_id` of [new](#new).
 it must be called in `content_by_lua*`.
@@ -154,7 +160,9 @@ it must be called in `content_by_lua*`.
 
 publish
 ----
-`syntax: ok, err = ev:publish(target, source, event, data)`
+**syntax:** *ok, err = ev:publish(target, source, event, data)*
+
+**context:** *all phases*
 
 Will post a new event. `target`, `source` and `event` are all strings. `data` can be anything (including `nil`)
 as long as it is (de)serializable by the LuaJIT string buffer serializer and cJSON (legacy).
@@ -180,7 +188,9 @@ it should not do so from the event posting code, but only when receiving it.
 
 subscribe
 --------
-`syntax: id = ev:subscribe(source, event, callback)`
+**syntax:** *id = ev:subscribe(source, event, callback)*
+
+**context:** *all phases*
 
 Will register a callback function to receive events. If `source` and `event` are `*`, then the
 callback will be executed on _every_ event, if `source` is provided and `event` is `*`, then only events with a
@@ -204,7 +214,9 @@ function value.
 
 unsubscribe
 ----------
-`syntax: ev:unsubscribe(id)`
+**syntax:** *ev:unsubscribe(id)*
+
+**context:** *all phases*
 
 Will unregister the callback function and prevent it from receiving further events. The
 parameter `id` is the return value of [subscribe](#subscribe).
