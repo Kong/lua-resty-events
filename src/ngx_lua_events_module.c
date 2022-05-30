@@ -80,8 +80,13 @@ ngx_lua_ffi_disable_listening_unix_socket(ngx_str_t *sock_name)
             return NGX_OK;
         }
     }
-#endif
 
     return NGX_ERROR;
+
+#else
+
+#error unix domain socket is required!
+
+#endif
 }
 
