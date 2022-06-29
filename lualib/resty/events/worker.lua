@@ -14,7 +14,7 @@ local ngx = ngx
 local log = ngx.log
 local exiting = ngx.worker.exiting
 local ERR = ngx.ERR
---local DEBUG = ngx.DEBUG
+local DEBUG = ngx.DEBUG
 
 local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
@@ -47,7 +47,7 @@ local PAYLOAD_T = {
 local _worker_id = ngx.worker.id()
 
 local _M = {
-    _VERSION = '0.1.0',
+    _VERSION = '0.1.1',
 }
 local _MT = { __index = _M, }
 
@@ -64,6 +64,21 @@ local function start_timer(self, delay)
     assert(timer_at(delay, function(premature)
         self:communicate(premature)
     end))
+end
+
+local check_sock_exist
+do
+    local ffi = require "ffi"
+    local C = ffi.C
+    ffi.cdef [[
+    int access(const char *pathname, int mode);
+    ]]
+
+    -- remove prefix 'unix:'
+    check_sock_exist = function(fpath)
+        local rc = C.access(fpath:sub(6), 0)
+        return rc == 0
+    end
 end
 
 function _M.new(opts)
@@ -84,9 +99,19 @@ function _M:communicate(premature)
         return
     end
 
+    local listening = self._opts.listening
+
+    if not check_sock_exist(listening) then
+        log(DEBUG, "unix domain sock(", listening, ") is not ready")
+
+        -- try to reconnect broker, avoid crit error log
+        start_timer(self, 0.002)
+        return
+    end
+
     local conn = assert(client:new())
 
-    local ok, err = conn:connect(self._opts.listening)
+    local ok, err = conn:connect(listening)
     if not ok then
         log(ERR, "failed to connect: ", err)
 
