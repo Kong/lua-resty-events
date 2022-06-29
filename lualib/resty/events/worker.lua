@@ -47,7 +47,7 @@ local PAYLOAD_T = {
 local _worker_id = ngx.worker.id()
 
 local _M = {
-    _VERSION = '0.1.0',
+    _VERSION = '0.1.1',
 }
 local _MT = { __index = _M, }
 
@@ -104,7 +104,7 @@ function _M:communicate(premature)
     if not check_sock_exist(listening) then
         log(DEBUG, "unix domain sock(", listening, ") is not ready")
 
-        -- try to reconnect broker
+        -- try to reconnect broker, avoid crit error log
         start_timer(self, 0.002)
         return
     end
