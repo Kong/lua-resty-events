@@ -156,6 +156,10 @@ function _M:run()
                 log(ERR, "failed to send event: ", err)
             end
 
+            if is_closed(err) then
+                return
+            end
+
             ::continue::
         end -- while not exiting
     end)  -- write_thread
