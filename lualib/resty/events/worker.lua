@@ -126,6 +126,7 @@ function _M:communicate(premature)
     end
 
     self._connected = true
+    log(DEBUG, _worker_id, " on (", listening, ") is ready")
 
     local read_thread = spawn(function()
         while not exiting() do
