@@ -9,13 +9,13 @@ local setmetatable = setmetatable
 local _M = {}
 local _MT = { __index = _M, }
 
-local MAX_QUEUE_LEN = 1024 * 10
+local DEFAULT_MAX_QUEUE_LEN = 1024 * 10
 local DEFAULT_QUEUE_LEN = 4096
 
-function _M.new()
+function _M.new(max_len)
     local self = {
         semaphore = assert(semaphore.new()),
-        max = MAX_QUEUE_LEN,
+        max = max_len or DEFAULT_MAX_QUEUE_LEN,
 
         elts = table_new(DEFAULT_QUEUE_LEN, 0),
         first = 0,

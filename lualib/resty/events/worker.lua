@@ -25,6 +25,8 @@ local timer_at = ngx.timer.at
 local encode = codec.encode
 local decode = codec.decode
 
+local DEFAULT_MAX_QUEUE_LEN = 1024 * 10
+
 local EMPTY_T = {}
 
 local EVENT_T = {
@@ -47,7 +49,7 @@ local PAYLOAD_T = {
 local _worker_id = ngx.worker.id()
 
 local _M = {
-    _VERSION = '0.1.1',
+    _VERSION = '0.1.2',
 }
 local _MT = { __index = _M, }
 
@@ -82,9 +84,11 @@ do
 end
 
 function _M.new(opts)
+    local max_queue_len = opts.max_queue_len or DEFAULT_MAX_QUEUE_LEN
+
     local self = {
-        _queue = que.new(),
-        _current_queue = que.new(),
+        _queue = que.new(max_queue_len),
+        _current_queue = que.new(max_queue_len),
         _callback = callback.new(),
         _connected = nil,
         _opts = opts,
