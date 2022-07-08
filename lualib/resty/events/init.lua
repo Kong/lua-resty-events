@@ -74,7 +74,9 @@ end
 function _M:init_worker()
     local opts = self.opts
 
-    local is_broker = ngx_worker_id() == opts.broker_id
+    local worker_id = ngx.worker.id() or -1
+
+    local is_broker = worker_id == opts.broker_id
 
     local ok, err
 
@@ -82,8 +84,13 @@ function _M:init_worker()
     if is_broker then
         ok, err = self.broker:init()
 
-    else
+    -- disable listening in other worker
+    elseif worker_id >= 0 then
         ok, err = disable_listening(opts.listening)
+
+    -- we do nothing in privileged worker
+    else
+        ok = true
     end
 
     if not ok then
