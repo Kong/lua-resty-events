@@ -22,6 +22,7 @@ local function check_options(opts)
 
     local UNIX_PREFIX = "unix:"
     local DEFAULT_UNIQUE_TIMEOUT = 5
+    local DEFAULT_MAX_QUEUE_LEN = 1024 * 10
 
     opts.broker_id = opts.broker_id or 0
 
@@ -53,6 +54,16 @@ local function check_options(opts)
 
     if opts.unique_timeout <= 0 then
         return nil, '"unique_timeout" must be greater than 0'
+    end
+
+    opts.max_queue_len = opts.max_queue_len or DEFAULT_MAX_QUEUE_LEN
+
+    if type(opts.max_queue_len) ~= "number" then
+        return nil, '"max_queue_len" option must be a number'
+    end
+
+    if opts.max_queue_len < 0 then
+        return nil, '"max_queue_len" option is invalid'
     end
 
     return true

@@ -23,7 +23,6 @@ local wait = ngx.thread.wait
 local decode = codec.decode
 
 local MAX_UNIQUE_EVENTS = 1024
-local DEFAULT_MAX_QUEUE_LEN = 1024 * 10
 
 local function is_closed(err)
     return err and str_sub(err, -6) == "closed"
@@ -68,7 +67,7 @@ function _M:run()
         exit(444)
     end
 
-    local queue = que.new(self._opts.max_queue_len or DEFAULT_MAX_QUEUE_LEN)
+    local queue = que.new(self._opts.max_queue_len)
 
     self._clients[conn] = queue
 

@@ -25,8 +25,6 @@ local timer_at = ngx.timer.at
 local encode = codec.encode
 local decode = codec.decode
 
-local DEFAULT_MAX_QUEUE_LEN = 1024 * 10
-
 local EMPTY_T = {}
 
 local EVENT_T = {
@@ -84,7 +82,7 @@ do
 end
 
 function _M.new(opts)
-    local max_queue_len = opts.max_queue_len or DEFAULT_MAX_QUEUE_LEN
+    local max_queue_len = opts.max_queue_len
 
     local self = {
         _queue = que.new(max_queue_len),
