@@ -74,7 +74,7 @@ end
 function _M:init_worker()
     local opts = self.opts
 
-    local worker_id = ngx.worker.id() or -1
+    local worker_id = ngx_worker_id() or -1
 
     local is_broker = worker_id == opts.broker_id
 
