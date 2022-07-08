@@ -123,9 +123,10 @@ It should be stored in global scope for [run](#run) later.
 The `opts` parameter is a Lua table with named options:
 
 * `listening`: the unix domain socket, which must be same as another `server` block.
-* `broker_id`: (optional) the worker id that will start to listen, default 0.
-* `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default 5.
+* `broker_id`: (optional) the worker id that will start to listen, default `0`.
+* `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default `5`.
   See the `target` parameter of the [publish](#publish) method.
+* `max_queue_len`: (optional) max length of internal events buffer queue, default `1024 * 10`.
 
 The return value will be the event object or `nil`.
 
