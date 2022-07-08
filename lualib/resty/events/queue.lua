@@ -33,7 +33,7 @@ function _M:push(item)
         return nil, "queue overflow"
     end
 
-    local last = last + 1
+    last = last + 1
     self.last = last
     self.elts[last] = item
 
