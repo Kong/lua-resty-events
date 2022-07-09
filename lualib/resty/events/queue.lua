@@ -1,10 +1,10 @@
 local semaphore = require "ngx.semaphore"
 
 local table_new = require "table.new"
-local math_min = math.min
 
 local assert = assert
 local setmetatable = setmetatable
+local math_min = math.min
 
 
 local _M = {}
