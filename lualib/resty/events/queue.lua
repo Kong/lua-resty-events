@@ -1,6 +1,7 @@
 local semaphore = require "ngx.semaphore"
 
 local table_new = require "table.new"
+local math_min = math.min
 
 local assert = assert
 local setmetatable = setmetatable
@@ -17,7 +18,7 @@ function _M.new(max_len)
         semaphore = assert(semaphore.new()),
         max = max_len or DEFAULT_MAX_QUEUE_LEN,
 
-        elts = table_new(DEFAULT_QUEUE_LEN, 0),
+        elts = table_new(math_min(max_len, DEFAULT_QUEUE_LEN), 0),
         first = 0,
         last = -1,
     }
