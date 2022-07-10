@@ -85,8 +85,8 @@ function _M.new(opts)
     local max_queue_len = opts.max_queue_len
 
     local self = {
-        _queue = que.new(max_queue_len),
-        _current_queue = que.new(max_queue_len),
+        _pub_queue = que.new(max_queue_len),
+        _sub_queue = que.new(max_queue_len),
         _callback = callback.new(),
         _connected = nil,
         _opts = opts,
@@ -161,7 +161,7 @@ function _M:communicate(premature)
 
     local write_thread = spawn(function()
         while not exiting() do
-            local payload, err = self._queue:pop()
+            local payload, err = self._pub_queue:pop()
 
             if not payload then
                 if not is_timeout(err) then
@@ -188,7 +188,7 @@ function _M:communicate(premature)
 
     local current_thread = spawn(function()
         while not exiting() do
-            local data, err = self._current_queue:pop()
+            local data, err = self._sub_queue:pop()
 
             if not data then
                 if not is_timeout(err) then
@@ -265,7 +265,7 @@ local function post_event(self, source, event, data, spec)
         return nil, err
     end
 
-    local ok, err = self._queue:push(str)
+    local ok, err = self._pub_queue:push(str)
     if not ok then
         return nil, "failed to publish event: " .. err
     end
@@ -285,7 +285,7 @@ function _M:publish(target, source, event, data)
     assert(type(event) == "string" and event ~= "", "event is required")
 
     if target == "current" then
-        ok, err = self._current_queue:push({
+        ok, err = self._sub_queue:push({
             source = source,
             event = event,
             data = data,
