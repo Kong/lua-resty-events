@@ -47,7 +47,7 @@ local PAYLOAD_T = {
 local _worker_id = ngx.worker.id() or -1
 
 local _M = {
-    _VERSION = '0.1.1',
+    _VERSION = '0.1.2',
 }
 local _MT = { __index = _M, }
 
@@ -82,9 +82,11 @@ do
 end
 
 function _M.new(opts)
+    local max_queue_len = opts.max_queue_len
+
     local self = {
-        _queue = que.new(),
-        _current_queue = que.new(),
+        _queue = que.new(max_queue_len),
+        _current_queue = que.new(max_queue_len),
         _callback = callback.new(),
         _connected = nil,
         _opts = opts,
@@ -122,6 +124,7 @@ function _M:communicate(premature)
     end
 
     self._connected = true
+    log(DEBUG, _worker_id, " on (", listening, ") is ready")
 
     local read_thread = spawn(function()
         while not exiting() do

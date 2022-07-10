@@ -354,6 +354,14 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
             local ok, err = pcall(ev.new, {listening = "unix:x", unique_timeout = -1})
             assert(not ok)
             ngx.say(trim(err))
+
+            local ok, err = pcall(ev.new, {listening = "unix:x", max_queue_len = "1"})
+            assert(not ok)
+            ngx.say(trim(err))
+
+            local ok, err = pcall(ev.new, {listening = "unix:x", max_queue_len = -1})
+            assert(not ok)
+            ngx.say(trim(err))
         }
     }
 --- request
@@ -367,6 +375,8 @@ GET /test
 "listening" option must start with unix:
 optional "unique_timeout" option must be a number
 "unique_timeout" must be greater than 0
+"max_queue_len" option must be a number
+"max_queue_len" option is invalid
 --- no_error_log
 [error]
 [crit]

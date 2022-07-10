@@ -29,7 +29,7 @@ local function is_closed(err)
 end
 
 local _M = {
-    _VERSION = '0.1.0',
+    _VERSION = '0.1.2',
 }
 local _MT = { __index = _M, }
 
@@ -67,7 +67,7 @@ function _M:run()
         exit(444)
     end
 
-    local queue = que.new()
+    local queue = que.new(self._opts.max_queue_len)
 
     self._clients[conn] = queue
 
