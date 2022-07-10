@@ -149,7 +149,7 @@ function _M:communicate(premature)
 
             local d, err = decode(data)
             if not d then
-                return nil, "worker-events: failed decoding event data: " .. err
+                return nil, "failed to decode event data: " .. err
             end
 
             -- got an event data, push to queue, callback in events_thread
