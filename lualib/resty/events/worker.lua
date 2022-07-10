@@ -152,8 +152,11 @@ function _M:communicate(premature)
                 return nil, "worker-events: failed decoding event data: " .. err
             end
 
-            -- got an event data, callback
-            do_event(self, d)
+            -- got an event data, push to queue, callback in events_thread
+            local ok, err = self._sub_queue:push(d)
+            if not ok then
+                log(ERR, "failed to store event: ", err)
+            end
 
             ::continue::
         end -- while not exiting
