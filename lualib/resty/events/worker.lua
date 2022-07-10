@@ -186,7 +186,7 @@ function _M:communicate(premature)
         end -- while not exiting
     end)  -- write_thread
 
-    local current_thread = spawn(function()
+    local events_thread = spawn(function()
         while not exiting() do
             local data, err = self._sub_queue:pop()
 
@@ -208,13 +208,13 @@ function _M:communicate(premature)
 
             ::continue::
         end -- while not exiting
-    end)  -- current_thread
+    end)  -- events_thread
 
-    local ok, err, perr = wait(write_thread, read_thread, current_thread)
+    local ok, err, perr = wait(write_thread, read_thread, events_thread)
 
     kill(write_thread)
     kill(read_thread)
-    kill(current_thread)
+    kill(events_thread)
 
     self._connected = nil
 
