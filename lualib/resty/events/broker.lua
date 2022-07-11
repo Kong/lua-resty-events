@@ -1,3 +1,4 @@
+local cjson = require "cjson.safe"
 local codec = require "resty.events.codec"
 local lrucache = require "resty.lrucache"
 
@@ -22,10 +23,14 @@ local wait = ngx.thread.wait
 
 local decode = codec.decode
 
+local cjson_encode = cjson.encode
+
 local MAX_UNIQUE_EVENTS = 1024
 
 local function is_closed(err)
-    return err and str_sub(err, -6) == "closed"
+    return err and
+           (str_sub(err, -6) == "closed" or
+            str_sub(err, -11) == "broken pipe")
 end
 
 local _M = {
@@ -96,7 +101,7 @@ function _M:run()
 
             d, err = decode(data)
             if not d then
-                log(ERR, "worker-events: failed decoding event data: ", err)
+                log(ERR, "failed to decode event data: ", err)
                 goto continue
             end
 
@@ -117,7 +122,8 @@ function _M:run()
                 local ok, err = q:push(d.data)
 
                 if not ok then
-                    log(ERR, "failed to publish event: ", err)
+                    log(ERR, "failed to publish event: ", err, ". ",
+                             "data is :", cjson_encode(decode(d.data)))
 
                 else
                     n = n + 1

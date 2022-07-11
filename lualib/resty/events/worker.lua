@@ -1,3 +1,4 @@
+local cjson = require "cjson.safe"
 local codec = require "resty.events.codec"
 local que = require "resty.events.queue"
 local callback = require "resty.events.callback"
@@ -12,6 +13,7 @@ local random = math.random
 
 local ngx = ngx
 local log = ngx.log
+local sleep = ngx.sleep
 local exiting = ngx.worker.exiting
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
@@ -24,6 +26,7 @@ local timer_at = ngx.timer.at
 
 local encode = codec.encode
 local decode = codec.decode
+local cjson_encode = cjson.encode
 
 local EMPTY_T = {}
 
@@ -85,8 +88,8 @@ function _M.new(opts)
     local max_queue_len = opts.max_queue_len
 
     local self = {
-        _queue = que.new(max_queue_len),
-        _current_queue = que.new(max_queue_len),
+        _pub_queue = que.new(max_queue_len),
+        _sub_queue = que.new(max_queue_len),
         _callback = callback.new(),
         _connected = nil,
         _opts = opts,
@@ -149,11 +152,15 @@ function _M:communicate(premature)
 
             local d, err = decode(data)
             if not d then
-                return nil, "worker-events: failed decoding event data: " .. err
+                return nil, "failed to decode event data: " .. err
             end
 
-            -- got an event data, callback
-            do_event(self, d)
+            -- got an event data, push to queue, callback in events_thread
+            local ok, err = self._sub_queue:push(d)
+            if not ok then
+                log(ERR, "failed to store event: ", err, ". ",
+                         "data is :", cjson_encode(d))
+            end
 
             ::continue::
         end -- while not exiting
@@ -161,7 +168,7 @@ function _M:communicate(premature)
 
     local write_thread = spawn(function()
         while not exiting() do
-            local payload, err = self._queue:pop()
+            local payload, err = self._pub_queue:pop()
 
             if not payload then
                 if not is_timeout(err) then
@@ -186,9 +193,9 @@ function _M:communicate(premature)
         end -- while not exiting
     end)  -- write_thread
 
-    local current_thread = spawn(function()
+    local events_thread = spawn(function()
         while not exiting() do
-            local data, err = self._current_queue:pop()
+            local data, err = self._sub_queue:pop()
 
             if not data then
                 if not is_timeout(err) then
@@ -206,15 +213,18 @@ function _M:communicate(premature)
             -- got an event data, callback
             do_event(self, data)
 
+            -- yield, not block other threads
+            sleep(0)
+
             ::continue::
         end -- while not exiting
-    end)  -- current_thread
+    end)  -- events_thread
 
-    local ok, err, perr = wait(write_thread, read_thread, current_thread)
+    local ok, err, perr = wait(write_thread, read_thread, events_thread)
 
     kill(write_thread)
     kill(read_thread)
-    kill(current_thread)
+    kill(events_thread)
 
     self._connected = nil
 
@@ -265,7 +275,7 @@ local function post_event(self, source, event, data, spec)
         return nil, err
     end
 
-    local ok, err = self._queue:push(str)
+    local ok, err = self._pub_queue:push(str)
     if not ok then
         return nil, "failed to publish event: " .. err
     end
@@ -285,7 +295,7 @@ function _M:publish(target, source, event, data)
     assert(type(event) == "string" and event ~= "", "event is required")
 
     if target == "current" then
-        ok, err = self._current_queue:push({
+        ok, err = self._sub_queue:push({
             source = source,
             event = event,
             data = data,
