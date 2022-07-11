@@ -13,6 +13,7 @@ local random = math.random
 
 local ngx = ngx
 local log = ngx.log
+local sleep = ngx.sleep
 local exiting = ngx.worker.exiting
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
@@ -211,6 +212,9 @@ function _M:communicate(premature)
 
             -- got an event data, callback
             do_event(self, data)
+
+            -- yield, not block other threads
+            sleep(0)
 
             ::continue::
         end -- while not exiting
