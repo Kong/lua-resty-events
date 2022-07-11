@@ -1,3 +1,4 @@
+local cjson = require "cjson.safe"
 local codec = require "resty.events.codec"
 local que = require "resty.events.queue"
 local callback = require "resty.events.callback"
@@ -24,6 +25,7 @@ local timer_at = ngx.timer.at
 
 local encode = codec.encode
 local decode = codec.decode
+local cjson_encode = cjson.encode
 
 local EMPTY_T = {}
 
@@ -155,7 +157,8 @@ function _M:communicate(premature)
             -- got an event data, push to queue, callback in events_thread
             local ok, err = self._sub_queue:push(d)
             if not ok then
-                log(ERR, "failed to store event: ", err)
+                log(ERR, "failed to store event: ", err, ". ",
+                         "data is :", cjson_encode(d))
             end
 
             ::continue::
