@@ -96,7 +96,7 @@ function _M:run()
 
             d, err = decode(data)
             if not d then
-                log(ERR, "worker-events: failed decoding event data: ", err)
+                log(ERR, "failed to decode event data: ", err)
                 goto continue
             end
 
