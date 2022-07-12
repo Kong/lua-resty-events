@@ -16,7 +16,8 @@ local type = type
 local str_sub = string.sub
 local setmetatable = setmetatable
 
-local DEFAULT_TIMEOUT = 1000     -- 1000ms
+-- for high traffic pressure
+local DEFAULT_TIMEOUT = 5000     -- 5000ms
 
 local function is_timeout(err)
     return err and str_sub(err, -7) == "timeout"
