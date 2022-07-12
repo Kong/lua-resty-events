@@ -28,6 +28,9 @@ local encode = codec.encode
 local decode = codec.decode
 local cjson_encode = cjson.encode
 
+local EVENTS_COUNT_LIMIT = 100
+local EVENTS_SLEEP_TIME  = 0.05
+
 local EMPTY_T = {}
 
 local EVENT_T = {
@@ -167,6 +170,8 @@ function _M:communicate(premature)
     end)  -- read_thread
 
     local write_thread = spawn(function()
+        local counter = 0
+
         while not exiting() do
             local payload, err = self._pub_queue:pop()
 
@@ -187,6 +192,13 @@ function _M:communicate(premature)
             if err then
                 log(ERR, "failed to send event: ", err)
                 return
+            end
+
+            -- events rate limiting
+            counter = counter + 1
+            if counter >= EVENTS_COUNT_LIMIT then
+                sleep(EVENTS_SLEEP_TIME)
+                counter = 0
             end
 
             ::continue::
