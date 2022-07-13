@@ -10,13 +10,12 @@ local math_min = math.min
 local _M = {}
 local _MT = { __index = _M, }
 
-local DEFAULT_MAX_QUEUE_LEN = 1024 * 10
 local DEFAULT_QUEUE_LEN = 4096
 
 function _M.new(max_len)
     local self = {
         semaphore = assert(semaphore.new()),
-        max = max_len or DEFAULT_MAX_QUEUE_LEN,
+        max = max_len,
 
         elts = table_new(math_min(max_len, DEFAULT_QUEUE_LEN), 0),
         first = 0,
