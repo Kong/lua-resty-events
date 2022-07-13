@@ -43,7 +43,6 @@ local function broadcast_events(self, unique, data)
     local idx = unique and random(1, nkeys(self._clients))
 
     for _, q in pairs(self._clients) do
-        local ok, err
 
         -- skip some and broadcast to one workers
         if unique then
@@ -54,7 +53,7 @@ local function broadcast_events(self, unique, data)
             end
         end
 
-        ok, err = q:push(data)
+        local ok, err = q:push(data)
 
         if not ok then
             log(ERR, "failed to publish event: ", err, ". ",
