@@ -52,13 +52,9 @@ local function broadcast_events(self, unique, data)
             if idx > 0 then
                 goto continue
             end
-
-            ok, err = q:push(data)
-
-        -- broadcast to all workers
-        else
-            ok, err = q:push(data)
         end
+
+        ok, err = q:push(data)
 
         if not ok then
             log(ERR, "failed to publish event: ", err, ". ",
