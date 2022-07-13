@@ -1,4 +1,5 @@
 local cjson = require "cjson.safe"
+local nkeys = require "table.nkeys"
 local codec = require "resty.events.codec"
 local lrucache = require "resty.lrucache"
 
@@ -39,7 +40,7 @@ local function broadcast_events(self, unique, data)
     local n = 0
 
     -- if unique, schedule to a random worker
-    local idx = unique and random(1, #self._clients)
+    local idx = unique and random(1, nkeys(self._clients))
 
     for _, q in pairs(self._clients) do
         local ok, err
