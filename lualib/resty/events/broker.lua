@@ -1,4 +1,5 @@
 local cjson = require "cjson.safe"
+local nkeys = require "table.nkeys"
 local codec = require "resty.events.codec"
 local lrucache = require "resty.lrucache"
 
@@ -9,6 +10,7 @@ local is_timeout = server.is_timeout
 local pairs = pairs
 local setmetatable = setmetatable
 local str_sub = string.sub
+local random = math.random
 
 local ngx = ngx
 local log = ngx.log
@@ -33,8 +35,46 @@ local function is_closed(err)
             str_sub(err, -11) == "broken pipe")
 end
 
+-- broadcast to all/unique workers
+local function broadcast_events(self, unique, data)
+    local n = 0
+
+    -- if unique, schedule to a random worker
+    local idx = unique and random(1, nkeys(self._clients))
+
+    for _, q in pairs(self._clients) do
+
+        -- skip some and broadcast to one workers
+        if unique then
+            idx = idx - 1
+
+            if idx > 0 then
+                goto continue
+            end
+        end
+
+        local ok, err = q:push(data)
+
+        if not ok then
+            log(ERR, "failed to publish event: ", err, ". ",
+                     "data is :", cjson_encode(decode(data)))
+
+        else
+            n = n + 1
+
+            if unique then
+                break
+            end
+        end
+
+        ::continue::
+    end  -- for q in pairs(_clients)
+
+    log(DEBUG, "event published to ", n, " workers")
+end
+
 local _M = {
-    _VERSION = '0.1.2',
+    _VERSION = '0.1.3',
 }
 local _MT = { __index = _M, }
 
@@ -117,25 +157,7 @@ function _M:run()
             end
 
             -- broadcast to all/unique workers
-            local n = 0
-            for _, q in pairs(self._clients) do
-                local ok, err = q:push(d.data)
-
-                if not ok then
-                    log(ERR, "failed to publish event: ", err, ". ",
-                             "data is :", cjson_encode(decode(d.data)))
-
-                else
-                    n = n + 1
-
-                    if unique then
-                        break
-                    end
-                end
-
-            end  -- for q in pairs(_clients)
-
-            log(DEBUG, "event published to ", n, " workers")
+            broadcast_events(self, unique, d.data)
 
             ::continue::
         end -- while not exiting
