@@ -74,7 +74,7 @@ local function broadcast_events(self, unique, data)
 end
 
 local _M = {
-    _VERSION = '0.1.2',
+    _VERSION = '0.1.3',
 }
 local _MT = { __index = _M, }
 
