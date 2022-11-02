@@ -14,8 +14,12 @@ local handlers = {}
 local _configured
 
 local _M = {
-    _VERSION = '0.1.0',
+    _VERSION = '0.1.1',
 }
+
+function _M.navive()
+    return ev
+end
 
 function _M.poll()
     sleep(0.002) -- wait events sync by unix socket connect
