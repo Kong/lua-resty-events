@@ -17,7 +17,7 @@ local _M = {
     _VERSION = '0.1.1',
 }
 
-function _M.navive()
+function _M.native()
     return ev
 end
 
