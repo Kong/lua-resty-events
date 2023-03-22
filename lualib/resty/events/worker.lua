@@ -107,6 +107,8 @@ function _M:communicate(premature)
         return
     end
 
+    local conn
+    local ok, err, perr
     local write_thread, read_thread, events_thread
 
     local listening = self._opts.listening
@@ -123,9 +125,9 @@ function _M:communicate(premature)
         return
     end
 
-    local conn = assert(client:new())
+    conn = assert(client:new())
 
-    local ok, err = conn:connect(listening)
+    ok, err = conn:connect(listening)
     if not ok then
         log(ERR, "failed to connect: ", err)
 
@@ -239,8 +241,6 @@ function _M:communicate(premature)
             ::continue::
         end -- while not exiting
     end)  -- events_thread
-
-    local ok, err, perr
 
     if write_thread and read_thread then
         ok, err, perr = wait(write_thread, read_thread, events_thread)
