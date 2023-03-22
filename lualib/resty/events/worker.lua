@@ -324,7 +324,7 @@ function _M:publish(target, source, event, data)
 
     -- fall back to local events
     if self._opts.listening == "off" then
-        target == "current"
+        target = "current"
     end
 
     if target == "current" then
