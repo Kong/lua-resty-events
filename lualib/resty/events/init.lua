@@ -42,7 +42,9 @@ local function check_options(opts)
         return nil, '"listening" option must be a string'
     end
 
-    if str_sub(opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
+    if opts.listening ~= "off" and
+       str_sub(opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX
+    then
         return nil, '"listening" option must start with ' .. UNIX_PREFIX
     end
 
