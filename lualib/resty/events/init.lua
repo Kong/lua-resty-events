@@ -89,7 +89,8 @@ function _M:init_worker()
 
     local worker_id = ngx_worker_id() or -1
 
-    local is_broker = worker_id == opts.broker_id
+    local is_broker = worker_id == opts.broker_id or
+                      opts.listening == "off"
 
     local ok, err
 
