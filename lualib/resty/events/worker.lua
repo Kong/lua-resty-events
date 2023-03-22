@@ -114,6 +114,7 @@ function _M:communicate(premature)
     local listening = self._opts.listening
 
     if listening == "off" then
+        self._connected = true
         goto local_events_only
     end
 
