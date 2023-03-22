@@ -107,7 +107,13 @@ function _M:communicate(premature)
         return
     end
 
+    local write_thread, read_thread, events_thread
+
     local listening = self._opts.listening
+
+    if listening == "off" then
+        goto local_events_only
+    end
 
     if not check_sock_exist(listening) then
         log(DEBUG, "unix domain sock(", listening, ") is not ready")
@@ -132,7 +138,7 @@ function _M:communicate(premature)
     self._connected = true
     log(DEBUG, _worker_id, " on (", listening, ") is ready")
 
-    local read_thread = spawn(function()
+    read_thread = spawn(function()
         while not exiting() do
             local data, err = conn:recv_frame()
 
@@ -169,7 +175,7 @@ function _M:communicate(premature)
         end -- while not exiting
     end)  -- read_thread
 
-    local write_thread = spawn(function()
+    write_thread = spawn(function()
         local counter = 0
 
         while not exiting() do
@@ -205,7 +211,9 @@ function _M:communicate(premature)
         end -- while not exiting
     end)  -- write_thread
 
-    local events_thread = spawn(function()
+    ::local_events_only::
+
+    events_thread = spawn(function()
         while not exiting() do
             local data, err = self._sub_queue:pop()
 
@@ -232,10 +240,18 @@ function _M:communicate(premature)
         end -- while not exiting
     end)  -- events_thread
 
-    local ok, err, perr = wait(write_thread, read_thread, events_thread)
+    local ok, err, perr
 
-    kill(write_thread)
-    kill(read_thread)
+    if write_thread and read_thread then
+        ok, err, perr = wait(write_thread, read_thread, events_thread)
+
+        kill(write_thread)
+        kill(read_thread)
+    else
+
+        ok, err, perr = wait(events_thread)
+    end
+
     kill(events_thread)
 
     self._connected = nil
