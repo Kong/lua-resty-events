@@ -306,6 +306,11 @@ function _M:publish(target, source, event, data)
     assert(type(source) == "string" and source ~= "", "source is required")
     assert(type(event) == "string" and event ~= "", "event is required")
 
+    -- fall back to local events
+    if self._opts.listening == "off" then
+        target == "current"
+    end
+
     if target == "current" then
         ok, err = self._sub_queue:push({
             source = source,
