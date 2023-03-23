@@ -53,7 +53,7 @@ local PAYLOAD_T = {
 local _worker_id = ngx.worker.id() or -1
 
 local _M = {
-    _VERSION = '0.1.2',
+    _VERSION = '0.1.4',
 }
 local _MT = { __index = _M, }
 
