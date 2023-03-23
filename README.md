@@ -131,7 +131,8 @@ The `opts` parameter is a Lua table with named options:
 The return value will be the event object or `nil`.
 
 You can set a special value `off` for `listening`, which means the library will not enable
-unix domain socket listening, and the events will only be propageted in worker process internal.
+unix domain socket listening, and the events will only be propagated in the worker process internally.
+In the meanwhile, `unique_timeout` will be meanless.
 
 This feature is very useful for testing, such as `resty cli`.
 
@@ -187,9 +188,6 @@ Also any follow up events with the same hash value will be ignored
 
 The return value will be `true` when the event was successfully published or
 `nil + error` in case of cjson serializition failure or event queue full.
-
-If `listening` is set to `off` the `target` parameter value `_unique hash_`
-will be disabled.
 
 *Note*: in case of "all" and "current" the worker process sending the event,
 will also receive the event! So if the eventsource will also act upon the event,
