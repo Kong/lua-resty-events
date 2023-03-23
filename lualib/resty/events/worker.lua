@@ -335,6 +335,7 @@ function _M:publish(target, source, event, data)
             data = data,
         })
 
+        log(DEBUG, "event published to 1 workers")
     else
         -- add unique hash string
         SPEC_T.unique = target ~= "all" and target or nil
