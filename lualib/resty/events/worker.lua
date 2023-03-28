@@ -107,16 +107,17 @@ function _M:communicate(premature)
         return
     end
 
+    local listening
     local conn
     local ok, err, perr
     local write_thread, read_thread, events_thread
 
-    local listening = self._opts.listening
-
-    if listening == "off" then
+    if self._opts.testing == true then
         self._connected = true
         goto local_events_only
     end
+
+    listening = self._opts.listening
 
     if not check_sock_exist(listening) then
         log(DEBUG, "unix domain sock(", listening, ") is not ready")
@@ -324,7 +325,7 @@ function _M:publish(target, source, event, data)
     assert(type(event) == "string" and event ~= "", "event is required")
 
     -- fall back to local events
-    if self._opts.listening == "off" then
+    if self._opts.testing == true then
         target = "current"
     end
 

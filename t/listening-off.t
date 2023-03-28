@@ -25,7 +25,8 @@ __DATA__
     init_worker_by_lua_block {
         local opts = {
             --broker_id = 0,
-            listening = "off",
+            listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
+            testing = true,
         }
 
         local ev = require("resty.events").new(opts)
@@ -87,7 +88,8 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, d
     init_worker_by_lua_block {
         local opts = {
             --broker_id = 0,
-            listening = "off",
+            listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
+            testing = true,
         }
 
         local ev = require("resty.events").new(opts)
@@ -150,7 +152,8 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, d
         local opts = {
             unique_timeout = 0.04,
             --broker_id = 0,
-            listening = "off",
+            listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
+            testing = true,
         }
 
         local ev = require("resty.events").new(opts)
@@ -224,7 +227,8 @@ worker-events: handler event;  source=content_by_lua, event=request6, wid=nil, d
     init_worker_by_lua_block {
         local opts = {
             --broker_id = 0,
-            listening = "off",
+            listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
+            testing = true,
         }
 
         local ev = require("resty.events").new(opts)

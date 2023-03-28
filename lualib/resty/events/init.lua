@@ -42,8 +42,7 @@ local function check_options(opts)
         return nil, '"listening" option must be a string'
     end
 
-    if opts.listening ~= "off" and
-       str_sub(opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX
+    if str_sub(opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX
     then
         return nil, '"listening" option must start with ' .. UNIX_PREFIX
     end
@@ -68,6 +67,12 @@ local function check_options(opts)
         return nil, '"max_queue_len" option is invalid'
     end
 
+    opts.testing = opts.testing or false
+
+    if type(opts.testing) ~= "boolean" then
+        return nil, '"max_queue_len" option must be a boolean'
+    end
+
     return true
 end
 
@@ -90,7 +95,7 @@ function _M:init_worker()
     local worker_id = ngx_worker_id() or -1
 
     local is_broker = worker_id == opts.broker_id or
-                      opts.listening == "off"
+                      opts.testing == true
 
     local ok, err
 
