@@ -130,11 +130,12 @@ The `opts` parameter is a Lua table with named options:
 
 The return value will be the event object or `nil`.
 
-You can set a special value `off` for `listening`, which means the library will not enable
+There is a special parameter `testing`, which means the library will not enable
 unix domain socket listening, and the events will only be propagated in the worker process internally.
 In the meanwhile, `unique_timeout` will be meanless.
 
 This feature is very useful for testing, such as `resty cli`.
+The default value for `testing` is `false`.
 
 [Back to TOC](#table-of-contents)
 
@@ -163,7 +164,7 @@ it must be called in `content_by_lua*`.
 
 `ev` object must be the same object returned by [new](#new).
 
-Should not call it if `listening` is set to `off`.
+Should not call it if `testing` is set to `true`.
 
 [Back to TOC](#table-of-contents)
 
