@@ -42,8 +42,7 @@ local function check_options(opts)
         return nil, '"listening" option must be a string'
     end
 
-    if str_sub(opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX
-    then
+    if str_sub(opts.listening, 1, #UNIX_PREFIX) ~= UNIX_PREFIX then
         return nil, '"listening" option must start with ' .. UNIX_PREFIX
     end
 
@@ -70,7 +69,7 @@ local function check_options(opts)
     opts.testing = opts.testing or false
 
     if type(opts.testing) ~= "boolean" then
-        return nil, '"max_queue_len" option must be a boolean'
+        return nil, '"testing" option must be a boolean'
     end
 
     return true
