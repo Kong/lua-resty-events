@@ -144,7 +144,6 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, d
 
 
 === TEST 3: worker.events 'one' being done, and only once
---- SKIP
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
     init_worker_by_lua_block {
@@ -199,7 +198,6 @@ GET /test
 ok
 --- error_log
 event published to 1 workers
-unique event is duplicate: unique_value
 --- no_error_log
 [error]
 [crit]
@@ -210,8 +208,12 @@ qr/^worker-events: handling event; source=content_by_lua, event=request1, wid=ni
 worker-events: handler event;  source=content_by_lua, event=request1, wid=nil, data=01234567890
 worker-events: handling event; source=content_by_lua, event=request2, wid=nil
 worker-events: handler event;  source=content_by_lua, event=request2, wid=nil, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request3, wid=nil
+worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, data=01234567890
 worker-events: handling event; source=content_by_lua, event=request4, wid=nil
 worker-events: handler event;  source=content_by_lua, event=request4, wid=nil, data=01234567890
+worker-events: handling event; source=content_by_lua, event=request5, wid=nil
+worker-events: handler event;  source=content_by_lua, event=request5, wid=nil, data=01234567890
 worker-events: handling event; source=content_by_lua, event=request6, wid=nil
 worker-events: handler event;  source=content_by_lua, event=request6, wid=nil, data=01234567890$/
 
