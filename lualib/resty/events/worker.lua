@@ -337,6 +337,11 @@ function _M:publish(target, source, event, data)
             data = data,
         })
 
+        -- only for unit testing
+        if self._opts.testing == true then
+            sleep(0.1)
+        end
+
         log(DEBUG, "event published to 1 workers")
     else
         -- add unique hash string
