@@ -249,6 +249,7 @@ function _M:communicate(premature)
 
         kill(write_thread)
         kill(read_thread)
+
     else
 
         ok, err, perr = wait(events_thread)
