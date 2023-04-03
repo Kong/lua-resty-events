@@ -93,8 +93,8 @@ function _M:init_worker()
 
     local worker_id = ngx_worker_id() or -1
 
-    local is_broker = worker_id == opts.broker_id or
-                      opts.testing == true
+    local is_broker = opts.broker_id == worker_id or
+                      opts.testing   == true
 
     local ok, err
 
