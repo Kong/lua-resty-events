@@ -107,17 +107,13 @@ function _M:communicate(premature)
         return
     end
 
-    local listening
-    local conn
-    local ok, err, perr
-    local write_thread, read_thread, events_thread
-
+    -- only for testing, skip read/write/events threads
     if self._opts.testing == true then
         self._connected = true
-        goto local_events_only
+        return
     end
 
-    listening = self._opts.listening
+    local listening = self._opts.listening
 
     if not check_sock_exist(listening) then
         log(DEBUG, "unix domain sock(", listening, ") is not ready")
@@ -127,9 +123,9 @@ function _M:communicate(premature)
         return
     end
 
-    conn = assert(client:new())
+    local conn = assert(client:new())
 
-    ok, err = conn:connect(listening)
+    local ok, err = conn:connect(listening)
     if not ok then
         log(ERR, "failed to connect: ", err)
 
@@ -142,7 +138,7 @@ function _M:communicate(premature)
     self._connected = true
     log(DEBUG, _worker_id, " on (", listening, ") is ready")
 
-    read_thread = spawn(function()
+    local read_thread = spawn(function()
         while not exiting() do
             local data, err = conn:recv_frame()
 
@@ -179,7 +175,7 @@ function _M:communicate(premature)
         end -- while not exiting
     end)  -- read_thread
 
-    write_thread = spawn(function()
+    local write_thread = spawn(function()
         local counter = 0
 
         while not exiting() do
@@ -215,9 +211,7 @@ function _M:communicate(premature)
         end -- while not exiting
     end)  -- write_thread
 
-    ::local_events_only::
-
-    events_thread = spawn(function()
+    local events_thread = spawn(function()
         while not exiting() do
             local data, err = self._sub_queue:pop()
 
@@ -244,17 +238,10 @@ function _M:communicate(premature)
         end -- while not exiting
     end)  -- events_thread
 
-    if write_thread and read_thread then
-        ok, err, perr = wait(write_thread, read_thread, events_thread)
+    local ok, err, perr = wait(write_thread, read_thread, events_thread)
 
-        kill(write_thread)
-        kill(read_thread)
-
-    else
-
-        ok, err, perr = wait(events_thread)
-    end
-
+    kill(write_thread)
+    kill(read_thread)
     kill(events_thread)
 
     self._connected = nil
@@ -327,7 +314,15 @@ function _M:publish(target, source, event, data)
 
     -- fall back to local events
     if self._opts.testing == true then
-        target = "current"
+        log(DEBUG, "event published to 1 workers")
+
+        do_event(self, {
+            source = source,
+            event = event,
+            data = data,
+        })
+
+        return true
     end
 
     if target == "current" then
@@ -337,12 +332,6 @@ function _M:publish(target, source, event, data)
             data = data,
         })
 
-        -- only for unit testing
-        if self._opts.testing == true then
-            sleep(0.1)
-        end
-
-        log(DEBUG, "event published to 1 workers")
     else
         -- add unique hash string
         SPEC_T.unique = target ~= "all" and target or nil

@@ -236,6 +236,11 @@ worker-events: handler event;  source=content_by_lua, event=request6, wid=nil, d
             ngx.log(ngx.ERR, "failed to new events")
         end
 
+        ev:subscribe("*", "*", function(data, event, source, wid)
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+                    ", data=", tostring(data))
+                end)
+
         ev:publish("all", "content_by_lua","request1","01234567890")
 
         local ok, err = ev:init_worker()
@@ -246,11 +251,6 @@ worker-events: handler event;  source=content_by_lua, event=request6, wid=nil, d
         assert(not ev:is_ready())
 
         ev:publish("current", "content_by_lua","request2","01234567890")
-
-        ev:subscribe("*", "*", function(data, event, source, wid)
-            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
-                    ", data=", tostring(data))
-                end)
 
         ev:publish("all", "content_by_lua","request3","01234567890")
 
