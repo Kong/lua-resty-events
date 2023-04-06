@@ -13,7 +13,7 @@ local str_sub = string.sub
 local worker_count = ngx.worker.count()
 
 local _M = {
-    _VERSION = '0.1.3',
+    _VERSION = '0.1.4',
 }
 local _MT = { __index = _M, }
 
@@ -66,6 +66,12 @@ local function check_options(opts)
         return nil, '"max_queue_len" option is invalid'
     end
 
+    opts.testing = opts.testing or false
+
+    if type(opts.testing) ~= "boolean" then
+        return nil, '"testing" option must be a boolean'
+    end
+
     return true
 end
 
@@ -87,7 +93,8 @@ function _M:init_worker()
 
     local worker_id = ngx_worker_id() or -1
 
-    local is_broker = worker_id == opts.broker_id
+    local is_broker = opts.broker_id == worker_id or
+                      opts.testing   == true
 
     local ok, err
 

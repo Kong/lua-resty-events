@@ -53,7 +53,7 @@ local PAYLOAD_T = {
 local _worker_id = ngx.worker.id() or -1
 
 local _M = {
-    _VERSION = '0.1.2',
+    _VERSION = '0.1.4',
 }
 local _MT = { __index = _M, }
 
@@ -104,6 +104,12 @@ end
 function _M:communicate(premature)
     if premature then
         -- worker wants to exit
+        return
+    end
+
+    -- only for testing, skip read/write/events threads
+    if self._opts.testing == true then
+        self._connected = true
         return
     end
 
@@ -305,6 +311,19 @@ function _M:publish(target, source, event, data)
     assert(type(target) == "string" and target ~= "", "target is required")
     assert(type(source) == "string" and source ~= "", "source is required")
     assert(type(event) == "string" and event ~= "", "event is required")
+
+    -- fall back to local events
+    if self._opts.testing == true then
+        log(DEBUG, "event published to 1 workers")
+
+        do_event(self, {
+            source = source,
+            event = event,
+            data = data,
+        })
+
+        return true
+    end
 
     if target == "current" then
         ok, err = self._sub_queue:push({
