@@ -1,0 +1,20 @@
+name: Lua lint
+
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lualint:
+    runs-on: ubuntu-latest
+    name: Lua code style check
+    steps:
+      - uses: Kong/public-shared-actions/code-check-actions/lualint@feat-lualint
+        with:
+          kong_gh_app_id: ${{ vars.GH_APP__KONG_LUALINT__APP_ID }}
+          kong_gh_app_private_key: ${{ secrets.GH_APP__KONG_LUALINT__PRIVATE_KEY }}
