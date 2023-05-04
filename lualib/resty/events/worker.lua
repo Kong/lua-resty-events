@@ -126,6 +126,11 @@ function _M:communicate(premature)
     local conn = assert(client:new())
 
     local ok, err = conn:connect(listening)
+
+    if exiting() then
+        return
+    end
+
     if not ok then
         log(ERR, "failed to connect: ", err)
 
@@ -142,6 +147,10 @@ function _M:communicate(premature)
         while not exiting() do
             local data, err = conn:recv_frame()
 
+            if exiting() then
+                return
+            end
+
             if err then
                 if not is_timeout(err) then
                     return nil, err
@@ -153,10 +162,6 @@ function _M:communicate(premature)
 
             if not data then
                 return nil, "did not receive event from broker"
-            end
-
-            if exiting() then
-                return
             end
 
             local d, err = decode(data)
@@ -246,6 +251,10 @@ function _M:communicate(premature)
 
     self._connected = nil
 
+    if exiting() then
+        return
+    end
+
     if not ok then
         log(ERR, "event worker failed: ", err)
     end
@@ -254,9 +263,7 @@ function _M:communicate(premature)
         log(ERR, "event worker failed: ", perr)
     end
 
-    if not exiting() then
-        start_timer(self, random_delay())
-    end
+    start_timer(self, random_delay())
 end
 
 function _M:init()
