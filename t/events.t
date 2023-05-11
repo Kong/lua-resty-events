@@ -405,6 +405,11 @@ optional "unique_timeout" option must be a number
 
         assert(not ev:is_ready())
 
+        ev:subscribe("*", "*", function(data, event, source, wid)
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+                    ", data=", tostring(data))
+                end)
+
         _G.ev = ev
     }
 
@@ -435,11 +440,10 @@ optional "unique_timeout" option must be a number
 --- request
 GET /test
 --- response_body
-payload too big
+failed to publish event: payload too big
 ok
---- error_log
-event published to 1 workers
 --- no_error_log
+[warn]
 [error]
 [crit]
 [alert]
