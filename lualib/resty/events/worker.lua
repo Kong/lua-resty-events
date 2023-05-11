@@ -309,7 +309,7 @@ local function post_event(self, source, event, data, spec)
 
     ok, err = self._pub_queue:push(str)
     if not ok then
-        return nil, "failed to publish event: " .. err
+        return nil, err
     end
 
     return true
