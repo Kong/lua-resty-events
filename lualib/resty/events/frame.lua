@@ -71,14 +71,14 @@ local function validate(payload)
         return nil, "payload too big"
     end
 
-    return true
+    return payload_len
 end
 _M.validate = validate
 
 
 function _M.send(sock, payload)
-    local ok, err = validate(payload)
-    if not ok then
+    local payload_len, err = validate(payload)
+    if not payload_len then
         return nil, err
     end
 
