@@ -432,7 +432,12 @@ optional "unique_timeout" option must be a number
                                        string.rep("a", 65535))
             ngx.say(err)
 
-            ev:publish("current", "content_by_lua","request2","01234567890")
+            ok, err = ev:publish("unique_hash", "content_by_lua", "request2",
+                                       string.rep("a", 65535))
+            ngx.say(err)
+
+            ok, err = ev:publish("current", "content_by_lua","request3","01234567890")
+            ngx.say(err)
 
             ngx.say("ok")
         }
@@ -441,6 +446,8 @@ optional "unique_timeout" option must be a number
 GET /test
 --- response_body
 failed to publish event: payload too big
+failed to publish event: payload too big
+nil
 ok
 --- no_error_log
 [warn]
@@ -449,8 +456,7 @@ ok
 [alert]
 --- grep_error_log eval: qr/worker-events: .*/
 --- grep_error_log_out eval
-qr/^worker-events: handling event; source=content_by_lua, event=request2, wid=nil
-worker-events: handler event;  source=content_by_lua, event=request2, wid=nil, data=01234567890$/
-
+qr/^worker-events: handling event; source=content_by_lua, event=request3, wid=nil
+worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, data=01234567890$/
 
 
