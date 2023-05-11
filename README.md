@@ -194,6 +194,10 @@ The return value will be `true` when the event was successfully published or
 will also receive the event! So if the eventsource will also act upon the event,
 it should not do so from the event posting code, but only when receiving it.
 
+*Note*: in case of "all" and "_unique hash_" the serialized data has a
+hard-coded limit `65535` bytes. It means that we can not send any data which is
+larger than 64KB.
+
 [Back to TOC](#table-of-contents)
 
 subscribe
