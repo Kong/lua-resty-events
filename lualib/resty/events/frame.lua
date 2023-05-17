@@ -60,7 +60,7 @@ function _M.recv(sock)
 end
 
 
-function _M.send(sock, payload)
+local function validate(payload)
     if type(payload) ~= "string" then
         return nil, "payload must be string"
     end
@@ -71,6 +71,17 @@ function _M.send(sock, payload)
         return nil, "payload too big"
     end
 
+    return payload_len
+end
+_M.validate = validate
+
+
+function _M.send(sock, payload)
+    local payload_len, err = validate(payload)
+    if not payload_len then
+        return nil, err
+    end
+
     local bytes, err = sock:send(uint16_to_bytes(payload_len) .. payload)
     if not bytes then
         return nil, "failed to send frame: " .. err
@@ -78,6 +89,5 @@ function _M.send(sock, payload)
 
     return bytes
 end
-
 
 return _M

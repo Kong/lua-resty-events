@@ -6,6 +6,8 @@ local callback = require "resty.events.callback"
 local client = require("resty.events.protocol").client
 local is_timeout = client.is_timeout
 
+local frame_validate = require("resty.events.frame").validate
+
 local type = type
 local assert = assert
 local setmetatable = setmetatable
@@ -276,7 +278,7 @@ end
 
 -- posts a new event
 local function post_event(self, source, event, data, spec)
-    local str, err
+    local str, ok, err
 
     EVENT_T.source = source
     EVENT_T.event = event
@@ -300,9 +302,14 @@ local function post_event(self, source, event, data, spec)
         return nil, err
     end
 
-    local ok, err = self._pub_queue:push(str)
+    ok, err = frame_validate(str)
     if not ok then
-        return nil, "failed to publish event: " .. err
+        return nil, err
+    end
+
+    ok, err = self._pub_queue:push(str)
+    if not ok then
+        return nil, err
     end
 
     return true
