@@ -59,9 +59,10 @@ local _M = {
 }
 local _MT = { __index = _M, }
 
--- gen a random number [0.1, 1.0]
+-- gen a random number [0.01, 0.05]
+-- it means that delay will be 10ms~50ms
 local function random_delay()
-    return random(1, 10) / 10
+    return random(10, 50) / 1000
 end
 
 local function do_event(self, d)
