@@ -98,7 +98,7 @@ function _M.send(sock, payload)
 
     local bytes, err = sock:send(data)
 
-    tablepool_release(POOL_EVENTS_FRAME, data)
+    tablepool_release(POOL_EVENTS_FRAME, data, true)
 
     if not bytes then
         return nil, "failed to send frame: " .. err
