@@ -1,4 +1,5 @@
 local bit = require "bit"
+local tablepool = require "tablepool"
 
 
 local byte = string.byte
@@ -7,6 +8,8 @@ local band = bit.band
 local bor = bit.bor
 local lshift = bit.lshift
 local rshift = bit.rshift
+local tablepool_fetch = tablepool.fetch
+local tablepool_release = tablepool.release
 
 
 local type = type
@@ -24,6 +27,9 @@ local _M = {
 
 local MAX_PAYLOAD_LEN = 2^24 - 1    -- 16MB
 local UINT_HEADER_LEN = 3
+
+
+local POOL_EVENTS_FRAME = "RESTY_EVENTS_FRAME"
 
 
 local function uint_to_bytes(num)
@@ -86,7 +92,14 @@ function _M.send(sock, payload)
         return nil, err
     end
 
-    local bytes, err = sock:send({ uint_to_bytes(payload_len), payload, })
+    local data = tablepool_fetch(POOL_EVENTS_FRAME, 2, 0)
+    data[1] = uint_to_bytes(payload_len)
+    data[2] = payload
+
+    local bytes, err = sock:send(data)
+
+    tablepool_release(POOL_EVENTS_FRAME, data)
+
     if not bytes then
         return nil, "failed to send frame: " .. err
     end
