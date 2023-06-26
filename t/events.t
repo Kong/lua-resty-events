@@ -436,6 +436,10 @@ optional "unique_timeout" option must be a number
                                        string.rep("a", 65537))
             ngx.say(err)
 
+            local ok, err = ev:publish("all", "content_by_lua", "request1",
+                                       string.rep("a", 1024*1024))
+            ngx.say(err)
+
             ok, err = ev:publish("current", "content_by_lua","request3","01234567890")
             ngx.say(err)
 
@@ -445,6 +449,7 @@ optional "unique_timeout" option must be a number
 --- request
 GET /test
 --- response_body
+nil
 nil
 nil
 nil
