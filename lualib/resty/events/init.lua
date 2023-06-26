@@ -13,7 +13,7 @@ local str_sub = string.sub
 local worker_count = ngx.worker.count()
 
 local _M = {
-    _VERSION = '0.1.6',
+    _VERSION = '0.2.0',
 }
 local _MT = { __index = _M, }
 
