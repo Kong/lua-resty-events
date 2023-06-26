@@ -86,7 +86,7 @@ function _M.send(sock, payload)
         return nil, err
     end
 
-    local bytes, err = sock:send(uint_to_bytes(payload_len) .. payload)
+    local bytes, err = sock:send({ uint_to_bytes(payload_len), payload, })
     if not bytes then
         return nil, "failed to send frame: " .. err
     end
