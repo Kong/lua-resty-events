@@ -407,7 +407,7 @@ optional "unique_timeout" option must be a number
 
         ev:subscribe("*", "*", function(data, event, source, wid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
-                    ", data=", tostring(data))
+                    ", big=", #data > 65535)
                 end)
 
         _G.ev = ev
@@ -433,14 +433,14 @@ optional "unique_timeout" option must be a number
             ngx.say(err)
 
             ok, err = ev:publish("unique_hash", "content_by_lua", "request2",
-                                       string.rep("a", 65537))
+                                       string.rep("a", 10* 65535))
             ngx.say(err)
 
-            local ok, err = ev:publish("all", "content_by_lua", "request1",
+            local ok, err = ev:publish("all", "content_by_lua", "request3",
                                        string.rep("a", 1024*1024))
             ngx.say(err)
 
-            ok, err = ev:publish("current", "content_by_lua","request3","01234567890")
+            ok, err = ev:publish("all", "content_by_lua","request4","01234567890")
             ngx.say(err)
 
             ngx.say("ok")
@@ -459,6 +459,15 @@ ok
 [error]
 [crit]
 [alert]
-[emerg]
+--- grep_error_log eval: qr/worker-events: .*/
+--- grep_error_log_out eval
+qr/^worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, big=true
+worker-events: handling event; source=content_by_lua, event=request2, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request2, wid=\d+, big=true
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, big=true
+worker-events: handling event; source=content_by_lua, event=request4, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request4, wid=\d+, big=false$/
 
 
