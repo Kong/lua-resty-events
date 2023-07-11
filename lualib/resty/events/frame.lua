@@ -46,7 +46,7 @@ local function bytes_to_uint(str)
     local b1, b2, b3 = byte(str, 1, UINT_HEADER_LEN)
 
     return bor(lshift(b1, 16),
-               bor(lshift(b2, 8), b3))
+               lshift(b2, 8 ), b3)
 end
 
 
