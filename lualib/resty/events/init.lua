@@ -64,7 +64,7 @@ local function check_options(opts)
         return nil, '"max_queue_len" option must be a number'
     end
 
-    if opts.max_queue_len < 0 then
+    if opts.max_queue_len <= 0 then
         return nil, '"max_queue_len" option is invalid'
     end
 
@@ -74,7 +74,7 @@ local function check_options(opts)
         return nil, '"max_payload_len" option must be a number'
     end
 
-    if opts.max_payload_len < 0 or opts.max_payload_len > LIMIT_MAX_PAYLOAD_LEN then
+    if opts.max_payload_len <= 0 or opts.max_payload_len > LIMIT_MAX_PAYLOAD_LEN then
         return nil, '"max_payload_len" option is invalid'
     end
 
