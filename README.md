@@ -127,7 +127,7 @@ The `opts` parameter is a Lua table with named options:
 * `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default `5`.
   See the `target` parameter of the [publish](#publish) method.
 * `max_queue_len`: (optional) max length of internal events buffer queue, default `1024 * 10`.
-* `max_payload_len`: (optional) max length of serialized event data, default `1024 * 64`, max `1024 *1024 * 16`.
+* `max_payload_len`: (optional) max length of serialized event data, default `1024 * 64`, max `1024 * 1024 * 16`.
 
 The return value will be the event object or `nil`.
 

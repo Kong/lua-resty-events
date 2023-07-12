@@ -24,7 +24,7 @@ local function check_options(opts)
     local DEFAULT_UNIQUE_TIMEOUT = 5
     local DEFAULT_MAX_QUEUE_LEN = 1024 * 10
     local DEFAULT_MAX_PAYLOAD_LEN = 1024 * 64       -- 64KB
-    local LIMIT_MAX_PAYLOAD_LEN = 1024 * 1024 * 16  -- 64KB
+    local LIMIT_MAX_PAYLOAD_LEN = 1024 * 1024 * 16  -- 16MB
 
     opts.broker_id = opts.broker_id or 0
 
