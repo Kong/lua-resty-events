@@ -55,7 +55,7 @@ local PAYLOAD_T = {
 local _worker_id = ngx.worker.id() or -1
 
 local _M = {
-    _VERSION = '0.1.6',
+    _VERSION = '0.2.0',
 }
 local _MT = { __index = _M, }
 
@@ -279,7 +279,7 @@ end
 
 -- posts a new event
 local function post_event(self, source, event, data, spec)
-    local str, ok, err
+    local str, ok, len, err
 
     EVENT_T.source = source
     EVENT_T.event = event
@@ -303,9 +303,13 @@ local function post_event(self, source, event, data, spec)
         return nil, err
     end
 
-    ok, err = frame_validate(str)
-    if not ok then
+    len, err = frame_validate(str)
+    if not len then
         return nil, err
+    end
+    if len > self._opts.max_payload_len then
+        return nil, "payload exceeds the limitation " ..
+                    "(" .. self._opts.max_payload_len .. ")"
     end
 
     ok, err = self._pub_queue:push(str)

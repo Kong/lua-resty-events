@@ -362,6 +362,18 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
             local ok, err = pcall(ev.new, {listening = "unix:x", max_queue_len = -1})
             assert(not ok)
             ngx.say(trim(err))
+
+            local ok, err = pcall(ev.new, {listening = "unix:x", max_payload_len = "1"})
+            assert(not ok)
+            ngx.say(trim(err))
+
+            local ok, err = pcall(ev.new, {listening = "unix:x", max_payload_len = -1})
+            assert(not ok)
+            ngx.say(trim(err))
+
+            local ok, err = pcall(ev.new, {listening = "unix:x", max_payload_len = 2^24 + 1})
+            assert(not ok)
+            ngx.say(trim(err))
         }
     }
 --- request
@@ -377,6 +389,9 @@ optional "unique_timeout" option must be a number
 "unique_timeout" must be greater than 0
 "max_queue_len" option must be a number
 "max_queue_len" option is invalid
+"max_payload_len" option must be a number
+"max_payload_len" option is invalid
+"max_payload_len" option is invalid
 --- no_error_log
 [error]
 [crit]
@@ -384,13 +399,14 @@ optional "unique_timeout" option must be a number
 [emerg]
 
 
-=== TEST 6: won't publish events exceeding 65535 bytes
+=== TEST 6: publish events exceeding 65535 bytes
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
     init_worker_by_lua_block {
         local opts = {
             --broker_id = 0,
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
+            max_payload_len = 1024 * 1024 * 2,
         }
 
         local ev = require("resty.events").new(opts)
@@ -407,7 +423,7 @@ optional "unique_timeout" option must be a number
 
         ev:subscribe("*", "*", function(data, event, source, wid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
-                    ", data=", tostring(data))
+                    ", big=", #data > 65535)
                 end)
 
         _G.ev = ev
@@ -429,14 +445,18 @@ optional "unique_timeout" option must be a number
             assert(ev:is_ready())
 
             local ok, err = ev:publish("all", "content_by_lua", "request1",
-                                       string.rep("a", 65535))
+                                       string.rep("a", 65537))
             ngx.say(err)
 
             ok, err = ev:publish("unique_hash", "content_by_lua", "request2",
-                                       string.rep("a", 65535))
+                                       string.rep("a", 10* 65535))
             ngx.say(err)
 
-            ok, err = ev:publish("current", "content_by_lua","request3","01234567890")
+            local ok, err = ev:publish("all", "content_by_lua", "request3",
+                                       string.rep("a", 1024*1024))
+            ngx.say(err)
+
+            ok, err = ev:publish("all", "content_by_lua","request4","01234567890")
             ngx.say(err)
 
             ngx.say("ok")
@@ -445,8 +465,9 @@ optional "unique_timeout" option must be a number
 --- request
 GET /test
 --- response_body
-failed to publish event: payload too big
-failed to publish event: payload too big
+nil
+nil
+nil
 nil
 ok
 --- no_error_log
@@ -456,7 +477,89 @@ ok
 [alert]
 --- grep_error_log eval: qr/worker-events: .*/
 --- grep_error_log_out eval
-qr/^worker-events: handling event; source=content_by_lua, event=request3, wid=nil
-worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, data=01234567890$/
+qr/^worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, big=true
+worker-events: handling event; source=content_by_lua, event=request2, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request2, wid=\d+, big=true
+worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, big=true
+worker-events: handling event; source=content_by_lua, event=request4, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request4, wid=\d+, big=false$/
 
+
+=== TEST 7: customize publish events limitation
+--- http_config
+    lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
+    init_worker_by_lua_block {
+        local opts = {
+            --broker_id = 0,
+            listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
+            max_payload_len = 200,
+        }
+
+        local ev = require("resty.events").new(opts)
+        if not ev then
+            ngx.log(ngx.ERR, "failed to new events")
+        end
+
+        local ok, err = ev:init_worker()
+        if not ok then
+            ngx.log(ngx.ERR, "failed to init_worker events: ", err)
+        end
+
+        assert(not ev:is_ready())
+
+        ev:subscribe("*", "*", function(data, event, source, wid)
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+                    ", data=", data)
+                end)
+
+        _G.ev = ev
+    }
+
+    server {
+        listen unix:$TEST_NGINX_HTML_DIR/nginx.sock;
+        location / {
+            content_by_lua_block {
+                 _G.ev:run()
+            }
+        }
+    }
+--- config
+    location = /test {
+        content_by_lua_block {
+            local ev = _G.ev
+
+            assert(ev:is_ready())
+
+            local ok, err = ev:publish("all", "content_by_lua", "request1",
+                                       string.rep("a", 200))
+            ngx.say(err)
+
+            local ok, err = ev:publish("unique_hash", "content_by_lua", "request2",
+                                       string.rep("a", 200))
+            ngx.say(err)
+
+            ok, err = ev:publish("unique_hash", "content_by_lua", "request3", "01234567890")
+            ngx.say(err)
+
+            ngx.say("ok")
+        }
+    }
+--- request
+GET /test
+--- response_body
+failed to publish event: payload exceeds the limitation (200)
+failed to publish event: payload exceeds the limitation (200)
+nil
+ok
+--- no_error_log
+[warn]
+[error]
+[crit]
+[alert]
+--- grep_error_log eval: qr/worker-events: .*/
+--- grep_error_log_out eval
+qr/^worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
+worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=01234567890$/
 

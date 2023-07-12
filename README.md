@@ -127,6 +127,7 @@ The `opts` parameter is a Lua table with named options:
 * `unique_timeout`: (optional) timeout of unique event data stored (in seconds), default `5`.
   See the `target` parameter of the [publish](#publish) method.
 * `max_queue_len`: (optional) max length of internal events buffer queue, default `1024 * 10`.
+* `max_payload_len`: (optional) max length of serialized event data, default `1024 * 64`, max `1024 * 1024 * 16`.
 
 The return value will be the event object or `nil`.
 
@@ -195,8 +196,8 @@ will also receive the event! So if the eventsource will also act upon the event,
 it should not do so from the event posting code, but only when receiving it.
 
 *Note*: in case of "all" and "_unique hash_" the serialized data has a
-hard-coded limit `65535` bytes. It means that we can not send any data which is
-larger than 64KB.
+hard-coded limit `2^24 - 1` bytes. It means that we can not send any data which is
+larger than 16MB.
 
 [Back to TOC](#table-of-contents)
 
