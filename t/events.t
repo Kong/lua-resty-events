@@ -487,14 +487,14 @@ worker-events: handling event; source=content_by_lua, event=request4, wid=\d+
 worker-events: handler event;  source=content_by_lua, event=request4, wid=\d+, big=false$/
 
 
-=== TEST 7: custmize publish events limitation
+=== TEST 7: customize publish events limitation
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
     init_worker_by_lua_block {
         local opts = {
             --broker_id = 0,
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
-            max_payload_len = 100,
+            max_payload_len = 200,
         }
 
         local ev = require("resty.events").new(opts)
@@ -533,11 +533,11 @@ worker-events: handler event;  source=content_by_lua, event=request4, wid=\d+, b
             assert(ev:is_ready())
 
             local ok, err = ev:publish("all", "content_by_lua", "request1",
-                                       string.rep("a", 100))
+                                       string.rep("a", 200))
             ngx.say(err)
 
             local ok, err = ev:publish("unique_hash", "content_by_lua", "request2",
-                                       string.rep("a", 100))
+                                       string.rep("a", 200))
             ngx.say(err)
 
             ok, err = ev:publish("unique_hash", "content_by_lua", "request3", "01234567890")
@@ -549,8 +549,8 @@ worker-events: handler event;  source=content_by_lua, event=request4, wid=\d+, b
 --- request
 GET /test
 --- response_body
-failed to publish event: payload exceeds the limitation (100)
-failed to publish event: payload exceeds the limitation (100)
+failed to publish event: payload exceeds the limitation (200)
+failed to publish event: payload exceeds the limitation (200)
 nil
 ok
 --- no_error_log
