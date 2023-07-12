@@ -23,6 +23,7 @@ local function check_options(opts)
     local UNIX_PREFIX = "unix:"
     local DEFAULT_UNIQUE_TIMEOUT = 5
     local DEFAULT_MAX_QUEUE_LEN = 1024 * 10
+    local DEFAULT_MAX_PAYLOAD_LEN = 1024 * 64   -- 64KB
 
     opts.broker_id = opts.broker_id or 0
 
@@ -64,6 +65,16 @@ local function check_options(opts)
 
     if opts.max_queue_len < 0 then
         return nil, '"max_queue_len" option is invalid'
+    end
+
+    opts.max_payload_len = opts.max_payload_len or DEFAULT_MAX_PAYLOAD_LEN
+
+    if type(opts.max_payload_len) ~= "number" then
+        return nil, '"max_payload_len" option must be a number'
+    end
+
+    if opts.max_payload_len < 0 then
+        return nil, '"max_payload_len" option is invalid'
     end
 
     opts.testing = opts.testing or false

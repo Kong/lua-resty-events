@@ -391,6 +391,7 @@ optional "unique_timeout" option must be a number
         local opts = {
             --broker_id = 0,
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
+            max_payload_len = 1024 * 1024 * 2,
         }
 
         local ev = require("resty.events").new(opts)
