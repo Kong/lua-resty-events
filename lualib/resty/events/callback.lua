@@ -110,9 +110,19 @@ function _M:do_event(d)
     local event  = d.event
     local data   = d.data
     local wid    = d.wid
+    local time   = d.time
+
+    ngx.update_time()
+    local now = ngx.now()
+
+    if time then
+      log(DEBUG, "worker-events [receive]: source=", source,
+          ", event=", event, ", wid=", wid, ", time=", now - time,
+          ", data=", encode(data))
+    end
 
     log(DEBUG, "worker-events: handling event; source=", source,
-        ", event=", event, ", wid=", wid)
+        ", event=", event, ", wid=", wid, ", data=", encode(data))
 
     local funcs = self._funcs
     local list
@@ -128,6 +138,12 @@ function _M:do_event(d)
     -- source+event callback
     list = get_callback_list(self, source, event)
     do_handlerlist(funcs, list, source, event, data, wid)
+
+    ngx.update_time()
+    log(DEBUG, "worker-events [done] : source=", source,
+        ", event=", event, ", wid=", wid, ", time=", ngx.now() - now,
+        ", data=", encode(data))
+
 end
 
 return _M

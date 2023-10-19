@@ -30,7 +30,7 @@ local cjson_encode = cjson.encode
 local MAX_UNIQUE_EVENTS = 1024
 
 local function is_closed(err)
-    return err and
+    return type(err) == "string" and
            (str_sub(err, -6) == "closed" or
             str_sub(err, -11) == "broken pipe")
 end

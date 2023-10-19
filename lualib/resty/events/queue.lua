@@ -1,3 +1,5 @@
+local cjson = require "cjson.safe"
+local codec = require "resty.events.codec"
 local semaphore = require "ngx.semaphore"
 
 local table_new = require "table.new"
@@ -6,6 +8,8 @@ local assert = assert
 local setmetatable = setmetatable
 local math_min = math.min
 
+local decode = codec.decode
+local cjson_encode = cjson.encode
 
 local _M = {}
 local _MT = { __index = _M, }
@@ -20,7 +24,13 @@ function _M.new(max_len)
         elts = table_new(math_min(max_len, DEFAULT_QUEUE_LEN), 0),
         first = 0,
         last = -1,
+
+        -- debug
+        outcome = 0,
+        income = 0,
     }
+
+    ngx.log(ngx.DEBUG, "worker-events [queue]: init, max_len=", self.max_len)
 
     return setmetatable(self, _MT)
 end
@@ -29,13 +39,20 @@ end
 function _M:push(item)
     local last = self.last
 
-    if last - self.first + 1 >= self.max then
+    local count = last - self.first + 1
+
+    ngx.log(ngx.DEBUG, "worker-events [queue]: push , len=", count,
+            ", income=", self.income, ", outcome=", self.outcome)
+
+    if count >= self.max then
         return nil, "queue overflow"
     end
 
     last = last + 1
     self.last = last
     self.elts[last] = item
+
+    self.income = self.income + 1
 
     self.semaphore:post()
 
@@ -58,6 +75,13 @@ function _M:pop()
     local item = self.elts[first]
     self.elts[first] = nil
     self.first = first + 1
+
+    self.outcome = self.outcome + 1
+
+    local count = self.last - self.first + 1
+
+    ngx.log(ngx.DEBUG, "worker-events [queue]: pop , len=", count,
+            ", income=", self.income, ", outcome=", self.outcome)
 
     return item
 end
