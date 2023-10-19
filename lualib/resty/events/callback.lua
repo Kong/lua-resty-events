@@ -112,7 +112,7 @@ function _M:do_event(d)
     local wid    = d.wid
 
     log(DEBUG, "worker-events: handling event; source=", source,
-        ", event=", event, ", wid=", wid)
+        ", event=", event, ", wid=", wid, ", data=", cjson_encode(data))
 
     local funcs = self._funcs
     local list

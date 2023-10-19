@@ -331,6 +331,8 @@ function _M:publish(target, source, event, data)
     assert(type(source) == "string" and source ~= "", "source is required")
     assert(type(event) == "string" and event ~= "", "event is required")
 
+    log(DEBUG, "source=", source, ", event=", event, ", data=", cjson_encode(data))
+
     -- fall back to local events
     if self._opts.testing == true then
         log(DEBUG, "event published to 1 workers")
