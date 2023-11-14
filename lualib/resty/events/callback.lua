@@ -80,6 +80,9 @@ local function do_handlerlist(funcs, list, source, event, data, wid)
 
         assert(type(handler) == "function")
 
+        ngx.update_time()
+        local now = ngx.now()
+
         ok, err = xpcall(handler, traceback, data, event, source, wid)
 
         if not ok then
@@ -98,6 +101,13 @@ local function do_handlerlist(funcs, list, source, event, data, wid)
             log(ERR, "worker-events: event callback failed; source=", source,
                      ", event=", event,", wid=", wid, " error='", tostring(err),
                      "', data=", str)
+        end
+
+        ngx.update_time()
+        local delta = ngx.now() - now
+        if delta > 0.09 then
+          log(DEBUG, "worker-events [callback] : time=", delta,
+                     ", info=", require("inspect")(debug.getinfo(handler)))
         end
 
         ::continue::
