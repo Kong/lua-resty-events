@@ -173,7 +173,7 @@ function _M:communicate(premature)
                 return nil, "failed to decode event data: " .. err
             end
 
-            ngx.log(ngx.DEBUG, "worker-events [queue]: push sub_queue, data=", cjson_encode(d))
+            ngx.log(ngx.DEBUG, "worker-events [queue]: push sub_queue, data=", require("inspect")(d))
 
             -- got an event data, push to queue, callback in events_thread
             local ok, err = self._sub_queue:push(d)
@@ -238,7 +238,7 @@ function _M:communicate(premature)
                 goto continue
             end
 
-            ngx.log(ngx.DEBUG, "worker-events [queue]: pop sub_queue, data=", cjson_encode(data))
+            ngx.log(ngx.DEBUG, "worker-events [queue]: pop sub_queue, data=", require("inspect")(data))
 
             if exiting() then
                 return

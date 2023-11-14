@@ -128,11 +128,11 @@ function _M:do_event(d)
     if time then
       log(DEBUG, "worker-events [receive]: source=", source,
           ", event=", event, ", wid=", wid, ", time=", now - time,
-          ", data=", encode(data))
+          ", data=", require("inspect")(data))
     end
 
     log(DEBUG, "worker-events: handling event; source=", source,
-        ", event=", event, ", wid=", wid, ", data=", encode(data))
+        ", event=", event, ", wid=", wid, ", data=", require("inspect")(data))
 
     local funcs = self._funcs
     local list
