@@ -106,8 +106,9 @@ local function do_handlerlist(funcs, list, source, event, data, wid)
         ngx.update_time()
         local delta = ngx.now() - now
         if delta > 0.09 then
+          local info = debug.getinfo(handler)
           log(DEBUG, "worker-events [callback] : time=", delta,
-                     ", info=", require("inspect")(debug.getinfo(handler)))
+                     ", name=", info.name, ", short_src=", info.short_src )
         end
 
         ::continue::
