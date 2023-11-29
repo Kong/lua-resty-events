@@ -107,7 +107,7 @@ local function do_handlerlist(funcs, list, source, event, data, wid)
         local delta = ngx.now() - now
         if delta > 0.09 then
           local info = debug.getinfo(handler)
-          log(DEBUG, "worker-events [callback] : time=", delta,
+          log(DEBUG, "events-debug [callback] : time=", delta,
                      ", name=", info.name, ", short_src=", info.short_src )
         end
 
@@ -127,12 +127,12 @@ function _M:do_event(d)
     local now = ngx.now()
 
     if time then
-      log(DEBUG, "worker-events [receive]: source=", source,
+      log(DEBUG, "events-debug [receive]: source=", source,
           ", event=", event, ", wid=", wid, ", time=", now - time,
           ", data=", require("inspect")(data))
     end
 
-    log(DEBUG, "worker-events: handling event; source=", source,
+    log(DEBUG, "events-debug: handling event; source=", source,
         ", event=", event, ", wid=", wid, ", data=", require("inspect")(data))
 
     local funcs = self._funcs
@@ -151,9 +151,9 @@ function _M:do_event(d)
     do_handlerlist(funcs, list, source, event, data, wid)
 
     ngx.update_time()
-    log(DEBUG, "worker-events [done] : source=", source,
+    log(DEBUG, "events-debug [done] : source=", source,
         ", event=", event, ", wid=", wid, ", time=", ngx.now() - now,
-        ", data=", encode(data))
+        ", data=", require("inspect")(data))
 
 end
 

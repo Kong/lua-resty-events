@@ -173,7 +173,7 @@ function _M:communicate(premature)
                 return nil, "failed to decode event data: " .. err
             end
 
-            ngx.log(ngx.DEBUG, "worker-events [queue]: push sub_queue, data=", require("inspect")(d))
+            ngx.log(ngx.DEBUG, "events-debug [queue]: push sub_queue, data=", require("inspect")(d))
 
             -- got an event data, push to queue, callback in events_thread
             local ok, err = self._sub_queue:push(d)
@@ -202,7 +202,7 @@ function _M:communicate(premature)
             end
 
             local obj = decode(decode(payload).data)
-            ngx.log(ngx.DEBUG, "worker-events [queue]: pop pub_queue, data=", cjson_encode(obj))
+            ngx.log(ngx.DEBUG, "events-debug [queue]: pop pub_queue, data=", cjson_encode(obj))
 
             if exiting() then
                 return
@@ -238,7 +238,7 @@ function _M:communicate(premature)
                 goto continue
             end
 
-            ngx.log(ngx.DEBUG, "worker-events [queue]: pop sub_queue, data=", require("inspect")(data))
+            ngx.log(ngx.DEBUG, "events-debug [queue]: pop sub_queue, data=", require("inspect")(data))
 
             if exiting() then
                 return
@@ -297,7 +297,7 @@ local function post_event(self, source, event, data, spec)
     ngx.update_time()
     EVENT_T.time = ngx.now()
 
-    ngx.log(ngx.DEBUG, "worker-events [queue]: push pub_queue, data=", cjson_encode(EVENT_T))
+    ngx.log(ngx.DEBUG, "events-debug [queue]: push pub_queue, data=", cjson_encode(EVENT_T))
 
     -- encode event info
     str, err = encode(EVENT_T)
@@ -344,7 +344,7 @@ function _M:publish(target, source, event, data)
     assert(type(source) == "string" and source ~= "", "source is required")
     assert(type(event) == "string" and event ~= "", "event is required")
 
-    log(DEBUG, "[publish] source=", source, ", event=", event, ", data=", cjson_encode(data))
+    log(DEBUG, "events-debug [publish] source=", source, ", event=", event, ", data=", require("inspect")(data))
 
     -- fall back to local events
     if self._opts.testing == true then
@@ -362,7 +362,7 @@ function _M:publish(target, source, event, data)
     if target == "current" then
         log(DEBUG, "event published to local worker")
 
-        ngx.log(ngx.DEBUG, "worker-events [queue]: push sub_queue, data=", cjson_encode(data))
+        ngx.log(ngx.DEBUG, "events-debug [queue]: push sub_queue, data=", require("inspect")(data))
 
         ok, err = self._sub_queue:push({
             source = source,

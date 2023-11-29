@@ -30,7 +30,7 @@ function _M.new(max_len)
         income = 0,
     }
 
-    ngx.log(ngx.DEBUG, "worker-events [queue]: init, max_len=", self.max_len)
+    ngx.log(ngx.DEBUG, "events-debug [queue]: init, max_len=", self.max_len)
 
     return setmetatable(self, _MT)
 end
@@ -41,7 +41,7 @@ function _M:push(item)
 
     local count = last - self.first + 1
 
-    ngx.log(ngx.DEBUG, "worker-events [queue]: push , len=", count,
+    ngx.log(ngx.DEBUG, "events-debug [queue]: push , len=", count,
             ", income=", self.income, ", outcome=", self.outcome)
 
     if count >= self.max then
