@@ -16,7 +16,7 @@ local _MT = { __index = _M, }
 
 local DEFAULT_QUEUE_LEN = 4096
 
-function _M.new(max_len)
+function _M.new(max_len, name)
     local self = {
         semaphore = assert(semaphore.new()),
         max = max_len,
@@ -26,11 +26,12 @@ function _M.new(max_len)
         last = -1,
 
         -- debug
+        name = name,
         outcome = 0,
         income = 0,
     }
 
-    ngx.log(ngx.DEBUG, "events-debug [queue]: init, max_len=", self.max_len)
+    ngx.log(ngx.DEBUG, "events-debug [init queue]: name=", name, ", max_len=", self.max_len)
 
     return setmetatable(self, _MT)
 end
@@ -41,7 +42,7 @@ function _M:push(item)
 
     local count = last - self.first + 1
 
-    ngx.log(ngx.DEBUG, "events-debug [queue]: push , len=", count,
+    ngx.log(ngx.DEBUG, "events-debug [push queue]: name=", name, ", len=", count,
             ", income=", self.income, ", outcome=", self.outcome)
 
     if count >= self.max then
@@ -80,7 +81,7 @@ function _M:pop()
 
     local count = self.last - self.first + 1
 
-    ngx.log(ngx.DEBUG, "events-debug [queue]: pop , len=", count,
+    ngx.log(ngx.DEBUG, "events-debug [pop queue]: name=", name, ", len=", count,
             ", income=", self.income, ", outcome=", self.outcome)
 
     return item
