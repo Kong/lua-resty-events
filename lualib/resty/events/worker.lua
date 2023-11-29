@@ -202,7 +202,7 @@ function _M:communicate(premature)
             end
 
             local obj = decode(decode(payload).data)
-            ngx.log(ngx.DEBUG, "events-debug [queue]: pop pub_queue, data=", cjson_encode(obj))
+            ngx.log(ngx.DEBUG, "events-debug [queue]: pop pub_queue, data=", require("inspect")(obj))
 
             if exiting() then
                 return
@@ -297,7 +297,7 @@ local function post_event(self, source, event, data, spec)
     ngx.update_time()
     EVENT_T.time = ngx.now()
 
-    ngx.log(ngx.DEBUG, "events-debug [queue]: push pub_queue, data=", cjson_encode(EVENT_T))
+    ngx.log(ngx.DEBUG, "events-debug [queue]: push pub_queue, data=", require("inspect")(EVENT_T))
 
     -- encode event info
     str, err = encode(EVENT_T)

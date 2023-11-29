@@ -80,7 +80,7 @@ function _M:pop()
 
     local count = self.last - self.first + 1
 
-    ngx.log(ngx.DEBUG, "worker-events [queue]: pop , len=", count,
+    ngx.log(ngx.DEBUG, "events-debug [queue]: pop , len=", count,
             ", income=", self.income, ", outcome=", self.outcome)
 
     return item
