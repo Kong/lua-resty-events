@@ -42,7 +42,7 @@ function _M:push(item)
 
     local count = last - self.first + 1
 
-    ngx.log(ngx.DEBUG, "events-debug [push queue]: name=", name, ", len=", count,
+    ngx.log(ngx.DEBUG, "events-debug [enqueue]: name=", self.name, ", len=", count,
             ", income=", self.income, ", outcome=", self.outcome)
 
     if count >= self.max then
@@ -81,7 +81,7 @@ function _M:pop()
 
     local count = self.last - self.first + 1
 
-    ngx.log(ngx.DEBUG, "events-debug [pop queue]: name=", name, ", len=", count,
+    ngx.log(ngx.DEBUG, "events-debug [dequeue]: name=", self.name, ", len=", count,
             ", income=", self.income, ", outcome=", self.outcome)
 
     return item

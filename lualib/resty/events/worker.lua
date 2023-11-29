@@ -173,7 +173,12 @@ function _M:communicate(premature)
                 return nil, "failed to decode event data: " .. err
             end
 
-            ngx.log(ngx.DEBUG, "events-debug [receive from broker, enqueue]: data=", require("inspect")(d))
+            --ngx.log(ngx.DEBUG, "events-debug [receive from broker, enqueue]: data=", require("inspect")(d))
+
+            ngx.update_time()
+            log(DEBUG, "events-debug [receive from broker]: source=", d.source,
+                ", event=", d.event, ", wid=", d.wid, ", time=", ngx.now() - d.time,
+                ", data=", require("inspect")(d))
 
             -- got an event data, push to queue, callback in events_thread
             local ok, err = self._sub_queue:push(d)
@@ -297,7 +302,7 @@ local function post_event(self, source, event, data, spec)
     ngx.update_time()
     EVENT_T.time = ngx.now()
 
-    ngx.log(ngx.DEBUG, "events-debug [enqueue]: name=", self._pub_queue.name, ", data=", require("inspect")(EVENT_T))
+    ngx.log(ngx.DEBUG, "events-debug [before enqueue]: name=", self._pub_queue.name, ", data=", require("inspect")(EVENT_T))
 
     -- encode event info
     str, err = encode(EVENT_T)

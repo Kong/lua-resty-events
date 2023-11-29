@@ -115,8 +115,8 @@ function _M:run()
         exit(444)
     end
 
-    counter = counter + 1
     local queue = que.new(self._opts.max_queue_len, "broker_queue_of_" .. counter)
+    counter = counter + 1
 
     self._clients[conn] = queue
 

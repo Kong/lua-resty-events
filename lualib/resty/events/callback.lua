@@ -126,11 +126,11 @@ function _M:do_event(d)
     ngx.update_time()
     local now = ngx.now()
 
-    if time then
-      log(DEBUG, "events-debug [receive from broker]: source=", source,
-          ", event=", event, ", wid=", wid, ", time=", now - time,
-          ", data=", require("inspect")(data))
-    end
+    --if time then
+    --  log(DEBUG, "events-debug [receive from broker]: source=", source,
+    --      ", event=", event, ", wid=", wid, ", time=", now - time,
+    --      ", data=", require("inspect")(data))
+    --end
 
     log(DEBUG, "events-debug [handling event begin]: source=", source,
         ", event=", event, ", wid=", wid or "self", ", data=", require("inspect")(data))
