@@ -78,6 +78,9 @@ local _M = {
 }
 local _MT = { __index = _M, }
 
+-- debug
+local counter = 0
+
 function _M.new(opts)
     local self = {
         _opts = opts,
@@ -112,7 +115,8 @@ function _M:run()
         exit(444)
     end
 
-    local queue = que.new(self._opts.max_queue_len)
+    counter = counter + 1
+    local queue = que.new(self._opts.max_queue_len, "broker_queue_of_" .. counter)
 
     self._clients[conn] = queue
 
