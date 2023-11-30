@@ -132,7 +132,7 @@ function _M:do_event(d)
     --      ", data=", require("inspect")(data))
     --end
 
-    log(DEBUG, "events-debug [handling event begin]: source=", source,
+    log(DEBUG, "events-debug [do_handlerlist begin]: source=", source,
         ", event=", event, ", wid=", wid or "self", ", data=", require("inspect")(data))
 
     local funcs = self._funcs
@@ -152,7 +152,7 @@ function _M:do_event(d)
 
     ngx.update_time()
     log(DEBUG, "events-debug [all do_handlerlist done]: source=", source,
-        ", event=", event, ", wid=", wid, ", time=", ngx.now() - now,
+        ", event=", event, ", wid=", wid or "self", ", time=", ngx.now() - now,
         ", data=", require("inspect")(data))
 
 end
