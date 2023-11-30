@@ -176,7 +176,7 @@ function _M:communicate(premature)
             --ngx.log(ngx.DEBUG, "events-debug [receive from broker, enqueue]: data=", require("inspect")(d))
 
             ngx.update_time()
-            log(DEBUG, "events-debug [receive from broker]: source=", d.source,
+            log(DEBUG, "events-debug [receive from broker, enqueue]: name=", self._sub_queue.name, ", source=", d.source,
                 ", event=", d.event, ", wid=", d.wid, ", time=", ngx.now() - d.time,
                 ", data=", require("inspect")(d))
 
@@ -207,7 +207,7 @@ function _M:communicate(premature)
             end
 
             local obj = decode(decode(payload).data)
-            ngx.log(ngx.DEBUG, "events-debug [before send to broker, dequeue]: data=", require("inspect")(obj))
+            ngx.log(ngx.DEBUG, "events-debug [before send to broker, dequeue]: name=", self._pub_queue.name, ", data=", require("inspect")(obj))
 
             if exiting() then
                 return
@@ -243,7 +243,7 @@ function _M:communicate(premature)
                 goto continue
             end
 
-            ngx.log(ngx.DEBUG, "events-debug [before do event, dequeue]: data=", require("inspect")(data))
+            ngx.log(ngx.DEBUG, "events-debug [before do event, dequeue]: name=", self._sub_queue.name, ", data=", require("inspect")(data))
 
             if exiting() then
                 return
@@ -367,7 +367,9 @@ function _M:publish(target, source, event, data)
     if target == "current" then
         --log(DEBUG, "event published to local worker")
 
-        ngx.log(ngx.DEBUG, "events-debug [enqueue local worker]: name=", self._sub_queue.name,", data=", require("inspect")(data))
+        ngx.log(ngx.DEBUG, "events-debug [enqueue local worker]: name=", self._sub_queue.name,
+                ", source=", source, ", event=", event,
+                ", data=", require("inspect")(data))
 
         ok, err = self._sub_queue:push({
             source = source,

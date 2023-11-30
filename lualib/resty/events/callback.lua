@@ -108,7 +108,7 @@ local function do_handlerlist(funcs, list, source, event, data, wid)
         --if delta > 0.09 then
           local info = debug.getinfo(handler)
           log(DEBUG, "events-debug [one event callback done]: time=", delta,
-                     ", name=", info.name, ", short_src=", info.short_src )
+                     ", name=", info.name, ", short_src=", info.short_src, ", line=",info.linedefined)
         --end
 
         ::continue::
