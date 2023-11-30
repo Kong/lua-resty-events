@@ -31,7 +31,7 @@ function _M.new(max_len, name)
         income = 0,
     }
 
-    ngx.log(ngx.DEBUG, "events-debug [init queue]: name=", name, ", max_len=", self.max_len)
+    ngx.log(ngx.DEBUG, "events-debug [init queue]: name=", name, ", max_len=", max_len)
 
     return setmetatable(self, _MT)
 end
