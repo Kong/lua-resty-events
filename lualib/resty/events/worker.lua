@@ -1,4 +1,5 @@
 local cjson = require "cjson.safe"
+local errlog = require "ngx.errlog"
 local codec = require "resty.events.codec"
 local que = require "resty.events.queue"
 local callback = require "resty.events.callback"
@@ -176,9 +177,12 @@ function _M:communicate(premature)
             --ngx.log(ngx.DEBUG, "events-debug [receive from broker, enqueue]: data=", require("inspect")(d))
 
             ngx.update_time()
-            log(DEBUG, "events-debug [receive from broker, enqueue]: name=", self._sub_queue.name, ", source=", d.source,
-                ", event=", d.event, ", wid=", d.wid, ", time=", ngx.now() - d.time,
-                ", data=", require("inspect")(d))
+            local log_level = errlog.get_sys_filter_level()
+            if log_level == DEBUG then
+              log(DEBUG, "events-debug [receive from broker, enqueue]: name=", self._sub_queue.name, ", source=", d.source,
+                  ", event=", d.event, ", wid=", d.wid, ", time=", ngx.now() - d.time,
+                  ", data=", require("inspect")(d))
+            end
 
             -- got an event data, push to queue, callback in events_thread
             local ok, err = self._sub_queue:push(d)
@@ -206,8 +210,11 @@ function _M:communicate(premature)
                 goto continue
             end
 
-            local obj = decode(decode(payload).data)
-            ngx.log(ngx.DEBUG, "events-debug [before send to broker, dequeue]: name=", self._pub_queue.name, ", data=", require("inspect")(obj))
+            local log_level = errlog.get_sys_filter_level()
+            if log_level == DEBUG then
+              local obj = decode(decode(payload).data)
+              ngx.log(ngx.DEBUG, "events-debug [before send to broker, dequeue]: name=", self._pub_queue.name, ", data=", require("inspect")(obj))
+            end
 
             if exiting() then
                 return
@@ -243,7 +250,10 @@ function _M:communicate(premature)
                 goto continue
             end
 
-            ngx.log(ngx.DEBUG, "events-debug [before do event, dequeue]: name=", self._sub_queue.name, ", data=", require("inspect")(data))
+            local log_level = errlog.get_sys_filter_level()
+            if log_level == DEBUG then
+              ngx.log(ngx.DEBUG, "events-debug [before do event, dequeue]: name=", self._sub_queue.name, ", data=", require("inspect")(data))
+            end
 
             if exiting() then
                 return
@@ -302,7 +312,10 @@ local function post_event(self, source, event, data, spec)
     ngx.update_time()
     EVENT_T.time = ngx.now()
 
-    ngx.log(ngx.DEBUG, "events-debug [before enqueue]: name=", self._pub_queue.name, ", data=", require("inspect")(EVENT_T))
+    local log_level = errlog.get_sys_filter_level()
+    if log_level == DEBUG then
+      ngx.log(ngx.DEBUG, "events-debug [before enqueue]: name=", self._pub_queue.name, ", data=", require("inspect")(EVENT_T))
+    end
 
     -- encode event info
     str, err = encode(EVENT_T)
@@ -367,9 +380,12 @@ function _M:publish(target, source, event, data)
     if target == "current" then
         --log(DEBUG, "event published to local worker")
 
-        ngx.log(ngx.DEBUG, "events-debug [enqueue local worker]: name=", self._sub_queue.name,
-                ", source=", source, ", event=", event,
-                ", data=", require("inspect")(data))
+        local log_level = errlog.get_sys_filter_level()
+        if log_level == DEBUG then
+          ngx.log(ngx.DEBUG, "events-debug [enqueue local worker]: name=", self._sub_queue.name,
+                  ", source=", source, ", event=", event,
+                  ", data=", require("inspect")(data))
+        end
 
         ok, err = self._sub_queue:push({
             source = source,

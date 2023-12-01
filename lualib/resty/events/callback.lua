@@ -1,4 +1,5 @@
 local cjson = require "cjson.safe"
+local errlog = require "ngx.errlog"
 
 local xpcall = xpcall
 local type = type
@@ -132,8 +133,11 @@ function _M:do_event(d)
     --      ", data=", require("inspect")(data))
     --end
 
-    log(DEBUG, "events-debug [do_handlerlist begin]: source=", source,
-        ", event=", event, ", wid=", wid or "self", ", data=", require("inspect")(data))
+    local log_level = errlog.get_sys_filter_level()
+    if log_level == DEBUG then
+      log(DEBUG, "events-debug [do_handlerlist begin]: source=", source,
+          ", event=", event, ", wid=", wid or "self", ", data=", require("inspect")(data))
+    end
 
     local funcs = self._funcs
     local list
@@ -150,10 +154,12 @@ function _M:do_event(d)
     list = get_callback_list(self, source, event)
     do_handlerlist(funcs, list, source, event, data, wid)
 
-    ngx.update_time()
-    log(DEBUG, "events-debug [all do_handlerlist done]: source=", source,
-        ", event=", event, ", wid=", wid or "self", ", time=", ngx.now() - now,
-        ", data=", require("inspect")(data))
+    if log_level == DEBUG then
+      ngx.update_time()
+      log(DEBUG, "events-debug [all do_handlerlist done]: source=", source,
+          ", event=", event, ", wid=", wid or "self", ", time=", ngx.now() - now,
+          ", data=", require("inspect")(data))
+    end
 
 end
 
