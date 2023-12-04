@@ -34,6 +34,8 @@ local cjson_encode = cjson.encode
 local EVENTS_COUNT_LIMIT = 100
 local EVENTS_SLEEP_TIME  = 0.05
 
+local log_level = errlog.get_sys_filter_level()
+
 local EMPTY_T = {}
 
 local EVENT_T = {
@@ -177,7 +179,6 @@ function _M:communicate(premature)
             --ngx.log(ngx.DEBUG, "events-debug [receive from broker, enqueue]: data=", require("inspect")(d))
 
             ngx.update_time()
-            local log_level = errlog.get_sys_filter_level()
             if log_level == DEBUG then
               log(DEBUG, "events-debug [receive from broker, enqueue]: name=", self._sub_queue.name, ", source=", d.source,
                   ", event=", d.event, ", wid=", d.wid, ", time=", ngx.now() - d.time,
@@ -210,7 +211,6 @@ function _M:communicate(premature)
                 goto continue
             end
 
-            local log_level = errlog.get_sys_filter_level()
             if log_level == DEBUG then
               local obj = decode(decode(payload).data)
               ngx.log(ngx.DEBUG, "events-debug [before send to broker, dequeue]: name=", self._pub_queue.name, ", data=", require("inspect")(obj))
@@ -250,7 +250,6 @@ function _M:communicate(premature)
                 goto continue
             end
 
-            local log_level = errlog.get_sys_filter_level()
             if log_level == DEBUG then
               ngx.log(ngx.DEBUG, "events-debug [before do event, dequeue]: name=", self._sub_queue.name, ", data=", require("inspect")(data))
             end
@@ -312,7 +311,6 @@ local function post_event(self, source, event, data, spec)
     ngx.update_time()
     EVENT_T.time = ngx.now()
 
-    local log_level = errlog.get_sys_filter_level()
     if log_level == DEBUG then
       ngx.log(ngx.DEBUG, "events-debug [before enqueue]: name=", self._pub_queue.name, ", data=", require("inspect")(EVENT_T))
     end
@@ -380,7 +378,6 @@ function _M:publish(target, source, event, data)
     if target == "current" then
         --log(DEBUG, "event published to local worker")
 
-        local log_level = errlog.get_sys_filter_level()
         if log_level == DEBUG then
           ngx.log(ngx.DEBUG, "events-debug [enqueue local worker]: name=", self._sub_queue.name,
                   ", source=", source, ", event=", event,
