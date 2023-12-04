@@ -16,6 +16,8 @@ local DEBUG = ngx.DEBUG
 
 local encode = cjson.encode
 
+local log_level = errlog.get_sys_filter_level()
+
 local _M = {
   _VERSION = '0.1.0',
 }
@@ -133,7 +135,6 @@ function _M:do_event(d)
     --      ", data=", require("inspect")(data))
     --end
 
-    local log_level = errlog.get_sys_filter_level()
     if log_level == DEBUG then
       log(DEBUG, "events-debug [do_handlerlist begin]: source=", source,
           ", event=", event, ", wid=", wid or "self", ", data=", require("inspect")(data))
