@@ -14,6 +14,7 @@ jobs:
         - openresty: "1.19.9.1"
         - openresty: "1.21.4.1"
         - openresty: "1.21.4.2"
+        - openresty: "1.25.3.1"
 
     env:
       JOBS: 1  # must be 1 as socket tests interfere with each other
