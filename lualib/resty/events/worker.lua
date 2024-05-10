@@ -146,11 +146,14 @@ function _M:communicate(premature)
     self._connected = true
     log(DEBUG, _worker_id, " on (", listening, ") is ready")
 
+    local restarting = false
+
     local read_thread = spawn(function()
-        while not exiting() do
+        while not (restarting or exiting()) do
             local data, err = conn:recv_frame()
 
-            if exiting() then
+            -- TODO: should we still add the last received event to queue and quit only after that?
+            if restarting or exiting() then
                 return
             end
 
@@ -185,10 +188,10 @@ function _M:communicate(premature)
 
     local write_thread = spawn(function()
         local counter = 0
-
-        while not exiting() do
+        -- TODO: should we continue pushing events until events thread is stopped
+        -- because events can also create events (regarding to `restarting` flag)?
+        while not (restarting or exiting()) do
             local payload, err = self._pub_queue:pop()
-
             if not payload then
                 if not is_timeout(err) then
                     return nil, "semaphore wait error: " .. err
@@ -220,7 +223,10 @@ function _M:communicate(premature)
     end)  -- write_thread
 
     local events_thread = spawn(function()
-        while not exiting() do
+        -- TODO: should we process all the queued events before quiting (regards to `restarting` flag)
+        -- Is the queue kept over the restarts? In case node is really shutting down should it process
+        -- all the events in a queue, even those that events itself add?
+        while not (restarting or exiting()) do
             local data, err = self._sub_queue:pop()
 
             if not data then
@@ -246,17 +252,29 @@ function _M:communicate(premature)
         end -- while not exiting
     end)  -- events_thread
 
+    -- wait if any of the threads to quit
     local ok, err, perr = wait(write_thread, read_thread, events_thread)
-
-    kill(write_thread)
-    kill(read_thread)
-    kill(events_thread)
 
     self._connected = nil
 
+    -- stop accepting more events
+    kill(read_thread)
+
     if exiting() then
+        kill(write_thread)
+        kill(events_thread)
         return
     end
+
+    -- let other, still running, threads know that they need
+    -- to quit as soon as possible
+    restarting = true
+
+    -- wait for the write thread and events thread to quit
+    -- as otherwise we may end up missing an event push OR
+    -- executing event not releasing possible locks
+    wait(write_thread)
+    wait(events_thread)
 
     if not ok then
         log(ERR, "event worker failed: ", err)
