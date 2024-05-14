@@ -3,7 +3,6 @@ local cjson = require "cjson.safe"
 local xpcall = xpcall
 local type = type
 local pairs = pairs
-local assert = assert
 local tostring = tostring
 local setmetatable = setmetatable
 local traceback = debug.traceback
@@ -21,34 +20,34 @@ local _M = {
 local _MT = { __index = _M, }
 
 function _M.new()
-    local self = {
+    return setmetatable({
         _callbacks = {},
         _funcs = {},
         _counter = 0,
-    }
-
-    return setmetatable(self, _MT)
+    }, _MT)
 end
 
 local function get_callback_list(self, source, event)
-    local _callbacks = self._callbacks
+    return self._callbacks[source] and self._callbacks[source][event]
+end
 
-    if not _callbacks[source] then
-        _callbacks[source] = {}
+local function prepare_callback_list(self, source, event)
+    local callbacks = self._callbacks
+    if not callbacks[source] then
+        callbacks[source] = {
+            [event] = {}
+        }
+    elseif not callbacks[source][event] then
+        callbacks[source][event] = {}
     end
-
-    if not _callbacks[source][event] then
-        _callbacks[source][event] = {}
-    end
-
-    return _callbacks[source][event]
+    return callbacks[source][event]
 end
 
 -- subscribe('*', '*', func)
 -- subscribe('s', '*', func)
 -- subscribe('s', 'e', func)
 function _M:subscribe(source, event, callback)
-    local list = get_callback_list(self, source, event)
+    local list = prepare_callback_list(self, source, event)
 
     local count = self._counter + 1
     self._counter = count
@@ -66,22 +65,18 @@ function _M:unsubscribe(id)
 end
 
 local function do_handlerlist(funcs, list, source, event, data, wid)
-    local ok, err
+    if not list then
+        return
+    end
 
-    --log(DEBUG, "source=", source, "event=", event)
-
-    for id, _ in pairs(list) do
+    for id in pairs(list) do
         local handler = funcs[id]
-
         if type(handler) ~= "function" then
             list[id] = nil
             goto continue
         end
 
-        assert(type(handler) == "function")
-
-        ok, err = xpcall(handler, traceback, data, event, source, wid)
-
+        local ok, err = xpcall(handler, traceback, data, event, source, wid)
         if not ok then
             local str, e
 
@@ -112,13 +107,12 @@ function _M:do_event(d)
     local wid    = d.wid
 
     log(DEBUG, "worker-events: handling event; source=", source,
-        ", event=", event, ", wid=", wid)
+               ", event=", event, ", wid=", wid)
 
     local funcs = self._funcs
-    local list
 
     -- global callback
-    list = get_callback_list(self, "*", "*")
+    local list = get_callback_list(self, "*", "*")
     do_handlerlist(funcs, list, source, event, data, wid)
 
     -- source callback

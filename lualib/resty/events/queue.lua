@@ -1,6 +1,6 @@
 local semaphore = require "ngx.semaphore"
-
 local table_new = require "table.new"
+
 
 local assert = assert
 local setmetatable = setmetatable
@@ -10,14 +10,16 @@ local math_min = math.min
 local _M = {}
 local _MT = { __index = _M, }
 
-local DEFAULT_QUEUE_LEN = 4096
+
+local MAX_QUEUE_PREALLOCATE = 4096
+
 
 function _M.new(max_len)
     local self = {
         semaphore = assert(semaphore.new()),
         max = max_len,
 
-        elts = table_new(math_min(max_len, DEFAULT_QUEUE_LEN), 0),
+        elts = table_new(math_min(max_len, MAX_QUEUE_PREALLOCATE), 0),
         first = 0,
         last = -1,
     }
@@ -28,7 +30,6 @@ end
 
 function _M:push(item)
     local last = self.last
-
     if last - self.first + 1 >= self.max then
         return nil, "queue overflow"
     end
@@ -50,7 +51,6 @@ function _M:pop()
     end
 
     local first = self.first
-
     if first > self.last then
         return nil, "queue is empty"
     end
@@ -58,7 +58,6 @@ function _M:pop()
     local item = self.elts[first]
     self.elts[first] = nil
     self.first = first + 1
-
     return item
 end
 

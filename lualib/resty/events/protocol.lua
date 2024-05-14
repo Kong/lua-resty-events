@@ -17,10 +17,15 @@ local str_sub = string.sub
 local setmetatable = setmetatable
 
 -- for high traffic pressure
-local DEFAULT_TIMEOUT = 5000     -- 5000ms
+local DEFAULT_TIMEOUT = 5000 -- 5000ms
 
 local function is_timeout(err)
     return err and str_sub(err, -7) == "timeout"
+end
+
+local function is_closed(err)
+    return err and (str_sub(err, -6) == "closed" or
+                    str_sub(err, -11) == "broken pipe")
 end
 
 local function recv_frame(self)
@@ -32,7 +37,6 @@ local function recv_frame(self)
     return _recv_frame(sock)
 end
 
-
 local function send_frame(self, payload)
     local sock = self.sock
     if not sock then
@@ -42,9 +46,9 @@ local function send_frame(self, payload)
     return _send_frame(sock, payload)
 end
 
-
 local _Server = {
     _VERSION = "0.1.0",
+    is_closed = is_closed,
     is_timeout = is_timeout,
     recv_frame = recv_frame,
     send_frame = send_frame,
@@ -52,9 +56,7 @@ local _Server = {
 
 local _SERVER_MT = { __index = _Server, }
 
-
-function _Server.new(self)
-
+function _Server.new()
     if subsystem == "http" then
         if ngx.headers_sent then
             return nil, "response header already sent"
@@ -90,6 +92,7 @@ end
 
 local _Client = {
     _VERSION = "0.1.0",
+    is_closed = is_closed,
     is_timeout = is_timeout,
     recv_frame = recv_frame,
     send_frame = send_frame,
@@ -97,8 +100,7 @@ local _Client = {
 
 local _CLIENT_MT = { __index = _Client, }
 
-
-function _Client.new(self)
+function _Client.new()
     local sock, err = tcp()
     if not sock then
         return nil, err
@@ -111,8 +113,7 @@ function _Client.new(self)
     }, _CLIENT_MT)
 end
 
-
-function _Client.connect(self, addr)
+function _Client:connect(addr)
     local sock = self.sock
     if not sock then
         return nil, "not initialized"
@@ -156,7 +157,6 @@ function _Client.connect(self, addr)
 
     return true
 end
-
 
 return {
     server = _Server,
