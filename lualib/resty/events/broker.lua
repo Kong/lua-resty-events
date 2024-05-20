@@ -1,5 +1,4 @@
 local cjson = require "cjson.safe"
-local nkeys = require "table.nkeys"
 local codec = require "resty.events.codec"
 local lrucache = require "resty.lrucache"
 local queue = require "resty.events.queue"
@@ -9,7 +8,6 @@ local is_closed = server.is_closed
 
 local pairs = pairs
 local setmetatable = setmetatable
-local random = math.random
 
 local ngx = ngx
 local log = ngx.log
@@ -33,30 +31,38 @@ local function terminating(self, worker_connection)
     return self._clients[worker_connection] == nil or exiting()
 end
 
--- broadcast to all/unique workers
-local function broadcast_events(self, unique, data)
-    local n = 0
-
-    -- if unique, schedule to a random worker
-    local idx = unique and random(1, nkeys(self._clients))
-
-    for _, q in pairs(self._clients) do
-
-        -- skip some and broadcast to one workers
-        if unique then
-            idx = idx - 1
-
-            if idx > 0 then
-                goto continue
+local function get_event_data(self, event_data)
+    local unique = event_data.spec.unique
+    if unique then
+        local uniques = self._uniques
+        if uniques:get(unique) then
+            if not exiting() then
+                log(DEBUG, "unique event is duplicate: ", unique)
             end
+
+            return
         end
 
-        local ok, err = q:push(data)
+        uniques:set(unique, 1, self._opts.unique_timeout)
+    end
+    return event_data.data, unique
+end
 
-        if not ok then
+-- broadcast to all/unique workers
+local function broadcast_events(self, event_data)
+    local data, unique = get_event_data(self, event_data)
+    if not data then
+        return
+    end
+
+    local n = 0
+
+    -- pairs is "random" enough for unique
+    for _, client_queue in pairs(self._clients) do
+        local _, err = client_queue:push(data)
+        if err then
             log(ERR, "failed to publish event: ", err, ". ",
                      "data is :", cjson_encode(decode(data)))
-
         else
             n = n + 1
 
@@ -64,9 +70,7 @@ local function broadcast_events(self, unique, data)
                 break
             end
         end
-
-        ::continue::
-    end  -- for q in pairs(_clients)
+    end
 
     log(DEBUG, "event published to ", n, " workers")
 end
@@ -98,19 +102,7 @@ local function read_thread(self, worker_connection)
             goto continue
         end
 
-        -- unique event
-        local unique = event_data.spec.unique
-        if unique then
-            if self._uniques:get(unique) then
-                log(DEBUG, "unique event is duplicate: ", unique)
-                goto continue
-            end
-
-            self._uniques:set(unique, 1, self._opts.unique_timeout)
-        end
-
-        -- broadcast to all/unique workers
-        broadcast_events(self, unique, event_data.data)
+        broadcast_events(self, event_data)
 
         ::continue::
     end -- while not terminating
