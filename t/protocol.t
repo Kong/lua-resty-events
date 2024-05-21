@@ -7,7 +7,7 @@ use Test::Nginx::Socket::Lua;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 9) - 6;
+plan tests => repeat_each() * (blocks() * 9) - 4;
 
 $ENV{TEST_NGINX_HTML_DIR} ||= html_dir();
 
@@ -33,6 +33,7 @@ __DATA__
                 end
 
                 ngx.log(ngx.DEBUG, "Upgrade: ", ngx.var.http_upgrade)
+                ngx.log(ngx.DEBUG, "Worker ID: ", conn.info.id)
 
                 local data, err = conn:recv_frame()
                 if not data or err then
@@ -84,6 +85,7 @@ GET /test
 world
 --- error_log
 Upgrade: Kong-Worker-Events/1
+Worker ID: 0
 srv recv data: hello
 srv send data: world
 cli recv len: 5
@@ -122,5 +124,3 @@ addr is nginx.sock
 [error]
 [crit]
 [alert]
-
-

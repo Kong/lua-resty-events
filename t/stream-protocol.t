@@ -7,7 +7,7 @@ use Test::Nginx::Socket::Lua;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 9) - 8;
+plan tests => repeat_each() * (blocks() * 9) - 4;
 
 $ENV{TEST_NGINX_HTML_DIR} ||= html_dir();
 
@@ -32,6 +32,7 @@ __DATA__
                     return
                 end
 
+                ngx.log(ngx.DEBUG, "Worker ID: ", conn.info.id)
                 ngx.log(ngx.DEBUG, "stream connect ok")
 
                 local data, err = conn:recv_frame()
@@ -106,6 +107,8 @@ GET /test
 --- response_body
 world
 --- error_log
+Worker ID: 0
+stream connect ok
 srv recv data: hello
 srv send data: world
 cli recv len: 5
@@ -168,5 +171,3 @@ addr is nginx.sock
 [error]
 [crit]
 [alert]
-
-

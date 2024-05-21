@@ -1,9 +1,14 @@
 local frame = require "resty.events.frame"
+local codec = require "resty.events.codec"
 
 local _recv_frame = frame.recv
 local _send_frame = frame.send
+local encode = codec.encode
+local decode = codec.decode
 
 local ngx = ngx
+local worker_id = ngx.worker.id
+local worker_pid = ngx.worker.pid
 local tcp = ngx.socket.tcp
 local re_match = ngx.re.match
 local req_sock = ngx.req.socket
@@ -18,6 +23,10 @@ local setmetatable = setmetatable
 
 -- for high traffic pressure
 local DEFAULT_TIMEOUT = 5000 -- 5000ms
+local WORKER_INFO = {
+    id = 0,
+    pid = 0,
+}
 
 local function is_timeout(err)
     return err and str_sub(err, -7) == "timeout"
@@ -83,11 +92,21 @@ function _Server.new()
 
     sock:settimeout(DEFAULT_TIMEOUT)
 
+    local data, err = _recv_frame(sock)
+    if err then
+        return nil, "failed to read worker info: " .. err
+    end
+
+    local info, err = decode(data)
+    if err then
+        return nil, "invalid worker info received: " .. err
+    end
+
     return setmetatable({
+        info = info,
         sock = sock,
     }, _SERVER_MT)
 end
-
 
 local _Client = {
     is_closed = is_closed,
@@ -152,6 +171,14 @@ function _Client:connect(addr)
             return nil, "bad HTTP response status line: " .. header
         end
     end -- subsystem == "http"
+
+    WORKER_INFO.id = worker_id() or -1
+    WORKER_INFO.pid = worker_pid()
+
+    local _, err = _send_frame(sock, encode(WORKER_INFO))
+    if err then
+        return nil, "failed to send worker info: " .. err
+    end
 
     return true
 end
