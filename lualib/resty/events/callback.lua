@@ -3,7 +3,6 @@ local cjson = require "cjson.safe"
 local xpcall = xpcall
 local type = type
 local pairs = pairs
-local assert = assert
 local tostring = tostring
 local setmetatable = setmetatable
 local traceback = debug.traceback
@@ -77,8 +76,6 @@ local function do_handlerlist(funcs, list, source, event, data, wid)
             list[id] = nil
             goto continue
         end
-
-        assert(type(handler) == "function")
 
         ok, err = xpcall(handler, traceback, data, event, source, wid)
 
