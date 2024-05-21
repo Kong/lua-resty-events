@@ -72,8 +72,25 @@ local function communicate(premature, self)
     self:communicate()
 end
 
-local function start_timer(self, delay)
+local function process_events(premature, self)
+    if premature then
+        return
+    end
+
+    self:process_events()
+end
+
+local function start_communicate_timer(self, delay)
     assert(timer_at(delay, communicate, self))
+end
+
+local function start_process_events_timer(self)
+    assert(timer_at(0, process_events, self))
+end
+
+local function start_timers(self)
+    start_communicate_timer(self, 0)
+    start_process_events_timer(self)
 end
 
 local function terminating(self)
@@ -185,7 +202,7 @@ local function write_thread(self, broker_connection)
 end
 
 local function events_thread(self)
-    while not terminating(self) do
+    while not exiting() do
         local data, err = self._sub_queue:pop()
         if err then
             if not is_timeout(err) then
@@ -203,7 +220,7 @@ local function events_thread(self)
         sleep(0)
 
         ::continue::
-    end -- while not terminating
+    end -- while not exiting
 
     return true
 end
@@ -221,7 +238,7 @@ function _M:communicate()
         log(DEBUG, "unix domain sock(", listening, ") is not ready")
 
         -- try to reconnect broker, avoid crit error log
-        start_timer(self, 0.002)
+        start_communicate_timer(self, 0.002)
         return
     end
 
@@ -237,7 +254,7 @@ function _M:communicate()
         log(ERR, "failed to connect: ", err)
 
         -- try to reconnect broker
-        start_timer(self, random_delay())
+        start_communicate_timer(self, random_delay())
 
         return
     end
@@ -248,16 +265,14 @@ function _M:communicate()
 
     local read_thread_co = spawn(read_thread, self, broker_connection)
     local write_thread_co = spawn(write_thread, self, broker_connection)
-    local events_thread_co = spawn(events_thread, self)
 
-    local ok, err, perr = wait(read_thread_co, write_thread_co, events_thread_co)
+    local ok, err, perr = wait(read_thread_co, write_thread_co)
 
     self._connected = nil
 
     if exiting() then
         kill(read_thread_co)
         kill(write_thread_co)
-        kill(events_thread_co)
         return
     end
 
@@ -271,15 +286,32 @@ function _M:communicate()
 
     wait(read_thread_co)
     wait(write_thread_co)
-    wait(events_thread_co)
 
-    start_timer(self, random_delay())
+    start_communicate_timer(self, random_delay())
+end
+
+function _M:process_events()
+    local events_thread_co = spawn(events_thread, self)
+    local ok, err, perr = wait(events_thread_co)
+    if exiting() then
+        return
+    end
+
+    if not ok then
+        log(ERR, "event worker failed: ", err)
+    end
+
+    if perr then
+        log(ERR, "event worker failed: ", perr)
+    end
+
+    start_process_events_timer(self)
 end
 
 function _M:init()
     assert(self._opts)
 
-    start_timer(self, 0)
+    start_timers(self)
 
     return true
 end
