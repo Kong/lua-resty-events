@@ -42,7 +42,7 @@ __DATA__
         assert(not ev:is_ready())
 
         ev:subscribe("*", "*", function(data, event, source, wid)
-            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
                     ", data=", data)
                 end)
 
@@ -55,9 +55,9 @@ __DATA__
 
             assert(ev:is_ready())
 
-            ev:publish("all", "content_by_lua","request1","01234567890")
-            ev:publish("current", "content_by_lua","request2","01234567890")
-            ev:publish("all", "content_by_lua","request3","01234567890")
+            ev:publish("all", "content_by_lua", "request1", "01234567890")
+            ev:publish("current", "content_by_lua", "request2", "01234567890")
+            ev:publish("all", "content_by_lua", "request3", "01234567890")
 
             ngx.say("ok")
         }
@@ -80,6 +80,7 @@ worker-events: handling event; source=content_by_lua, event=request2, wid=nil
 worker-events: handler event;  source=content_by_lua, event=request2, wid=nil, data=01234567890
 worker-events: handling event; source=content_by_lua, event=request3, wid=nil
 worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, data=01234567890$/
+
 
 
 === TEST 2: worker.events handling remote events
@@ -105,7 +106,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, d
         assert(not ev:is_ready())
 
         ev:subscribe("*", "*", function(data, event, source, wid)
-            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
                     ", data=", tostring(data))
                 end)
 
@@ -118,9 +119,9 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, d
 
             assert(ev:is_ready())
 
-            ev:publish("all", "content_by_lua","request1","01234567890")
-            ev:publish("current", "content_by_lua","request2","01234567890")
-            ev:publish("all", "content_by_lua","request3","01234567890")
+            ev:publish("all", "content_by_lua", "request1", "01234567890")
+            ev:publish("current", "content_by_lua", "request2", "01234567890")
+            ev:publish("all", "content_by_lua", "request3", "01234567890")
 
             ngx.say("ok")
         }
@@ -143,6 +144,7 @@ worker-events: handling event; source=content_by_lua, event=request2, wid=nil
 worker-events: handler event;  source=content_by_lua, event=request2, wid=nil, data=01234567890
 worker-events: handling event; source=content_by_lua, event=request3, wid=nil
 worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, data=01234567890$/
+
 
 
 === TEST 3: worker.events 'one' being done, and only once
@@ -169,7 +171,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, d
         assert(not ev:is_ready())
 
         ev:subscribe("*", "*", function(data, event, source, wid)
-            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
                     ", data=", tostring(data))
                 end)
 
@@ -182,15 +184,15 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, d
 
             assert(ev:is_ready())
 
-            ev:publish("all", "content_by_lua","request1","01234567890")
-            ev:publish("unique_value", "content_by_lua","request2","01234567890")
-            ev:publish("unique_value", "content_by_lua","request3","01234567890")
+            ev:publish("all", "content_by_lua", "request1", "01234567890")
+            ev:publish("unique_value", "content_by_lua", "request2", "01234567890")
+            ev:publish("unique_value", "content_by_lua", "request3", "01234567890")
 
             ngx.sleep(0.1) -- wait for unique timeout to expire
 
-            ev:publish("unique_value", "content_by_lua","request4","01234567890")
-            ev:publish("unique_value", "content_by_lua","request5","01234567890")
-            ev:publish("all", "content_by_lua","request6","01234567890")
+            ev:publish("unique_value", "content_by_lua", "request4", "01234567890")
+            ev:publish("unique_value", "content_by_lua", "request5", "01234567890")
+            ev:publish("all", "content_by_lua", "request6", "01234567890")
 
             ngx.say("ok")
         }
@@ -221,6 +223,7 @@ worker-events: handling event; source=content_by_lua, event=request6, wid=nil
 worker-events: handler event;  source=content_by_lua, event=request6, wid=nil, data=01234567890$/
 
 
+
 === TEST 4: publish events at anywhere
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
@@ -237,11 +240,11 @@ worker-events: handler event;  source=content_by_lua, event=request6, wid=nil, d
         end
 
         ev:subscribe("*", "*", function(data, event, source, wid)
-            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
                     ", data=", tostring(data))
                 end)
 
-        ev:publish("all", "content_by_lua","request1","01234567890")
+        ev:publish("all", "content_by_lua", "request1", "01234567890")
 
         local ok, err = ev:init_worker()
         if not ok then
@@ -250,9 +253,9 @@ worker-events: handler event;  source=content_by_lua, event=request6, wid=nil, d
 
         assert(not ev:is_ready())
 
-        ev:publish("current", "content_by_lua","request2","01234567890")
+        ev:publish("current", "content_by_lua", "request2", "01234567890")
 
-        ev:publish("all", "content_by_lua","request3","01234567890")
+        ev:publish("all", "content_by_lua", "request3", "01234567890")
 
         _G.ev = ev
     }
@@ -280,5 +283,3 @@ worker-events: handling event; source=content_by_lua, event=request2, wid=nil
 worker-events: handler event;  source=content_by_lua, event=request2, wid=nil, data=01234567890
 worker-events: handling event; source=content_by_lua, event=request3, wid=nil
 worker-events: handler event;  source=content_by_lua, event=request3, wid=nil, data=01234567890$/
-
-

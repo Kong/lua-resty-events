@@ -37,7 +37,7 @@ __DATA__
         assert(ev.configured())
 
         ev.register(function(data, event, source, wid)
-            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
                     ", data=", data)
                 end)
     }
@@ -55,9 +55,9 @@ __DATA__
         content_by_lua_block {
             local ev = require "resty.events.compat"
 
-            ev.post("content_by_lua","request1","01234567890")
-            ev.post_local("content_by_lua","request2","01234567890")
-            ev.post("content_by_lua","request3","01234567890")
+            ev.post("content_by_lua", "request1", "01234567890")
+            ev.post_local("content_by_lua", "request2", "01234567890")
+            ev.post("content_by_lua", "request3", "01234567890")
 
             ngx.say("ok")
         }
@@ -80,6 +80,7 @@ worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
 worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
 worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
 worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=01234567890$/
+
 
 
 === TEST 2: worker.events handling remote events
@@ -100,7 +101,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
         assert(ev.configured())
 
         ev.register(function(data, event, source, wid)
-            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
                     ", data=", tostring(data))
                 end)
     }
@@ -118,9 +119,9 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
         content_by_lua_block {
             local ev = require "resty.events.compat"
 
-            ev.post("content_by_lua","request1","01234567890")
-            ev.post_local("content_by_lua","request2","01234567890")
-            ev.post("content_by_lua","request3","01234567890")
+            ev.post("content_by_lua", "request1", "01234567890")
+            ev.post_local("content_by_lua", "request2", "01234567890")
+            ev.post("content_by_lua", "request3", "01234567890")
 
             ngx.say("ok")
         }
@@ -143,6 +144,7 @@ worker-events: handling event; source=content_by_lua, event=request1, wid=\d+
 worker-events: handler event;  source=content_by_lua, event=request1, wid=\d+, data=01234567890
 worker-events: handling event; source=content_by_lua, event=request3, wid=\d+
 worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, data=01234567890$/
+
 
 
 === TEST 3: worker.events 'one' being done, and only once
@@ -164,7 +166,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
         assert(ev.configured())
 
         ev.register(function(data, event, source, wid)
-            ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+            ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
                     ", data=", tostring(data))
                 end)
     }
@@ -182,15 +184,15 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
         content_by_lua_block {
             local ev = require "resty.events.compat"
 
-            ev.post("content_by_lua","request1","01234567890")
-            ev.post("content_by_lua","request2","01234567890", "unique_value")
-            ev.post("content_by_lua","request3","01234567890", "unique_value")
+            ev.post("content_by_lua", "request1", "01234567890")
+            ev.post("content_by_lua", "request2", "01234567890", "unique_value")
+            ev.post("content_by_lua", "request3", "01234567890", "unique_value")
 
             ngx.sleep(0.1) -- wait for unique timeout to expire
 
-            ev.post("content_by_lua","request4","01234567890", "unique_value")
-            ev.post("content_by_lua","request5","01234567890", "unique_value")
-            ev.post("content_by_lua","request6","01234567890")
+            ev.post("content_by_lua", "request4", "01234567890", "unique_value")
+            ev.post("content_by_lua", "request5", "01234567890", "unique_value")
+            ev.post("content_by_lua", "request6", "01234567890")
 
             ngx.say("ok")
         }
@@ -216,6 +218,3 @@ worker-events: handling event; source=content_by_lua, event=request4, wid=\d+
 worker-events: handler event;  source=content_by_lua, event=request4, wid=\d+, data=01234567890
 worker-events: handling event; source=content_by_lua, event=request6, wid=\d+
 worker-events: handler event;  source=content_by_lua, event=request6, wid=\d+, data=01234567890$/
-
-
-

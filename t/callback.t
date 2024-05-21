@@ -19,7 +19,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: registering and unsubscribeing event handlers at different levels
+=== TEST 1: registering and unsubscribing event handlers at different levels
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
 --- config
@@ -29,7 +29,7 @@ __DATA__
 
             local wid = ngx.worker.id()
             local cb = function(extra, data, event, source, wid)
-                ngx.log(ngx.DEBUG, "worker-events: handler event;  ","source=",source,", event=",event, ", wid=", wid,
+                ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
                         ", data=", data, ", callback=",extra)
             end
 
@@ -48,36 +48,36 @@ __DATA__
                 ec:do_event({source = s, event = e, data = d, wid = wid})
             end
 
-            post("content_by_lua","request1","123")
-            post("content_by_lua","request2","123")
-            post("content_by_lua","request3","123")
+            post("content_by_lua", "request1", "123")
+            post("content_by_lua", "request2", "123")
+            post("content_by_lua", "request3", "123")
 
             --ec.unsubscribe("*", "*")
             ec:unsubscribe(id1)
 
-            post("content_by_lua","request1","124")
-            post("content_by_lua","request2","124")
-            post("content_by_lua","request3","124")
+            post("content_by_lua", "request1", "124")
+            post("content_by_lua", "request2", "124")
+            post("content_by_lua", "request3", "124")
 
             --ec:unsubscribe("content_by_lua", "*")
             ec:unsubscribe(id2)
 
-            post("content_by_lua","request1","125")
-            post("content_by_lua","request2","125")
-            post("content_by_lua","request3","125")
+            post("content_by_lua", "request1", "125")
+            post("content_by_lua", "request2", "125")
+            post("content_by_lua", "request3", "125")
 
             ec:unsubscribe(id3)
             ec:unsubscribe(id4)
 
-            post("content_by_lua","request1","126")
-            post("content_by_lua","request2","126")
-            post("content_by_lua","request3","126")
+            post("content_by_lua", "request1", "126")
+            post("content_by_lua", "request2", "126")
+            post("content_by_lua", "request3", "126")
 
             ec:unsubscribe(id5)
 
-            post("content_by_lua","request1","127")
-            post("content_by_lua","request2","127")
-            post("content_by_lua","request3","127")
+            post("content_by_lua", "request1", "127")
+            post("content_by_lua", "request2", "127")
+            post("content_by_lua", "request3", "127")
 
             ngx.say("ok")
         }
@@ -128,6 +128,7 @@ worker-events: handling event; source=content_by_lua, event=request2, wid=\d+
 worker-events: handling event; source=content_by_lua, event=request3, wid=\d+$/
 
 
+
 === TEST 2: callback error handling
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
@@ -150,7 +151,7 @@ worker-events: handling event; source=content_by_lua, event=request3, wid=\d+$/
 
             -- non-serializable test data containing a function value
             -- use "nil" as data, reproducing issue #5
-            post("content_by_lua","test_event", nil)
+            post("content_by_lua", "test_event", nil)
 
             ngx.say("ok")
         }
@@ -165,6 +166,7 @@ something went wrong here!
 [crit]
 [alert]
 [emerg]
+
 
 
 === TEST 3: callback error stacktrace
@@ -190,7 +192,7 @@ something went wrong here!
             end
 
             ec:subscribe("*", "*", test_callback)
-            post("content_by_lua","test_event")
+            post("content_by_lua", "test_event")
 
             ngx.say("ok")
         }
@@ -207,5 +209,3 @@ in function 'in_between'
 [crit]
 [alert]
 [emerg]
-
-
