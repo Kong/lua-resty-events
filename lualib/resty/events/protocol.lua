@@ -47,7 +47,6 @@ local function send_frame(self, payload)
 end
 
 local _Server = {
-    _VERSION = "0.1.0",
     is_closed = is_closed,
     is_timeout = is_timeout,
     recv_frame = recv_frame,
@@ -91,7 +90,6 @@ end
 
 
 local _Client = {
-    _VERSION = "0.1.0",
     is_closed = is_closed,
     is_timeout = is_timeout,
     recv_frame = recv_frame,

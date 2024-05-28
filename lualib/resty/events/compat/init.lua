@@ -14,7 +14,7 @@ local handlers = {}
 local _configured
 
 local _M = {
-    _VERSION = '0.1.0',
+    _VERSION = "0.1.0",
 }
 
 function _M.poll()
@@ -29,7 +29,6 @@ function _M.configure(opts)
     ev = require("resty.events").new(opts)
 
     local ok, err = ev:init_worker()
-
     if not ok then
         return nil, err
     end
@@ -49,7 +48,6 @@ end
 
 _M.post = function(source, event, data, unique)
     local ok, err = ev:publish(unique or "all", source, event, data)
-
     if not ok then
         return nil, err
     end
@@ -59,7 +57,6 @@ end
 
 _M.post_local = function(source, event, data)
     local ok, err = ev:publish("current", source, event, data)
-
     if not ok then
         return nil, err
     end
@@ -69,19 +66,16 @@ end
 
 _M.register = function(callback, source, event, ...)
     local events = {event or "*", ...}
-
     for _, e in ipairs(events) do
         local id = ev:subscribe(source or "*", e or "*", callback)
-
         handlers[callback] = id
     end
 end
 
 _M.register_weak = _M.register
 
-_M.unregister = function(callback, source, ...)
+_M.unregister = function(callback)
     local id = handlers[callback]
-
     if not id then
         return
     end

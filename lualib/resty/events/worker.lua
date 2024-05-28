@@ -53,9 +53,7 @@ local PAYLOAD_T = {
 --local _worker_pid = ngx.worker.pid()
 local _worker_id = ngx.worker.id() or -1
 
-local _M = {
-    _VERSION = '0.2.0',
-}
+local _M = {}
 local _MT = { __index = _M, }
 
 -- gen a random number [0.01, 0.05]
