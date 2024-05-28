@@ -14,9 +14,7 @@ local assert = assert
 local tostring = tostring
 
 
-local _M = {
-    _VERSION = "0.2.0",
-}
+local _M = {}
 
 
 -- frame format: Len(3 bytes) + Payload(max to 2^24 - 1 bytes)

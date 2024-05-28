@@ -140,10 +140,7 @@ local function write_thread(self, worker_connection)
     return true
 end
 
-local _M = {
-    _VERSION = '0.1.3',
-}
-
+local _M = {}
 local _MT = { __index = _M, }
 
 function _M.new(opts)
