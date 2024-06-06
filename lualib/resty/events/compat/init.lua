@@ -1,5 +1,4 @@
 -- compatible with lua-resty-worker-events 1.0.0
-local events = require("resty.events")
 
 local ev
 
@@ -15,7 +14,7 @@ local handlers = {}
 local _configured
 
 local _M = {
-    _VERSION = events._VERSION,
+    _VERSION = "0.1.0",
 }
 
 function _M.poll()
@@ -27,7 +26,7 @@ function _M.poll()
 end
 
 function _M.configure(opts)
-    ev = events.new(opts)
+    ev = require("resty.events").new(opts)
 
     local ok, err = ev:init_worker()
     if not ok then
