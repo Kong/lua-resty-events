@@ -121,6 +121,7 @@ unix ok #1
 [alert]
 
 
+
 === TEST 3: disable unix domain socket with wrong name
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";

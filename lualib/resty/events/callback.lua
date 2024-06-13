@@ -1,5 +1,6 @@
 local cjson = require "cjson.safe"
 
+
 local xpcall = xpcall
 local type = type
 local pairs = pairs
@@ -7,27 +8,24 @@ local tostring = tostring
 local setmetatable = setmetatable
 local traceback = debug.traceback
 
+
 local ngx = ngx
 local log = ngx.log
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
 
+
 local encode = cjson.encode
 
-local _M = {}
-local _MT = { __index = _M, }
 
-function _M.new()
-    return setmetatable({
-        _callbacks = {},
-        _funcs = {},
-        _counter = 0,
-    }, _MT)
-end
+local _MT = {}
+_MT.__index = _MT
+
 
 local function get_callback_list(self, source, event)
     return self._callbacks[source] and self._callbacks[source][event]
 end
+
 
 local function prepare_callback_list(self, source, event)
     local callbacks = self._callbacks
@@ -41,26 +39,6 @@ local function prepare_callback_list(self, source, event)
     return callbacks[source][event]
 end
 
--- subscribe('*', '*', func)
--- subscribe('s', '*', func)
--- subscribe('s', 'e', func)
-function _M:subscribe(source, event, callback)
-    local list = prepare_callback_list(self, source, event)
-
-    local count = self._counter + 1
-    self._counter = count
-
-    local id = tostring(count)
-
-    self._funcs[id] = callback
-    list[id] = true
-
-    return id
-end
-
-function _M:unsubscribe(id)
-    self._funcs[tostring(id)] = nil
-end
 
 local function do_handlerlist(funcs, list, source, event, data, wid)
     if not list then
@@ -89,16 +67,40 @@ local function do_handlerlist(funcs, list, source, event, data, wid)
             end
 
             log(ERR, "worker-events: event callback failed; source=", source,
-                     ", event=", event,", wid=", wid, " error='", tostring(err),
-                     "', data=", str)
+                    ", event=", event,", wid=", wid, " error='", tostring(err),
+                    "', data=", str)
         end
 
         ::continue::
     end
 end
 
+
+-- subscribe('*', '*', func)
+-- subscribe('s', '*', func)
+-- subscribe('s', 'e', func)
+function _MT:subscribe(source, event, callback)
+    local list = prepare_callback_list(self, source, event)
+
+    local count = self._counter + 1
+    self._counter = count
+
+    local id = tostring(count)
+
+    self._funcs[id] = callback
+    list[id] = true
+
+    return id
+end
+
+
+function _MT:unsubscribe(id)
+    self._funcs[tostring(id)] = nil
+end
+
+
 -- Handle incoming table based event
-function _M:do_event(d)
+function _MT:do_event(d)
     local source = d.source
     local event  = d.event
     local data   = d.data
@@ -121,5 +123,20 @@ function _M:do_event(d)
     list = get_callback_list(self, source, event)
     do_handlerlist(funcs, list, source, event, data, wid)
 end
+
+
+local _M = {}
+
+
+function _M.new()
+    local self = setmetatable({
+        _callbacks = {},
+        _funcs = {},
+        _counter = 0,
+    }, _MT)
+
+    return self
+end
+
 
 return _M

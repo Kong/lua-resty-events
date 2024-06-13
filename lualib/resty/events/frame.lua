@@ -10,16 +10,12 @@ local rshift = bit.rshift
 
 
 local type = type
+local error = error
 local assert = assert
 local tostring = tostring
 
 
-local _M = {}
-
-
 -- frame format: Len(3 bytes) + Payload(max to 2^24 - 1 bytes)
-
-
 local UINT_HEADER_LEN = 3
 local MAX_PAYLOAD_LEN = 2^24 - 1    -- 16MB
 
@@ -48,6 +44,26 @@ local function bytes_to_uint(str)
 end
 
 
+local function validate(payload)
+    if type(payload) ~= "string" then
+        return nil, "payload must be string"
+    end
+
+    local payload_len = #payload
+
+    if payload_len > MAX_PAYLOAD_LEN then
+        return nil, "payload too big"
+    end
+
+    return payload_len
+end
+
+
+local _M = {
+    validate = validate,
+}
+
+
 function _M.recv(sock)
     local data, err = sock:receive(UINT_HEADER_LEN)
     if not data then
@@ -63,22 +79,6 @@ function _M.recv(sock)
 
     return data
 end
-
-
-local function validate(payload)
-    if type(payload) ~= "string" then
-        return nil, "payload must be string"
-    end
-
-    local payload_len = #payload
-
-    if payload_len > MAX_PAYLOAD_LEN then
-        return nil, "payload too big"
-    end
-
-    return payload_len
-end
-_M.validate = validate
 
 
 function _M.send(sock, payload)

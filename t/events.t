@@ -322,7 +322,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
     location = /test {
         content_by_lua_block {
             local function trim(str)
-                return string.sub(str, #"lualib/resty/events/init.lua:62: " + 1)
+                return string.sub(str, #"lualib/resty/events/init.lua:146: " + 1)
             end
 
             local ev = require("resty.events")
@@ -383,9 +383,9 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 --- request
 GET /test
 --- response_body
-"worker_id" option must be a number
-"worker_id" option is invalid
-"worker_id" option is invalid
+"broker_id" option must be a number
+"broker_id" option is invalid
+"broker_id" option is invalid
 "listening" option required to start
 "listening" option must be a string
 "listening" option must start with unix:

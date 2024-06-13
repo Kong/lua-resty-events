@@ -1,10 +1,12 @@
 local frame = require "resty.events.frame"
 local codec = require "resty.events.codec"
 
+
 local _recv_frame = frame.recv
 local _send_frame = frame.send
 local encode = codec.encode
 local decode = codec.decode
+
 
 local ngx = ngx
 local worker_id = ngx.worker.id
@@ -17,9 +19,11 @@ local send_headers = ngx.send_headers
 local flush = ngx.flush
 local subsystem = ngx.config.subsystem
 
+
 local type = type
 local str_sub = string.sub
 local setmetatable = setmetatable
+
 
 -- for high traffic pressure
 local DEFAULT_TIMEOUT = 5000 -- 5000ms
@@ -28,14 +32,17 @@ local WORKER_INFO = {
     pid = 0,
 }
 
+
 local function is_timeout(err)
     return err and str_sub(err, -7) == "timeout"
 end
+
 
 local function is_closed(err)
     return err and (str_sub(err, -6) == "closed" or
                     str_sub(err, -11) == "broken pipe")
 end
+
 
 local function recv_frame(self)
     local sock = self.sock
@@ -46,6 +53,7 @@ local function recv_frame(self)
     return _recv_frame(sock)
 end
 
+
 local function send_frame(self, payload)
     local sock = self.sock
     if not sock then
@@ -55,16 +63,21 @@ local function send_frame(self, payload)
     return _send_frame(sock, payload)
 end
 
-local _Server = {
-    is_closed = is_closed,
-    is_timeout = is_timeout,
+
+local _SERVER_MT = {
     recv_frame = recv_frame,
     send_frame = send_frame,
 }
+_SERVER_MT.__index = _SERVER_MT
 
-local _SERVER_MT = { __index = _Server, }
 
-function _Server.new()
+local _SERVER = {
+    is_closed = is_closed,
+    is_timeout = is_timeout,
+}
+
+
+function _SERVER.new()
     if subsystem == "http" then
         if ngx.headers_sent then
             return nil, "response header already sent"
@@ -102,35 +115,23 @@ function _Server.new()
         return nil, "invalid worker info received: " .. err
     end
 
-    return setmetatable({
+    local self = setmetatable({
         info = info,
         sock = sock,
     }, _SERVER_MT)
+
+    return self
 end
 
-local _Client = {
-    is_closed = is_closed,
-    is_timeout = is_timeout,
+
+local _CLIENT_MT = {
     recv_frame = recv_frame,
     send_frame = send_frame,
 }
+_CLIENT_MT.__index = _CLIENT_MT
 
-local _CLIENT_MT = { __index = _Client, }
 
-function _Client.new()
-    local sock, err = tcp()
-    if not sock then
-        return nil, err
-    end
-
-    sock:settimeout(DEFAULT_TIMEOUT)
-
-    return setmetatable({
-        sock = sock,
-    }, _CLIENT_MT)
-end
-
-function _Client:connect(addr)
+function _CLIENT_MT:connect(addr)
     local sock = self.sock
     if not sock then
         return nil, "not initialized"
@@ -183,7 +184,45 @@ function _Client:connect(addr)
     return true
 end
 
+
+function _CLIENT_MT:close()
+    local sock = self.sock
+    if not sock then
+        return nil, "not initialized"
+    end
+
+    local ok, err = sock:close()
+    if not ok then
+        return nil, err
+    end
+
+    return true
+end
+
+
+local _CLIENT = {
+    is_closed = is_closed,
+    is_timeout = is_timeout,
+}
+
+
+function _CLIENT.new()
+    local sock, err = tcp()
+    if not sock then
+        return nil, err
+    end
+
+    sock:settimeout(DEFAULT_TIMEOUT)
+
+    local self = setmetatable({
+        sock = sock,
+    }, _CLIENT_MT)
+
+    return self
+end
+
+
 return {
-    server = _Server,
-    client = _Client,
+    server = _SERVER,
+    client = _CLIENT,
 }

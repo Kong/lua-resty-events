@@ -3,13 +3,17 @@ require "resty.core.base" -- for ngx_str_t
 local ffi = require "ffi"
 local C = ffi.C
 
+
 local NGX_OK = ngx.OK
+
 
 ffi.cdef[[
     int ngx_lua_ffi_disable_listening_unix_socket(ngx_str_t *sock_name);
 ]]
 
+
 local sock_name_str = ffi.new("ngx_str_t[1]")
+
 
 return function(sock_name)
     sock_name_str[0].data = sock_name
@@ -23,4 +27,3 @@ return function(sock_name)
 
     return true
 end
-

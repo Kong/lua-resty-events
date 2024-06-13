@@ -95,6 +95,7 @@ cli recv len: 5
 [alert]
 
 
+
 === TEST 2: client checks unix prefix
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";

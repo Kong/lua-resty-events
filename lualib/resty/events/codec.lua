@@ -7,9 +7,10 @@ end
 
 
 local options = {
-  dict = { "spec", "data",
-           "source", "event", "wid", "unique",
-         },
+  dict = {
+    "spec", "data",
+    "source", "event", "wid", "unique",
+  },
 }
 
 
