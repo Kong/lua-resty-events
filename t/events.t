@@ -239,7 +239,7 @@ GET /test
 ok
 --- error_log
 event published to 1 workers
-unique event is duplicate: unique_value
+unique event is duplicate on worker #0: unique_value
 --- no_error_log
 [error]
 [crit]
@@ -395,6 +395,10 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
             local ok, err = pcall(ev.new, {listening = "unix:x", max_payload_len = 2^24 + 1})
             assert(not ok)
             ngx.say(trim(err))
+
+            local ok, err = pcall(ev.new, {listening = "unix:x", enable_privileged_agent = "invalid"})
+            assert(not ok)
+            ngx.say(trim(err))
         }
     }
 --- request
@@ -413,6 +417,7 @@ optional "unique_timeout" option must be a number
 "max_payload_len" option must be a number
 "max_payload_len" option is invalid
 "max_payload_len" option is invalid
+"enable_privileged_agent" option must be a boolean
 --- no_error_log
 [error]
 [crit]

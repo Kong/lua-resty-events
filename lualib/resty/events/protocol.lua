@@ -10,7 +10,6 @@ local ngx = ngx
 local worker_id = ngx.worker.id
 local worker_pid = ngx.worker.pid
 local tcp = ngx.socket.tcp
-local re_match = ngx.re.match
 local req_sock = ngx.req.socket
 local ngx_header = ngx.header
 local send_headers = ngx.send_headers
@@ -19,6 +18,7 @@ local subsystem = ngx.config.subsystem
 
 local type = type
 local str_sub = string.sub
+local str_find = string.find
 local setmetatable = setmetatable
 
 -- for high traffic pressure
@@ -76,7 +76,7 @@ function _Server.new()
 
         local ok, err = send_headers()
         if not ok then
-            return nil, "failed to send response header: " .. (err or "unknonw")
+            return nil, "failed to send response header: " .. (err or "unknown")
         end
 
         ok, err = flush(true)
@@ -166,8 +166,7 @@ function _Client:connect(addr)
             return nil, "failed to receive response header: " .. err
         end
 
-        local m, _ = re_match(header, [[^\s*HTTP/1\.1\s+]], "jo")
-        if not m then
+        if str_find(header, "HTTP/1.1 ", nil, true) ~= 1 then
             return nil, "bad HTTP response status line: " .. header
         end
     end -- subsystem == "http"

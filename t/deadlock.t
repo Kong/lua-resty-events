@@ -11,7 +11,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: posting events and handling events, broadcast
+=== TEST 1: do not prematurely kill the running events which may lead to a deadlock
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
     lua_shared_dict dict 1m;
@@ -85,7 +85,6 @@ __DATA__
                 sema:post()
             end)
         end
-
 
         -- These tests are left to be enabled when we get this reliable (needs more reliability fixes in lib):
         --if id == 0 or id == 1 then
