@@ -29,11 +29,11 @@ local function check_options(opts)
     opts.broker_id = opts.broker_id or 0
 
     if type(opts.broker_id) ~= "number" then
-        return nil, '"worker_id" option must be a number'
+        return nil, '"broker_id" option must be a number'
     end
 
     if opts.broker_id < 0 or opts.broker_id >= worker_count then
-        return nil, '"worker_id" option is invalid'
+        return nil, '"broker_id" option is invalid'
     end
 
     if not opts.listening then
