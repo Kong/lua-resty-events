@@ -17,8 +17,6 @@ __DATA__
     lua_shared_dict dict 1m;
     init_by_lua_block {
         require("ngx.process").enable_privileged_agent(4096)
-    }
-    init_worker_by_lua_block {
         local opts = {
             broker_id = 2,
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
@@ -29,6 +27,10 @@ __DATA__
             ngx.log(ngx.ERR, "failed to new events")
         end
 
+        _G.ev = ev
+    }
+    init_worker_by_lua_block {
+        local ev = _G.ev
         local ok, err = ev:init_worker()
         if not ok then
             ngx.log(ngx.ERR, "failed to init_worker events: ", err)
