@@ -52,6 +52,3 @@ booleantrue
 [error]
 [crit]
 [alert]
-
-
-

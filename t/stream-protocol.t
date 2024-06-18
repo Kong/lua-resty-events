@@ -115,6 +115,7 @@ cli recv len: 5
 [alert]
 
 
+
 === TEST 2: client checks unix prefix
 --- main_config
     stream {
@@ -168,5 +169,3 @@ addr is nginx.sock
 [error]
 [crit]
 [alert]
-
-

@@ -22,7 +22,7 @@ __DATA__
 === TEST 1: posting events and handling events, broadcast
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
-    init_worker_by_lua_block {
+    init_by_lua_block {
         local opts = {
             broker_id = 3,
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
@@ -33,6 +33,10 @@ __DATA__
             ngx.log(ngx.ERR, "failed to new events")
         end
 
+        _G.ev = ev
+    }
+    init_worker_by_lua_block {
+        local ev = _G.ev
         local ok, err = ev:init_worker()
         if not ok then
             ngx.log(ngx.ERR, "failed to init_worker events: ", err)
@@ -95,7 +99,7 @@ worker-events: handling event; source=content_by_lua, event=request1, wid=\d+$/
 === TEST 2: posting events and handling events, local
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
-    init_worker_by_lua_block {
+    init_by_lua_block {
         local opts = {
             broker_id = 3,
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
@@ -106,6 +110,10 @@ worker-events: handling event; source=content_by_lua, event=request1, wid=\d+$/
             ngx.log(ngx.ERR, "failed to new events")
         end
 
+        _G.ev = ev
+    }
+    init_worker_by_lua_block {
+        local ev = _G.ev
         local ok, err = ev:init_worker()
         if not ok then
             ngx.log(ngx.ERR, "failed to init_worker events: ", err)
@@ -180,7 +188,7 @@ worker-events: handling event; source=content_by_lua, event=request3, wid=\d+$/
 === TEST 3: worker.events 'one' being done, and only once
 --- http_config
     lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
-    init_worker_by_lua_block {
+    init_by_lua_block {
         local opts = {
             unique_timeout = 0.04,
             --broker_id = 0,
@@ -192,6 +200,10 @@ worker-events: handling event; source=content_by_lua, event=request3, wid=\d+$/
             ngx.log(ngx.ERR, "failed to new events")
         end
 
+        _G.ev = ev
+    }
+    init_worker_by_lua_block {
+        local ev = _G.ev
         local ok, err = ev:init_worker()
         if not ok then
             ngx.log(ngx.ERR, "failed to init_worker events: ", err)

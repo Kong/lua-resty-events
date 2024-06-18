@@ -23,7 +23,7 @@ __DATA__
 --- main_config
     stream {
         lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
-        init_worker_by_lua_block {
+        init_by_lua_block {
             local opts = {
                 --broker_id = 0,
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
@@ -34,6 +34,10 @@ __DATA__
                 ngx.log(ngx.ERR, "failed to new events")
             end
 
+            _G.ev = ev
+        }
+        init_worker_by_lua_block {
+            local ev = _G.ev
             local ok, err = ev:init_worker()
             if not ok then
                 ngx.log(ngx.ERR, "failed to init_worker events: ", err)
@@ -41,7 +45,7 @@ __DATA__
 
             ev:subscribe("*", "*", function(data, event, source, wid)
                 ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
-                        ", data=", data)
+                                   ", data=", data)
                     end)
 
             _G.ev = ev
@@ -113,7 +117,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 --- main_config
     stream {
         lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
-        init_worker_by_lua_block {
+        init_by_lua_block {
             local opts = {
                 --broker_id = 0,
                 listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
@@ -124,6 +128,10 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
                 ngx.log(ngx.ERR, "failed to new events")
             end
 
+            _G.ev = ev
+        }
+        init_worker_by_lua_block {
+            local ev = _G.ev
             local ok, err = ev:init_worker()
             if not ok then
                 ngx.log(ngx.ERR, "failed to init_worker events: ", err)
@@ -131,7 +139,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 
             ev:subscribe("*", "*", function(data, event, source, wid)
                 ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
-                        ", data=", tostring(data))
+                                   ", data=", tostring(data))
                     end)
 
             _G.ev = ev
@@ -204,7 +212,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 --- main_config
     stream {
         lua_package_path "../lua-resty-core/lib/?.lua;lualib/?/init.lua;lualib/?.lua;;";
-        init_worker_by_lua_block {
+        init_by_lua_block {
             local opts = {
                 unique_timeout = 0.04,
                 --broker_id = 0,
@@ -216,6 +224,10 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
                 ngx.log(ngx.ERR, "failed to new events")
             end
 
+            _G.ev = ev
+        }
+        init_worker_by_lua_block {
+            local ev = _G.ev
             local ok, err = ev:init_worker()
             if not ok then
                 ngx.log(ngx.ERR, "failed to init_worker events: ", err)
@@ -223,7 +235,7 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 
             ev:subscribe("*", "*", function(data, event, source, wid)
                 ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
-                        ", data=", tostring(data))
+                                   ", data=", tostring(data))
                     end)
 
             _G.ev = ev

@@ -25,8 +25,7 @@ __DATA__
     init_by_lua_block {
         local process = require "ngx.process"
         process.enable_privileged_agent(100)
-    }
-    init_worker_by_lua_block {
+
         local opts = {
             broker_id = 2,
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
@@ -37,6 +36,10 @@ __DATA__
             ngx.log(ngx.ERR, "failed to new events")
         end
 
+        _G.ev = ev
+    }
+    init_worker_by_lua_block {
+        local ev = _G.ev
         local ok, err = ev:init_worker()
         if not ok then
             ngx.log(ngx.ERR, "failed to init_worker events: ", err)
@@ -103,8 +106,7 @@ worker-events: handling event; source=content_by_lua, event=request1, wid=\d+$/
     init_by_lua_block {
         local process = require "ngx.process"
         process.enable_privileged_agent(100)
-    }
-    init_worker_by_lua_block {
+
         local opts = {
             broker_id = 2,
             listening = "unix:$TEST_NGINX_HTML_DIR/nginx.sock",
@@ -115,6 +117,10 @@ worker-events: handling event; source=content_by_lua, event=request1, wid=\d+$/
             ngx.log(ngx.ERR, "failed to new events")
         end
 
+        _G.ev = ev
+    }
+    init_worker_by_lua_block {
+        local ev = _G.ev
         local ok, err = ev:init_worker()
         if not ok then
             ngx.log(ngx.ERR, "failed to init_worker events: ", err)
@@ -192,8 +198,7 @@ worker-events: handling event; source=content_by_lua, event=request3, wid=\d+$/
     init_by_lua_block {
         local process = require "ngx.process"
         process.enable_privileged_agent(100)
-    }
-    init_worker_by_lua_block {
+
         local opts = {
             unique_timeout = 0.04,
             --broker_id = 0,
@@ -205,6 +210,10 @@ worker-events: handling event; source=content_by_lua, event=request3, wid=\d+$/
             ngx.log(ngx.ERR, "failed to new events")
         end
 
+        _G.ev = ev
+    }
+    init_worker_by_lua_block {
+        local ev = _G.ev
         local ok, err = ev:init_worker()
         if not ok then
             ngx.log(ngx.ERR, "failed to init_worker events: ", err)
