@@ -44,6 +44,22 @@ function _M:push(item)
 end
 
 
+function _M:push_front(item)
+    local first = self.first
+    if first > self.last then
+        return self:push(item)
+    end
+
+    first = first - 1
+    self.first = first
+    self.elts[first] = item
+
+    self.semaphore:post()
+
+    return true
+end
+
+
 function _M:pop()
     local ok, err = self.semaphore:wait(1)
     if not ok then

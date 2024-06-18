@@ -144,6 +144,7 @@ local function read_thread(self, worker_connection)
 end
 
 local function write_thread(self, worker_connection, worker_queue)
+    local worker_id = worker_connection.info.id
     while not terminating(self, worker_connection) do
         local payload, err = worker_queue:pop()
         if not payload then
@@ -156,6 +157,16 @@ local function write_thread(self, worker_connection, worker_queue)
 
         local _, err = worker_connection:send_frame(payload)
         if err then
+            local ok, push_err = worker_queue:push_front(payload)
+            if not ok then
+                if worker_id == -1 then
+                    log(ERR, "failed to retain event for privileged agent: ",
+                             push_err, ". data is :", cjson_encode(decode(payload)))
+                else
+                    log(ERR, "failed to retain event for worker #", worker_id, ": ",
+                             push_err, ". data is :", cjson_encode(decode(payload)))
+                end
+            end
             return nil, "failed to send event: " .. err
         end
 

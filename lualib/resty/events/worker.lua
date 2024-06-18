@@ -16,8 +16,10 @@ local ngx = ngx
 local log = ngx.log
 local sleep = ngx.sleep
 local exiting = ngx.worker.exiting
+local ngx_worker_id = ngx.worker.id
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
+local NOTICE = ngx.NOTICE
 
 local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
@@ -49,9 +51,6 @@ local PAYLOAD_T = {
     spec = EMPTY_T,
     data = '',
 }
-
---local _worker_pid = ngx.worker.pid()
-local _worker_id = ngx.worker.id() or -1
 
 local _M = {}
 local _MT = { __index = _M, }
@@ -118,6 +117,7 @@ function _M.new(opts)
         _sub_queue = queue.new(max_queue_len),
         _callback = callback.new(),
         _connected = nil,
+        _worker_id = nil,
         _opts = opts,
     }
 
@@ -125,11 +125,12 @@ function _M.new(opts)
 end
 
 local function read_thread(self, broker_connection)
+    local sub_queue = self._sub_queue
     while not terminating(self) do
         local data, err = broker_connection:recv_frame()
         if err then
             if not is_timeout(err) then
-                return nil, "failed to read event: " .. err
+                return nil, err
             end
 
             -- timeout
@@ -152,7 +153,7 @@ local function read_thread(self, broker_connection)
         end
 
         -- got an event data, push to queue, callback in events_thread
-        local _, err = self._sub_queue:push(event_data)
+        local _, err = sub_queue:push(event_data)
         if err then
             if not exiting() then
                 log(ERR, "failed to store event: ", err, ". data is: ",
@@ -169,9 +170,9 @@ end
 
 local function write_thread(self, broker_connection)
     local counter = 0
-
+    local pub_queue = self._pub_queue
     while not terminating(self) do
-        local payload, err = self._pub_queue:pop()
+        local payload, err = pub_queue:pop()
         if err then
             if not is_timeout(err) then
                 return nil, "semaphore wait error: " .. err
@@ -183,6 +184,10 @@ local function write_thread(self, broker_connection)
 
         local _, err = broker_connection:send_frame(payload)
         if err then
+            local ok, push_err = pub_queue:push_front(payload)
+            if not ok then
+                log(ERR, "failed to retain event: ", push_err)
+            end
             return nil, "failed to send event: " .. err
         end
 
@@ -233,7 +238,7 @@ function _M:communicate()
     local listening = self._opts.listening
 
     if not check_sock_exist(listening) then
-        log(DEBUG, "unix domain sock(", listening, ") is not ready")
+        log(DEBUG, "unix domain socket (", listening, ") is not ready")
 
         -- try to reconnect broker, avoid crit error log
         start_communicate_timer(self, 0.002)
@@ -260,12 +265,16 @@ function _M:communicate()
         return
     end
 
-    log(DEBUG, _worker_id, " on (", listening, ") is ready")
-
     self._connected = true
 
     local read_thread_co = spawn(read_thread, self, broker_connection)
     local write_thread_co = spawn(write_thread, self, broker_connection)
+
+    if self._worker_id == -1 then
+        log(NOTICE, "privileged agent is ready to accept events from ", listening)
+    else
+        log(NOTICE, "worker #", self._worker_id, " is ready to accept events from ", listening)
+    end
 
     local ok, err, perr = wait(read_thread_co, write_thread_co)
 
@@ -281,11 +290,11 @@ function _M:communicate()
     end
 
     if not ok then
-        log(ERR, "event worker failed: ", err)
+        log(ERR, "event worker failed to communicate with broker (", err, ")")
     end
 
     if perr then
-        log(ERR, "event worker failed: ", perr)
+        log(ERR, "event worker failed to communicate with broker (", perr, ")")
     end
 
     wait(read_thread_co)
@@ -304,11 +313,11 @@ function _M:process_events()
     end
 
     if not ok then
-        log(ERR, "event worker failed: ", err)
+        log(ERR, "event worker failed to process events (", err, ")")
     end
 
     if perr then
-        log(ERR, "event worker failed: ", perr)
+        log(ERR, "event worker failed to process events (", perr, ")")
     end
 
     start_process_events_timer(self)
@@ -316,6 +325,8 @@ end
 
 function _M:init()
     assert(self._opts)
+
+    self._worker_id = ngx_worker_id() or -1
 
     start_timers(self)
 
@@ -329,7 +340,7 @@ local function post_event(self, source, event, data, spec)
     EVENT_T.source = source
     EVENT_T.event = event
     EVENT_T.data = data
-    EVENT_T.wid = _worker_id
+    EVENT_T.wid = self._worker_id or ngx_worker_id() or -1
 
     -- encode event info
     str, err = encode(EVENT_T)
@@ -366,12 +377,6 @@ local function post_event(self, source, event, data, spec)
 end
 
 function _M:publish(target, source, event, data)
-    local ok, err
-
-    -- if not self._connected then
-    --     return nil, "not initialized yet"
-    -- end
-
     assert(type(target) == "string" and target ~= "", "target is required")
     assert(type(source) == "string" and source ~= "", "source is required")
     assert(type(event) == "string" and event ~= "", "event is required")
@@ -389,6 +394,7 @@ function _M:publish(target, source, event, data)
         return true
     end
 
+    local ok, err
     if target == "current" then
         ok, err = self._sub_queue:push({
             source = source,
