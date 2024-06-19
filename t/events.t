@@ -400,9 +400,9 @@ worker-events: handler event;  source=content_by_lua, event=request3, wid=\d+, d
 --- request
 GET /test
 --- response_body
-"worker_id" option must be a number
-"worker_id" option is invalid
-"worker_id" option is invalid
+"broker_id" option must be a number
+"broker_id" option is invalid
+"broker_id" option is invalid
 "listening" option required to start
 "listening" option must be a string
 "listening" option must start with unix:
