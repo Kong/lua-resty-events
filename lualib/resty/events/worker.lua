@@ -63,25 +63,35 @@ end
 
 local function communicate(premature, self)
     if premature then
-        return
+        return true
     end
 
     self:communicate()
+
+    return true
 end
 
 local function process_events(premature, self)
     if premature then
-        return
+        return true
     end
 
     self:process_events()
+
+    return true
 end
 
 local function start_communicate_timer(self, delay)
+    if exiting() then
+        return
+    end
     assert(timer_at(delay, communicate, self))
 end
 
 local function start_process_events_timer(self)
+    if exiting() then
+        return
+    end
     assert(timer_at(0, process_events, self))
 end
 
