@@ -290,7 +290,7 @@ worker-events: handler event;  source=content_by_lua, event=request6, wid=\d+, d
         ev:subscribe("*", "*", function(data, event, source, wid)
             ngx.log(ngx.DEBUG, "worker-events: handler event;  ", "source=",source,", event=",event, ", wid=", wid,
                                ", data=", tostring(data))
-                end)
+        end)
 
         ev:publish("all", "content_by_lua", "request3", "01234567890")
 
