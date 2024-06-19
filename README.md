@@ -128,6 +128,11 @@ The `opts` parameter is a Lua table with named options:
   See the `target` parameter of the [publish](#publish) method.
 * `max_queue_len`: (optional) max length of internal events buffer queue, default `1024 * 10`.
 * `max_payload_len`: (optional) max length of serialized event data, default `1024 * 64`, max `1024 * 1024 * 16`.
+* `enable_privileged_agent`: (optional) whether to enable privileged agent to receive events. By default
+                             it is enabled dynamically on broker connection for backward compatibility,
+                             but it is strongly suggested to explicitly configure this either with
+                             `true` or `false` as that ensures that events queue for privileged agent
+                             will be pre-created during initialization (or not created at all). 
 
 The return value will be the event object or `nil`.
 

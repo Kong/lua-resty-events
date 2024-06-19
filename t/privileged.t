@@ -263,7 +263,7 @@ ok
 [
     qr/privileged agent process/,
     qr/event published to 1 workers/,
-    qr/unique event is duplicate: unique_value/,
+    qr/unique event is duplicate on worker #\d+: unique_value/,
     qr/event published to 4 workers/,
     qr/worker-events: handler event; source=content_by_lua, event=request1, wid=\d+, by=0, data=01234567890/,
     qr/worker-events: handler event; source=content_by_lua, event=request1, wid=\d+, by=1, data=01234567890/,

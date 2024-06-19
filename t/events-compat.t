@@ -219,7 +219,7 @@ GET /test
 ok
 --- error_log
 event published to 1 workers
-unique event is duplicate: unique_value
+unique event is duplicate on worker #0: unique_value
 --- no_error_log
 [error]
 [crit]

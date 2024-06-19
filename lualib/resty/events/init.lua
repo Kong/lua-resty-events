@@ -78,6 +78,10 @@ local function check_options(opts)
         return nil, '"max_payload_len" option is invalid'
     end
 
+    if opts.enable_privileged_agent ~= nil and type(opts.enable_privileged_agent) ~= "boolean" then
+        return nil, '"enable_privileged_agent" option must be a boolean'
+    end
+
     opts.testing = opts.testing or false
 
     if type(opts.testing) ~= "boolean" then
@@ -110,16 +114,20 @@ function _M:init_worker()
 
     local ok, err
 
-    -- only enable listening on special worker id
     if is_broker then
+        -- enable listening on broker
         ok, err = self.broker:init()
 
-    -- disable listening in other worker
     elseif worker_id >= 0 then
+        -- disable listening on other workers
         ok, err = disable_listening(opts.listening)
 
-    -- we do nothing in privileged worker
     else
+        -- privileged agent
+        if opts.enable_privileged_agent == false then
+            return true
+        end
+
         ok = true
     end
 
