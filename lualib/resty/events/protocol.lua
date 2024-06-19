@@ -182,6 +182,20 @@ function _Client:connect(addr)
     return true
 end
 
+function _Client:close()
+    local sock = self.sock
+    if not sock then
+        return nil, "not initialized"
+    end
+
+    local ok, err = sock:close()
+    if not ok then
+        return nil, err
+    end
+
+    return true
+end
+
 return {
     server = _Server,
     client = _Client,

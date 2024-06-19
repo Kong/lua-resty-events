@@ -245,6 +245,9 @@ function _M:communicate()
     local ok, err = broker_connection:connect(listening)
 
     if exiting() then
+        if ok then
+            broker_connection:close()
+        end
         return
     end
 
@@ -271,6 +274,9 @@ function _M:communicate()
     if exiting() then
         kill(read_thread_co)
         kill(write_thread_co)
+
+        broker_connection:close()
+
         return
     end
 
@@ -284,6 +290,8 @@ function _M:communicate()
 
     wait(read_thread_co)
     wait(write_thread_co)
+
+    broker_connection:close()
 
     start_communicate_timer(self, random_delay())
 end
