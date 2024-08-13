@@ -24,7 +24,7 @@ Table of Contents
 Status
 ======
 
-This library is currently considered experimental.
+This library is considered production ready.
 
 Synopsis
 ========
