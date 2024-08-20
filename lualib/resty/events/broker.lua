@@ -1,4 +1,3 @@
-local cjson = require "cjson.safe"
 local codec = require "resty.events.codec"
 local lrucache = require "resty.lrucache"
 local queue = require "resty.events.queue"
@@ -25,10 +24,18 @@ local wait = ngx.thread.wait
 
 local decode = codec.decode
 
-local cjson_encode = cjson.encode
-
 local MAX_UNIQUE_EVENTS = 1024
 local WEAK_KEYS_MT = { __mode = "k", }
+
+
+local get_json
+do
+    local cjson_encode = require("cjson.safe").encode
+
+    get_json = function(data)
+        return cjson_encode(decode(data))
+    end
+end
 
 
 local function get_worker_name(worker_id)
@@ -59,7 +66,7 @@ local function broadcast_events(self, unique, data)
             log(ERR, "failed to publish unique event to ",
                      get_worker_name(worker_id),
                      ": ", err,
-                     ". data is :", cjson_encode(decode(data)))
+                     ". data is :", get_json(data))
 
         else
             n = n + 1
@@ -73,7 +80,7 @@ local function broadcast_events(self, unique, data)
                 log(ERR, "failed to publish event to ",
                          get_worker_name(worker_id),
                          ": ", err,
-                         ". data is :", cjson_encode(decode(data)))
+                         ". data is :", get_json(data))
 
             else
                 n = n + 1
@@ -152,7 +159,7 @@ local function write_thread(self, worker_connection, worker_queue)
             if not ok then
                 log(ERR, "failed to retain event for ",
                           get_worker_name(worker_id), ": ", push_err,
-                          ". data is :", cjson_encode(decode(payload)))
+                          ". data is :", get_json(payload))
             end
             return nil, "failed to send event: " .. err
         end
