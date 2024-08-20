@@ -30,6 +30,13 @@ local cjson_encode = cjson.encode
 local MAX_UNIQUE_EVENTS = 1024
 local WEAK_KEYS_MT = { __mode = "k", }
 
+
+local function get_worker_name(worker_id)
+    return worker_id == -1 and
+           "privileged agent" or "worker #" .. worker_id,
+end
+
+
 local function terminating(self, worker_connection)
     return not self._clients[worker_connection] or exiting()
 end
@@ -49,13 +56,10 @@ local function broadcast_events(self, unique, data)
         local worker_queue = queues[worker_id]
         local ok, err = worker_queue:push(data)
         if not ok then
-            if worker_id == -1 then
-                log(ERR, "failed to publish unique event to privileged agent: ", err,
-                         ". data is :", cjson_encode(decode(data)))
-            else
-                log(ERR, "failed to publish unique event to worker #", worker_id,
-                         ": ", err, ". data is :", cjson_encode(decode(data)))
-            end
+            log(ERR, "failed to publish unique event to ",
+                     get_worker_name(worker_id),
+                     ": ", err,
+                     ". data is :", cjson_encode(decode(data)))
 
         else
             n = n + 1
@@ -66,13 +70,10 @@ local function broadcast_events(self, unique, data)
             local worker_queue = queues[worker_id]
             local ok, err = worker_queue:push(data)
             if not ok then
-                if worker_id == -1 then
-                    log(ERR, "failed to publish event to privileged agent: ", err,
-                             ". data is :", cjson_encode(decode(data)))
-                else
-                    log(ERR, "failed to publish event to worker #", worker_id,
-                            ": ", err, ". data is :", cjson_encode(decode(data)))
-                end
+                log(ERR, "failed to publish event to ",
+                         get_worker_name(worker_id),
+                         ": ", err,
+                         ". data is :", cjson_encode(decode(data)))
 
             else
                 n = n + 1
@@ -98,11 +99,7 @@ local function read_thread(self, worker_connection)
 
         if not data then
             if not exiting() then
-                if worker_id == -1 then
-                    log(ERR, "did not receive event from privileged agent")
-                else
-                    log(ERR, "did not receive event from worker #", worker_id)
-                end
+                log(ERR, "did not receive event from ", get_worker_name(worker_id))
             end
             goto continue
         end
@@ -110,11 +107,8 @@ local function read_thread(self, worker_connection)
         local event_data, err = decode(data)
         if not event_data then
             if not exiting() then
-                if worker_id == -1 then
-                    log(ERR, "failed to decode event data on privileged agent: ", err)
-                else
-                    log(ERR, "failed to decode event data on worker #", worker_id, ": ", err)
-                end
+                log(ERR, "failed to decode event data on ",
+                          get_worker_name(worker_id), ": ", err)
             end
             goto continue
         end
@@ -123,11 +117,8 @@ local function read_thread(self, worker_connection)
         local unique = event_data.spec.unique
         if unique then
             if self._uniques:get(unique) then
-                if worker_id == -1 then
-                    log(DEBUG, "unique event is duplicate on privileged agent: ", unique)
-                else
-                    log(DEBUG, "unique event is duplicate on worker #", worker_id, ": ", unique)
-                end
+                log(DEBUG, "unique event is duplicate on ",
+                            get_worker_name(worker_id), ": ", unique)
                 goto continue
             end
 
@@ -159,13 +150,9 @@ local function write_thread(self, worker_connection, worker_queue)
         if err then
             local ok, push_err = worker_queue:push_front(payload)
             if not ok then
-                if worker_id == -1 then
-                    log(ERR, "failed to retain event for privileged agent: ",
-                             push_err, ". data is :", cjson_encode(decode(payload)))
-                else
-                    log(ERR, "failed to retain event for worker #", worker_id, ": ",
-                             push_err, ". data is :", cjson_encode(decode(payload)))
-                end
+                log(ERR, "failed to retain event for ",
+                          get_worker_name(worker_id), ": ", push_err,
+                          ". data is :", cjson_encode(decode(payload)))
             end
             return nil, "failed to send event: " .. err
         end
@@ -263,13 +250,8 @@ function _M:run()
     local read_thread_co = spawn(read_thread, self, worker_connection)
     local write_thread_co = spawn(write_thread, self, worker_connection, queues[worker_id])
 
-    if worker_id == -1 then
-        log(NOTICE, "privileged agent connected to events broker (worker pid: ",
-                    worker_pid, ")")
-    else
-        log(NOTICE, "worker #", worker_id, " connected to events broker (worker pid: ",
-                    worker_pid, ")")
-    end
+    log(NOTICE, get_worker_name(worker_id),
+                " connected to events broker (worker pid: ", worker_pid, ")")
 
     local ok, err, perr = wait(read_thread_co, write_thread_co)
 
@@ -282,24 +264,14 @@ function _M:run()
     end
 
     if not ok and not is_closed(err) then
-        if worker_id == -1 then
-            log(ERR, "event broker failed on worker privileged agent: ", err,
-                     " (worker pid: ", worker_pid, ")")
-        else
-            log(ERR, "event broker failed on worker #", worker_id, ": ", err,
-                     " (worker pid: ", worker_pid, ")")
-        end
+        log(ERR, "event broker failed on ", get_worker_name(worker_id),
+                  err, " (worker pid: ", worker_pid, ")")
         return exit(ngx.ERROR)
     end
 
     if perr and not is_closed(perr) then
-        if worker_id == -1 then
-            log(ERR, "event broker failed on worker privileged agent: ", perr,
-                     " (worker pid: ", worker_pid, ")")
-        else
-            log(ERR, "event broker failed on worker #", worker_id, ": ", perr,
-                     " (worker pid: ", worker_pid, ")")
-        end
+        log(ERR, "event broker failed on ", get_worker_name(worker_id),
+                 perr, " (worker pid: ", worker_pid, ")")
         return exit(ngx.ERROR)
     end
 

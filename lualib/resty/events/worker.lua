@@ -55,6 +55,13 @@ local PAYLOAD_T = {
 local _M = {}
 local _MT = { __index = _M, }
 
+
+local function get_worker_name(worker_id)
+    return worker_id == -1 and
+           "privileged agent" or "worker #" .. worker_id,
+end
+
+
 -- gen a random number [0.01, 0.05]
 -- it means that delay will be 10ms~50ms
 local function random_delay()
@@ -280,9 +287,7 @@ function _M:communicate()
     local read_thread_co = spawn(read_thread, self, broker_connection)
     local write_thread_co = spawn(write_thread, self, broker_connection)
 
-    log(NOTICE, self._worker_id == -1 and
-                "privileged agent" or
-                "worker #" .. self._worker_id,
+    log(NOTICE, get_worker_name(self._worker_id),
                 " is ready to accept events from ", listening)
 
     local ok, err, perr = wait(read_thread_co, write_thread_co)
