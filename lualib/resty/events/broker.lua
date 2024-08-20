@@ -265,13 +265,13 @@ function _M:run()
 
     if not ok and not is_closed(err) then
         log(ERR, "event broker failed on ", get_worker_name(worker_id),
-                  err, " (worker pid: ", worker_pid, ")")
+                  ": ", err, " (worker pid: ", worker_pid, ")")
         return exit(ngx.ERROR)
     end
 
     if perr and not is_closed(perr) then
         log(ERR, "event broker failed on ", get_worker_name(worker_id),
-                 perr, " (worker pid: ", worker_pid, ")")
+                 ": ", perr, " (worker pid: ", worker_pid, ")")
         return exit(ngx.ERROR)
     end
 
