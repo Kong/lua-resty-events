@@ -280,11 +280,10 @@ function _M:communicate()
     local read_thread_co = spawn(read_thread, self, broker_connection)
     local write_thread_co = spawn(write_thread, self, broker_connection)
 
-    if self._worker_id == -1 then
-        log(NOTICE, "privileged agent is ready to accept events from ", listening)
-    else
-        log(NOTICE, "worker #", self._worker_id, " is ready to accept events from ", listening)
-    end
+    log(NOTICE, self._worker_id == -1 and
+                "privileged agent" or
+                "worker #" .. self._worker_id,
+                " is ready to accept events from ", listening)
 
     local ok, err, perr = wait(read_thread_co, write_thread_co)
 
