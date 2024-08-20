@@ -12,7 +12,7 @@ local assert = assert
 local setmetatable = setmetatable
 local random = math.random
 
-local ngx = ngx
+local ngx = ngx   -- luacheck: ignore
 local log = ngx.log
 local sleep = ngx.sleep
 local exiting = ngx.worker.exiting

@@ -8,7 +8,7 @@ local is_closed = server.is_closed
 local setmetatable = setmetatable
 local random = math.random
 
-local ngx = ngx
+local ngx = ngx   -- luacheck: ignore
 local log = ngx.log
 local exit = ngx.exit
 local exiting = ngx.worker.exiting
