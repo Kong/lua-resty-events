@@ -33,7 +33,7 @@ local WEAK_KEYS_MT = { __mode = "k", }
 
 local function get_worker_name(worker_id)
     return worker_id == -1 and
-           "privileged agent" or "worker #" .. worker_id,
+           "privileged agent" or "worker #" .. worker_id
 end
 
 
