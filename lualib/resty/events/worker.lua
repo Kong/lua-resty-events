@@ -2,10 +2,11 @@ local cjson = require "cjson.safe"
 local codec = require "resty.events.codec"
 local queue = require "resty.events.queue"
 local callback = require "resty.events.callback"
+local utils = require "resty.events.utils"
 
 local frame_validate = require("resty.events.frame").validate
 local client = require("resty.events.protocol").client
-local is_timeout = client.is_timeout
+local is_timeout = utils.is_timeout
 
 local type = type
 local assert = assert

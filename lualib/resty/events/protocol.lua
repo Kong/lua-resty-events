@@ -6,7 +6,7 @@ local _send_frame = frame.send
 local encode = codec.encode
 local decode = codec.decode
 
-local ngx = ngx
+local ngx = ngx -- luacheck: ignore
 local worker_id = ngx.worker.id
 local worker_pid = ngx.worker.pid
 local tcp = ngx.socket.tcp
@@ -28,15 +28,6 @@ local WORKER_INFO = {
     pid = 0,
 }
 
-local function is_timeout(err)
-    return err and str_sub(err, -7) == "timeout"
-end
-
-local function is_closed(err)
-    return err and (str_sub(err, -6) == "closed" or
-                    str_sub(err, -11) == "broken pipe")
-end
-
 local function recv_frame(self)
     local sock = self.sock
     if not sock then
@@ -56,8 +47,6 @@ local function send_frame(self, payload)
 end
 
 local _Server = {
-    is_closed = is_closed,
-    is_timeout = is_timeout,
     recv_frame = recv_frame,
     send_frame = send_frame,
 }
@@ -109,8 +98,6 @@ function _Server.new()
 end
 
 local _Client = {
-    is_closed = is_closed,
-    is_timeout = is_timeout,
     recv_frame = recv_frame,
     send_frame = send_frame,
 }

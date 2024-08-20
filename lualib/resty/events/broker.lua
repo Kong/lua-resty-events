@@ -1,9 +1,10 @@
 local codec = require "resty.events.codec"
 local lrucache = require "resty.lrucache"
 local queue = require "resty.events.queue"
+local utils = require "resty.events.utils"
 local server = require("resty.events.protocol").server
-local is_timeout = server.is_timeout
-local is_closed = server.is_closed
+local is_timeout = utils.is_timeout
+local is_closed = utils.is_closed
 
 local setmetatable = setmetatable
 local random = math.random
