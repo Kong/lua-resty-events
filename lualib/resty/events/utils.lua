@@ -1,4 +1,5 @@
 local str_sub = string.sub
+local ngx_worker_id = ngx.worker.id
 
 
 local function is_timeout(err)
@@ -12,6 +13,11 @@ local function is_closed(err)
 end
 
 
+local function get_worker_id()
+    return ngx_worker_id() or -1
+end
+
+
 local function get_worker_name(worker_id)
     return worker_id == -1 and
            "privileged agent" or "worker #" .. worker_id
@@ -22,5 +28,6 @@ return {
     is_timeout = is_timeout,
     is_closed = is_closed,
 
+    get_worker_id = get_worker_id,
     get_worker_name = get_worker_name,
 }

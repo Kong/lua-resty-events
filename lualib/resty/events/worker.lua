@@ -8,6 +8,7 @@ local utils = require "resty.events.utils"
 local frame_validate = require("resty.events.frame").validate
 local client = require("resty.events.protocol").client
 local is_timeout = utils.is_timeout
+local get_worker_id = utils.get_worker_id
 local get_worker_name = utils.get_worker_name
 
 
@@ -21,7 +22,6 @@ local ngx = ngx   -- luacheck: ignore
 local log = ngx.log
 local sleep = ngx.sleep
 local exiting = ngx.worker.exiting
-local ngx_worker_id = ngx.worker.id
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
 local NOTICE = ngx.NOTICE
@@ -344,7 +344,7 @@ end
 function _M:init()
     assert(self._opts)
 
-    self._worker_id = ngx_worker_id() or -1
+    self._worker_id = get_worker_id()
 
     start_timers(self)
 
@@ -358,7 +358,7 @@ local function post_event(self, source, event, data, spec)
     EVENT_T.source = source
     EVENT_T.event = event
     EVENT_T.data = data
-    EVENT_T.wid = self._worker_id or ngx_worker_id() or -1
+    EVENT_T.wid = self._worker_id or get_worker_id()
 
     -- encode event info
     str, err = encode(EVENT_T)

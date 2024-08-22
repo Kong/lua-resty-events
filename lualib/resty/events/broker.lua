@@ -7,6 +7,7 @@ local server = require("resty.events.protocol").server
 
 local is_timeout = utils.is_timeout
 local is_closed = utils.is_closed
+local get_worker_id = utils.get_worker_id
 local get_worker_name = utils.get_worker_name
 
 
@@ -18,7 +19,6 @@ local ngx = ngx   -- luacheck: ignore
 local log = ngx.log
 local exit = ngx.exit
 local exiting = ngx.worker.exiting
-local ngx_worker_id = ngx.worker.id
 local worker_count = ngx.worker.count
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
@@ -218,7 +218,7 @@ function _M:init()
 end
 
 function _M:run()
-    local broker_id = ngx_worker_id()
+    local broker_id = get_worker_id()
     if broker_id ~= self._opts.broker_id then
         log(ERR, "broker got connection from worker on non-broker worker #", broker_id)
         return exit(444)
