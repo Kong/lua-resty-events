@@ -12,7 +12,7 @@ local setmetatable = setmetatable
 local str_sub = string.sub
 
 
-local worker_count = ngx.worker.count()
+local worker_count = ngx.worker.count() -- luacheck: ignore
 
 
 local _M = {

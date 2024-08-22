@@ -1,5 +1,5 @@
 local str_sub = string.sub
-local ngx_worker_id = ngx.worker.id
+local ngx_worker_id = ngx.worker.id -- luacheck: ignore
 
 
 local function is_timeout(err)
