@@ -12,7 +12,7 @@ local assert = assert
 local setmetatable = setmetatable
 local random = math.random
 
-local ngx = ngx
+local ngx = ngx   -- luacheck: ignore
 local log = ngx.log
 local sleep = ngx.sleep
 local exiting = ngx.worker.exiting
@@ -54,6 +54,13 @@ local PAYLOAD_T = {
 
 local _M = {}
 local _MT = { __index = _M, }
+
+
+local function get_worker_name(worker_id)
+    return worker_id == -1 and
+           "privileged agent" or "worker #" .. worker_id
+end
+
 
 -- gen a random number [0.01, 0.05]
 -- it means that delay will be 10ms~50ms
@@ -280,11 +287,8 @@ function _M:communicate()
     local read_thread_co = spawn(read_thread, self, broker_connection)
     local write_thread_co = spawn(write_thread, self, broker_connection)
 
-    if self._worker_id == -1 then
-        log(NOTICE, "privileged agent is ready to accept events from ", listening)
-    else
-        log(NOTICE, "worker #", self._worker_id, " is ready to accept events from ", listening)
-    end
+    log(NOTICE, get_worker_name(self._worker_id),
+                " is ready to accept events from ", listening)
 
     local ok, err, perr = wait(read_thread_co, write_thread_co)
 
