@@ -1,5 +1,9 @@
 local str_sub = string.sub
-local ngx_worker_id = ngx.worker.id -- luacheck: ignore
+
+
+local ngx = ngx -- luacheck: ignore
+local ngx_worker_id = ngx.worker.id
+local ngx_worker_count = ngx.worker.count()
 
 
 local function is_timeout(err)
@@ -14,13 +18,18 @@ end
 
 
 local function get_worker_id()
-    return ngx_worker_id() or -1
+    return ngx_worker_id() or -1  -- -1 represents priviledged worker
 end
 
 
 local function get_worker_name(worker_id)
-    return worker_id == -1 and
+    return worker_id == -1 and    -- -1 represents priviledged worker
            "privileged agent" or "worker #" .. worker_id
+end
+
+
+local function get_worker_count()
+    return ngx_worker_count()
 end
 
 
@@ -30,4 +39,5 @@ return {
 
     get_worker_id = get_worker_id,
     get_worker_name = get_worker_name,
+    get_worker_count = get_worker_count,
 }
