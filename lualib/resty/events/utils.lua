@@ -12,7 +12,15 @@ local function is_closed(err)
 end
 
 
+local function get_worker_name(worker_id)
+    return worker_id == -1 and
+           "privileged agent" or "worker #" .. worker_id
+end
+
+
 return {
     is_timeout = is_timeout,
     is_closed = is_closed,
+
+    get_worker_name = get_worker_name,
 }

@@ -3,11 +3,16 @@ local lrucache = require "resty.lrucache"
 local queue = require "resty.events.queue"
 local utils = require "resty.events.utils"
 local server = require("resty.events.protocol").server
+
+
 local is_timeout = utils.is_timeout
 local is_closed = utils.is_closed
+local get_worker_name = utils.get_worker_name
+
 
 local setmetatable = setmetatable
 local random = math.random
+
 
 local ngx = ngx   -- luacheck: ignore
 local log = ngx.log
@@ -19,11 +24,14 @@ local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
 local NOTICE = ngx.NOTICE
 
+
 local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
 local wait = ngx.thread.wait
 
+
 local decode = codec.decode
+
 
 local MAX_UNIQUE_EVENTS = 1024
 local WEAK_KEYS_MT = { __mode = "k", }
@@ -36,12 +44,6 @@ do
     get_json = function(data)
         return cjson_encode(decode(data))
     end
-end
-
-
-local function get_worker_name(worker_id)
-    return worker_id == -1 and
-           "privileged agent" or "worker #" .. worker_id
 end
 
 

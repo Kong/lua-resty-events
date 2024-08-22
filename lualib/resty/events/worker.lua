@@ -4,14 +4,18 @@ local queue = require "resty.events.queue"
 local callback = require "resty.events.callback"
 local utils = require "resty.events.utils"
 
+
 local frame_validate = require("resty.events.frame").validate
 local client = require("resty.events.protocol").client
 local is_timeout = utils.is_timeout
+local get_worker_name = utils.get_worker_name
+
 
 local type = type
 local assert = assert
 local setmetatable = setmetatable
 local random = math.random
+
 
 local ngx = ngx   -- luacheck: ignore
 local log = ngx.log
@@ -22,18 +26,23 @@ local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
 local NOTICE = ngx.NOTICE
 
+
 local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
 local wait = ngx.thread.wait
 
+
 local timer_at = ngx.timer.at
+
 
 local encode = codec.encode
 local decode = codec.decode
 local cjson_encode = cjson.encode
 
+
 local EVENTS_COUNT_LIMIT = 100
 local EVENTS_SLEEP_TIME  = 0.05
+
 
 local EMPTY_T = {}
 
@@ -55,12 +64,6 @@ local PAYLOAD_T = {
 
 local _M = {}
 local _MT = { __index = _M, }
-
-
-local function get_worker_name(worker_id)
-    return worker_id == -1 and
-           "privileged agent" or "worker #" .. worker_id
-end
 
 
 -- gen a random number [0.01, 0.05]
