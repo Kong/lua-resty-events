@@ -246,7 +246,7 @@ local function events_thread(self)
         counter = counter + 1
 
         -- exit and restart timer to avoid memory leak
-        if counter > EVENTS_POP_LIMIT then
+        if counter >= EVENTS_POP_LIMIT then
             break
         end
 
