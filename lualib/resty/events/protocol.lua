@@ -1,13 +1,15 @@
 local frame = require "resty.events.frame"
 local codec = require "resty.events.codec"
+local utils = require "resty.events.utils"
+
 
 local _recv_frame = frame.recv
 local _send_frame = frame.send
 local encode = codec.encode
 local decode = codec.decode
 
-local ngx = ngx
-local worker_id = ngx.worker.id
+
+local ngx = ngx -- luacheck: ignore
 local worker_pid = ngx.worker.pid
 local tcp = ngx.socket.tcp
 local req_sock = ngx.req.socket
@@ -15,11 +17,14 @@ local ngx_header = ngx.header
 local send_headers = ngx.send_headers
 local flush = ngx.flush
 local subsystem = ngx.config.subsystem
+local get_worker_id = utils.get_worker_id
+
 
 local type = type
 local str_sub = string.sub
 local str_find = string.find
 local setmetatable = setmetatable
+
 
 -- for high traffic pressure
 local DEFAULT_TIMEOUT = 5000 -- 5000ms
@@ -28,14 +33,6 @@ local WORKER_INFO = {
     pid = 0,
 }
 
-local function is_timeout(err)
-    return err and str_sub(err, -7) == "timeout"
-end
-
-local function is_closed(err)
-    return err and (str_sub(err, -6) == "closed" or
-                    str_sub(err, -11) == "broken pipe")
-end
 
 local function recv_frame(self)
     local sock = self.sock
@@ -56,8 +53,6 @@ local function send_frame(self, payload)
 end
 
 local _Server = {
-    is_closed = is_closed,
-    is_timeout = is_timeout,
     recv_frame = recv_frame,
     send_frame = send_frame,
 }
@@ -109,8 +104,6 @@ function _Server.new()
 end
 
 local _Client = {
-    is_closed = is_closed,
-    is_timeout = is_timeout,
     recv_frame = recv_frame,
     send_frame = send_frame,
 }
@@ -171,7 +164,7 @@ function _Client:connect(addr)
         end
     end -- subsystem == "http"
 
-    WORKER_INFO.id = worker_id() or -1
+    WORKER_INFO.id = get_worker_id()
     WORKER_INFO.pid = worker_pid()
 
     local _, err = _send_frame(sock, encode(WORKER_INFO))

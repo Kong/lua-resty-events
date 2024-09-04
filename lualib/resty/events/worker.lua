@@ -2,37 +2,47 @@ local cjson = require "cjson.safe"
 local codec = require "resty.events.codec"
 local queue = require "resty.events.queue"
 local callback = require "resty.events.callback"
+local utils = require "resty.events.utils"
+
 
 local frame_validate = require("resty.events.frame").validate
 local client = require("resty.events.protocol").client
-local is_timeout = client.is_timeout
+local is_timeout = utils.is_timeout
+local get_worker_id = utils.get_worker_id
+local get_worker_name = utils.get_worker_name
+
 
 local type = type
 local assert = assert
 local setmetatable = setmetatable
 local random = math.random
 
+
 local ngx = ngx   -- luacheck: ignore
 local log = ngx.log
 local sleep = ngx.sleep
 local exiting = ngx.worker.exiting
-local ngx_worker_id = ngx.worker.id
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
 local NOTICE = ngx.NOTICE
+
 
 local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
 local wait = ngx.thread.wait
 
+
 local timer_at = ngx.timer.at
+
 
 local encode = codec.encode
 local decode = codec.decode
 local cjson_encode = cjson.encode
 
+
 local EVENTS_COUNT_LIMIT = 100
 local EVENTS_SLEEP_TIME  = 0.05
+
 
 local EMPTY_T = {}
 
@@ -54,12 +64,6 @@ local PAYLOAD_T = {
 
 local _M = {}
 local _MT = { __index = _M, }
-
-
-local function get_worker_name(worker_id)
-    return worker_id == -1 and
-           "privileged agent" or "worker #" .. worker_id
-end
 
 
 -- gen a random number [0.01, 0.05]
@@ -340,7 +344,7 @@ end
 function _M:init()
     assert(self._opts)
 
-    self._worker_id = ngx_worker_id() or -1
+    self._worker_id = get_worker_id()
 
     start_timers(self)
 
@@ -354,7 +358,7 @@ local function post_event(self, source, event, data, spec)
     EVENT_T.source = source
     EVENT_T.event = event
     EVENT_T.data = data
-    EVENT_T.wid = self._worker_id or ngx_worker_id() or -1
+    EVENT_T.wid = self._worker_id or get_worker_id()
 
     -- encode event info
     str, err = encode(EVENT_T)

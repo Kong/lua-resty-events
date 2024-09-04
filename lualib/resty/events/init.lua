@@ -1,21 +1,25 @@
+local utils = require "resty.events.utils"
 local events_broker = require "resty.events.broker"
 local events_worker = require "resty.events.worker"
-
 local disable_listening = require "resty.events.disable_listening"
 
-local ngx = ngx
-local ngx_worker_id = ngx.worker.id
+
+local get_worker_id = utils.get_worker_id
+
 
 local type = type
 local setmetatable = setmetatable
 local str_sub = string.sub
 
-local worker_count = ngx.worker.count()
+
+local worker_count = utils.get_worker_count()
+
 
 local _M = {
     _VERSION = "0.3.0",
 }
 local _MT = { __index = _M, }
+
 
 local function check_options(opts)
     assert(type(opts) == "table", "Expected a table, got " .. type(opts))
@@ -107,7 +111,7 @@ end
 function _M:init_worker()
     local opts = self.opts
 
-    local worker_id = ngx_worker_id() or -1
+    local worker_id = get_worker_id()
 
     local is_broker = opts.broker_id == worker_id or
                       opts.testing   == true
