@@ -41,7 +41,7 @@ local cjson_encode = cjson.encode
 
 
 local EVENTS_COUNT_LIMIT = 100
-local EVENTS_POP_LIMIT = 5000
+local EVENTS_POP_LIMIT = 2000
 local EVENTS_SLEEP_TIME  = 0.05
 
 
