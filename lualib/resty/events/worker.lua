@@ -41,6 +41,7 @@ local cjson_encode = cjson.encode
 
 
 local EVENTS_COUNT_LIMIT = 100
+local EVENTS_POP_LIMIT = 2000
 local EVENTS_SLEEP_TIME  = 0.05
 
 
@@ -226,6 +227,8 @@ local function write_thread(self, broker_connection)
 end
 
 local function events_thread(self)
+    local counter = 0
+
     while not exiting() do
         local data, err = self._sub_queue:pop()
         if err then
@@ -239,6 +242,13 @@ local function events_thread(self)
 
         -- got an event data, callback
         self._callback:do_event(data)
+
+        counter = counter + 1
+
+        -- exit and restart timer to avoid memory leak
+        if counter >= EVENTS_POP_LIMIT then
+            break
+        end
 
         -- yield, not block other threads
         sleep(0)
