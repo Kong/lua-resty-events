@@ -16,7 +16,7 @@ local worker_count = utils.get_worker_count()
 
 
 local _M = {
-    _VERSION = "0.3.0",
+    _VERSION = "0.3.1",
 }
 local _MT = { __index = _M, }
 
