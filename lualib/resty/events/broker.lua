@@ -19,7 +19,6 @@ local ngx = ngx   -- luacheck: ignore
 local log = ngx.log
 local exit = ngx.exit
 local exiting = ngx.worker.exiting
-local worker_count = ngx.worker.count
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
 local NOTICE = ngx.NOTICE
@@ -57,12 +56,9 @@ local function broadcast_events(self, unique, data)
 
     local queues = self._queues
 
-    local first_worker_id = self._first_worker_id
-    local last_worker_id = self._last_worker_id
-
     if unique then
         -- if unique, schedule to a random worker
-        local worker_id = random(first_worker_id, last_worker_id)
+        local worker_id = self._workers[random(self._workers[0])]
         local worker_queue = queues[worker_id]
         local ok, err = worker_queue:push(data)
         if not ok then
@@ -76,7 +72,8 @@ local function broadcast_events(self, unique, data)
         end
 
     else
-        for worker_id = first_worker_id, last_worker_id do
+        for i = 1, self._workers[0] do
+            local worker_id = self._workers[i]
             local worker_queue = queues[worker_id]
             local ok, err = worker_queue:push(data)
             if not ok then
@@ -182,8 +179,6 @@ function _M.new(opts)
         _queues = nil,
         _uniques = nil,
         _clients = nil,
-        _first_worker_id = nil,
-        _last_worker_id = nil,
     }, _MT)
 end
 
@@ -197,20 +192,12 @@ function _M:init()
         return nil, "failed to create the events cache: " .. (err or "unknown")
     end
 
-    local queues = {}
-
-    local first_worker_id = opts.enable_privileged_agent == true and -1 or 0
-    local last_worker_id = worker_count() - 1
-
-    for i = first_worker_id, last_worker_id do
-        queues[i] = queue.new(opts.max_queue_len)
-    end
-
     self._uniques = _uniques
     self._clients = setmetatable({}, WEAK_KEYS_MT)
-    self._queues = queues
-    self._first_worker_id = first_worker_id
-    self._last_worker_id = last_worker_id
+    self._queues = {}
+    self._workers = {
+        [0] = 0, -- self length
+    }
 
     log(NOTICE, "event broker is ready to accept connections on worker #", opts.broker_id)
 
@@ -240,19 +227,16 @@ function _M:run()
     local worker_id = worker_connection.info.id
     local worker_pid = worker_connection.info.pid
 
-    if worker_id == -1 and not queues[-1] then
-        -- TODO: this is for backward compatibility
-        --
-        -- Queue for the privileged agent is dynamically
-        -- created because it is not always enabled or
-        -- does not always connect to broker. This also
-        -- means that privileged agent may miss some
-        -- events on a startup.
-        --
-        -- It is suggested to instead explicitly pass
-        -- an option: enable_privileged_agent=true|false.
-        queues[-1] = queue.new(self._opts.max_queue_len)
-        self._first_worker_id = -1
+    if not queues[worker_id] then
+        local worker_queue, err = queue.new(self._opts.max_queue_len)
+        if not worker_queue then
+            log(ERR, "failed to create queue for worker #", worker_id, ": ", err)
+            return exit(ngx.ERROR)
+        end
+
+        queues[worker_id] = worker_queue
+        self._workers[0] = self._workers[0] + 1
+        self._workers[self._workers[0]] = worker_id
     end
 
     clients[worker_connection] = true

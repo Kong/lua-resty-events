@@ -23,8 +23,15 @@ end
 
 
 local function get_worker_name(worker_id)
-    return worker_id == -1 and    -- -1 represents priviledged worker
-           "privileged agent" or "worker #" .. worker_id
+    if worker_id < -1 then
+        return "extra worker #" .. worker_id
+    end
+
+    if worker_id == -1 then
+        return "privileged agent"
+    end
+
+    return "worker #" .. worker_id
 end
 
 
