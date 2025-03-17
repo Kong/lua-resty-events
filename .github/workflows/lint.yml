@@ -30,14 +30,14 @@ jobs:
     # Optional step to run on only changed files
     - name: Get changed files
       id: changed-files
-      uses: tj-actions/changed-files@54849deb963ca9f24185fb5de2965e002d066e6b # v37
+      uses: kong/changed-files@4edd678ac3f81e2dc578756871e4d00c19191daf
       with:
         files: |
           **.lua
 
     - name: Lua Check
       if: steps.changed-files.outputs.any_changed == 'true'
-      uses: Kong/public-shared-actions/code-check-actions/lua-lint@33449c46c6766a3d3c8f167cc383381225862b36
+      uses: Kong/public-shared-actions/code-check-actions/lua-lint@ac8939f0382827fbb43ce4e0028066a5ea4db01d # 4.1.2
       with:
         additional_args: '--no-default-config --config .luacheckrc'
         files: ${{ steps.changed-files.outputs.all_changed_files }}
