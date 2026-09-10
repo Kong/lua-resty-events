@@ -120,6 +120,18 @@ new
 Return a new events object.
 It should be stored in global scope for [run](#run) later.
 
+The module must first be required in `init_by_lua*`, so all workers inherit
+the same generation identifier. This also applies to `resty.events.compat`:
+preload it in `init_by_lua*`, then call `configure()` in `init_worker_by_lua*`.
+Existing integrations that first require it in a worker must add this preload
+when upgrading. Non-testing construction without preloading raises an error.
+
+```nginx
+init_by_lua_block {
+    require "resty.events.compat"
+}
+```
+
 The `opts` parameter is a Lua table with named options:
 
 * `listening`: the unix domain socket, which must be same as another `server` block.

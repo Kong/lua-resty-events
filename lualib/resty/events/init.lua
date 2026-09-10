@@ -2,6 +2,7 @@ local utils = require "resty.events.utils"
 local events_broker = require "resty.events.broker"
 local events_worker = require "resty.events.worker"
 local disable_listening = require "resty.events.disable_listening"
+local random_bytes = require("resty.random").bytes
 
 
 local get_worker_id = utils.get_worker_id
@@ -11,8 +12,19 @@ local type = type
 local setmetatable = setmetatable
 local str_sub = string.sub
 
+local ngx = ngx   -- luacheck: ignore
+local encode_base64 = ngx.encode_base64
+
 
 local worker_count = utils.get_worker_count()
+
+
+local generation
+if ngx.get_phase() == "init" then
+    local bytes, err = random_bytes(16, true)
+    assert(bytes, "failed to generate events generation: " .. (err or "unknown"))
+    generation = encode_base64(bytes)
+end
 
 
 local _M = {
@@ -97,6 +109,11 @@ end
 
 function _M.new(opts)
     assert(check_options(opts))
+
+    if not opts.testing then
+        assert(generation, "resty.events must be required in init_by_lua before workers start")
+        opts._generation = generation
+    end
 
     local self = {
         opts   = opts,

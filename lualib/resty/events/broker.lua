@@ -230,8 +230,14 @@ function _M:run()
         return exit(444)
     end
 
-    local worker_connection, err = server.new()
+    local worker_connection, err, generation_mismatch =
+        server.new(self._opts._generation)
     if not worker_connection then
+        if generation_mismatch then
+            log(DEBUG, err)
+            return exit(ngx.OK)
+        end
+
         log(ERR, "failed to init socket: ", err)
         return exit(444)
     end
