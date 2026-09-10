@@ -278,7 +278,8 @@ function _M:communicate()
 
     local broker_connection = assert(client.new())
 
-    local ok, err = broker_connection:connect(listening)
+    local ok, err, generation_mismatch =
+        broker_connection:connect(listening, self._opts._generation)
 
     if exiting() then
         if ok then
@@ -288,7 +289,11 @@ function _M:communicate()
     end
 
     if not ok then
-        log(ERR, "failed to connect: ", err)
+        if generation_mismatch then
+            log(DEBUG, err)
+        else
+            log(ERR, "failed to connect: ", err)
+        end
 
         -- try to reconnect broker
         start_communicate_timer(self, random_delay())

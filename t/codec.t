@@ -52,3 +52,42 @@ booleantrue
 [error]
 [crit]
 [alert]
+
+
+
+=== TEST 2: generation field is compatible with the legacy dictionary
+--- http_config
+    lua_package_path "../lua-resty-core/lib/?.lua;lualib/?.lua;;";
+--- config
+    location = /test {
+        content_by_lua_block {
+            local buffer = require "string.buffer"
+            local codec = require "resty.events.codec"
+            local options = {
+                dict = { "spec", "data", "source", "event", "wid", "unique" },
+            }
+            local legacy_encoder = buffer.new(options)
+            local legacy_decoder = buffer.new(options)
+
+            local encoded = codec.encode({
+                id = 1,
+                pid = 2,
+                generation = "new-generation",
+            })
+            local decoded = legacy_decoder:set(encoded):decode()
+            ngx.say("new to legacy: ", decoded.generation)
+
+            encoded = legacy_encoder:reset():encode({ id = 1, pid = 2 }):get()
+            decoded = codec.decode(encoded)
+            ngx.say("legacy to new: ", decoded.id, ",", decoded.pid)
+        }
+    }
+--- request
+GET /test
+--- response_body
+new to legacy: new-generation
+legacy to new: 1,2
+--- no_error_log
+[error]
+[crit]
+[alert]
