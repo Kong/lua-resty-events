@@ -2,6 +2,7 @@ local codec = require "resty.events.codec"
 local lrucache = require "resty.lrucache"
 local queue = require "resty.events.queue"
 local utils = require "resty.events.utils"
+local generation = require "resty.events.generation"
 local server = require("resty.events.protocol").server
 
 
@@ -23,11 +24,25 @@ local worker_count = ngx.worker.count
 local ERR = ngx.ERR
 local DEBUG = ngx.DEBUG
 local NOTICE = ngx.NOTICE
+local subsystem = ngx.config.subsystem
 
 
 local spawn = ngx.thread.spawn
 local kill = ngx.thread.kill
 local wait = ngx.thread.wait
+
+local my_generation = generation.mine
+local generation_of_pid = generation.of_pid
+
+
+-- 444 closes without a response; stream has no such status, NGX_OK ends it
+local function close_connection()
+    if subsystem == "http" then
+        return exit(444)
+    end
+
+    return exit(ngx.OK)
+end
 
 
 local decode = codec.decode
@@ -239,6 +254,23 @@ function _M:run()
     local queues = self._queues
     local worker_id = worker_connection.info.id
     local worker_pid = worker_connection.info.pid
+
+    -- a worker of a previous reload must not be served: its worker id collides
+    -- with the one of a worker of this generation, and so do its queues
+    local peer_generation = generation_of_pid(worker_pid)
+    if peer_generation ~= 0 and peer_generation ~= my_generation() then
+        log(NOTICE, get_worker_name(worker_id), " (pid: ", worker_pid,
+                  ") belongs to a different nginx generation")
+        return close_connection()
+    end
+
+    -- confirm the generation check: the client waits for this before publishing
+    local ok, err = worker_connection:ack()
+    if not ok then
+        log(ERR, "failed to acknowledge ", get_worker_name(worker_id),
+                  " (pid: ", worker_pid, "): ", err)
+        return close_connection()
+    end
 
     if worker_id == -1 and not queues[-1] then
         -- TODO: this is for backward compatibility

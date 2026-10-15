@@ -18,6 +18,18 @@
 #include <ngx_event.h>
 
 
+/*
+ * Workers forked from the same configuration cycle share a generation number,
+ * bumped per cycle by the master: a reload's workers never share it with the
+ * ones they replace.  The table below maps process slots to generations.
+ */
+
+
+static ngx_uint_t      ngx_lua_events_generation = 1;
+static ngx_uint_t     *ngx_lua_events_gen_table;
+static ngx_shm_t       ngx_lua_events_shm;
+
+
 static void
 ngx_lua_disable_listening_socket(ngx_listening_t *ls)
 {
@@ -47,6 +59,7 @@ ngx_lua_disable_listening_socket(ngx_listening_t *ls)
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, ngx_cycle->log, 0,
             "close listening %V #%d ", &ls->addr_text, ls->fd);
 }
+
 
 int
 ngx_lua_ffi_disable_listening_unix_socket(ngx_str_t *sock_name)
@@ -89,3 +102,105 @@ ngx_lua_ffi_disable_listening_unix_socket(ngx_str_t *sock_name)
 
 #endif
 }
+
+
+static ngx_int_t
+ngx_lua_events_init_module(ngx_cycle_t *cycle)
+{
+    if (ngx_lua_events_gen_table == NULL) {
+        /* allocated once by the master, shared with all later workers */
+        ngx_lua_events_shm.size = sizeof(ngx_uint_t) * NGX_MAX_PROCESSES;
+        ngx_lua_events_shm.log = cycle->log;
+
+        if (ngx_shm_alloc(&ngx_lua_events_shm) != NGX_OK) {
+            return NGX_ERROR;
+        }
+
+        ngx_memzero(ngx_lua_events_shm.addr, ngx_lua_events_shm.size);
+
+        ngx_lua_events_gen_table = (ngx_uint_t *) ngx_lua_events_shm.addr;
+    }
+
+    ngx_lua_events_generation++;
+
+    return NGX_OK;
+}
+
+
+static ngx_int_t
+ngx_lua_events_init_process(ngx_cycle_t *cycle)
+{
+    if (ngx_lua_events_gen_table != NULL
+        && ngx_process_slot >= 0
+        && ngx_process_slot < NGX_MAX_PROCESSES)
+    {
+        ngx_lua_events_gen_table[ngx_process_slot] =
+            ngx_lua_events_generation;
+    }
+
+    return NGX_OK;
+}
+
+
+/* generations are small, `unsigned int` matches the other ngx_lua FFIs */
+unsigned int
+ngx_lua_ffi_events_generation(void)
+{
+    return (unsigned int) ngx_lua_events_generation;
+}
+
+
+/* the generation of process `pid`, or 0 when it is unknown */
+unsigned int
+ngx_lua_ffi_events_pid_generation(int pid)
+{
+    ngx_uint_t  i;
+
+    if (ngx_lua_events_gen_table == NULL || pid <= 0) {
+        return 0;
+    }
+
+    /* the same walk as ngx.worker.pids() does over the process table */
+
+    for (i = 0; i < NGX_MAX_PROCESSES; i++) {
+
+        if (i != (ngx_uint_t) ngx_process_slot && ngx_processes[i].pid == 0) {
+            break;
+        }
+
+        if (i == (ngx_uint_t) ngx_process_slot) {
+            if (pid == ngx_pid) {
+                return (unsigned int) ngx_lua_events_gen_table[i];
+            }
+        }
+
+        if (ngx_processes[i].channel[0] > 0 && ngx_processes[i].pid == pid) {
+            return (unsigned int) ngx_lua_events_gen_table[i];
+        }
+    }
+
+    return 0;
+}
+
+
+static ngx_core_module_t  ngx_lua_events_module_ctx = {
+    ngx_string("ngx_lua_events"),
+    NULL,
+    NULL
+};
+
+
+ngx_module_t  ngx_lua_events_module = {
+    NGX_MODULE_V1,
+    &ngx_lua_events_module_ctx,                  /* module context */
+    NULL,                                        /* module directives */
+    NGX_CORE_MODULE,                             /* module type */
+    NULL,                                        /* init master */
+    ngx_lua_events_init_module,                  /* init module */
+    ngx_lua_events_init_process,                 /* init process */
+    NULL,                                        /* init thread */
+    NULL,                                        /* exit thread */
+    NULL,                                        /* exit process */
+    NULL,                                        /* exit master */
+    NGX_MODULE_V1_PADDING
+};

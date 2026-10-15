@@ -5,9 +5,12 @@ local callback = require "resty.events.callback"
 local utils = require "resty.events.utils"
 
 
+local protocol = require "resty.events.protocol"
 local frame_validate = require("resty.events.frame").validate
-local client = require("resty.events.protocol").client
+local client = protocol.client
+local ACCEPT_FRAME = protocol.ACCEPT_FRAME
 local is_timeout = utils.is_timeout
+local is_closed = utils.is_closed
 local get_worker_id = utils.get_worker_id
 local get_worker_name = utils.get_worker_name
 
@@ -166,6 +169,11 @@ local function read_thread(self, broker_connection)
             goto continue
         end
 
+        if data == ACCEPT_FRAME then
+            -- a late acknowledgement, not an event
+            goto continue
+        end
+
         local event_data, err = decode(data)
         if err then
             if not exiting() then
@@ -278,7 +286,7 @@ function _M:communicate()
 
     local broker_connection = assert(client.new())
 
-    local ok, err = broker_connection:connect(listening)
+    local ok, err, broker_rejected = broker_connection:connect(listening)
 
     if exiting() then
         if ok then
@@ -288,7 +296,13 @@ function _M:communicate()
     end
 
     if not ok then
-        log(ERR, "failed to connect: ", err)
+        if broker_rejected then
+            -- another generation's broker (or not a broker at all)
+            log(DEBUG, "broker refused the connection: ", err)
+
+        else
+            log(ERR, "failed to connect: ", err)
+        end
 
         -- try to reconnect broker
         start_communicate_timer(self, random_delay())
@@ -318,11 +332,22 @@ function _M:communicate()
     end
 
     if not ok then
-        log(ERR, "event worker failed to communicate with broker (", err, ")")
+        if is_closed(err) then
+            -- the broker drops connections when it shuts down after a reload
+            log(DEBUG, "broker closed the connection (", err, ")")
+
+        else
+            log(ERR, "event worker failed to communicate with broker (", err, ")")
+        end
     end
 
     if perr then
-        log(ERR, "event worker failed to communicate with broker (", perr, ")")
+        if is_closed(perr) then
+            log(DEBUG, "broker closed the connection (", perr, ")")
+
+        else
+            log(ERR, "event worker failed to communicate with broker (", perr, ")")
+        end
     end
 
     wait(read_thread_co)

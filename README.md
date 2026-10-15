@@ -89,6 +89,12 @@ This module provides a way to send events to the other worker processes in an Ng
 server. Communication is through a unix domain socket which is listened by one and
 only one Nginx worker.
 
+Workers started by a configuration reload are not mixed with the workers they are
+replacing: an event published after a reload is never delivered to, nor received
+from, a worker of a previous generation. This is done by the small Nginx module
+shipped in this repository (`src/ngx_lua_events_module.c`, built through the
+`config` file), which must therefore be compiled into Nginx.
+
 The design allows for 3 usecases;
 
 1. broadcast an event to all workers processes, see [publish](#publish). Example:

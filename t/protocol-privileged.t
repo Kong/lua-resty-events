@@ -66,6 +66,13 @@ __DATA__
                     return
                 end
 
+                -- acknowledge the handshake like the real broker
+                local ok, err = conn:ack()
+                if not ok then
+                    ngx.say("failed to ack: ", err)
+                    return
+                end
+
                 ngx.log(ngx.DEBUG, "Upgrade: ", ngx.var.http_upgrade)
                 ngx.log(ngx.DEBUG, "Worker ID: ", conn.info.id)
 
